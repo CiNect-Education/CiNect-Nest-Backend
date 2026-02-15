@@ -17,6 +17,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
 import { UserRole } from '@prisma/client';
+import { mapRoomFormat } from '../common/helpers/format.helper';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMovieDto } from '../movies/dto/create-movie.dto';
 import { UpdateMovieDto } from '../movies/dto/update-movie.dto';
@@ -213,7 +214,7 @@ export class AdminController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
     const skip = (page - 1) * limit;
-    const [data, total] = await Promise.all([
+    const [rawData, total] = await Promise.all([
       this.prisma.showtime.findMany({
         skip,
         take: limit,
@@ -222,6 +223,15 @@ export class AdminController {
       }),
       this.prisma.showtime.count(),
     ]);
+    const data = rawData.map(({ movie, cinema, room, basePrice, format, ...st }) => ({
+      ...st,
+      basePrice: Number(basePrice),
+      format: mapRoomFormat(format),
+      movieTitle: movie?.title ?? null,
+      moviePosterUrl: movie?.posterUrl ?? null,
+      cinemaName: cinema?.name ?? null,
+      roomName: room?.name ?? null,
+    }));
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
@@ -331,14 +341,14 @@ export class AdminController {
   ) {
     const skip = (page - 1) * limit;
     const where = status ? { status: status as any } : {};
-    const [data, total] = await Promise.all([
+    const [rawData, total] = await Promise.all([
       this.prisma.booking.findMany({
         skip,
         take: limit,
         where,
         include: {
           user: { select: { id: true, email: true, fullName: true } },
-          showtime: { include: { movie: true, cinema: true } },
+          showtime: { include: { movie: true, cinema: true, room: true } },
           bookingItems: { include: { seat: true } },
           payments: true,
         },
@@ -346,6 +356,18 @@ export class AdminController {
       }),
       this.prisma.booking.count({ where }),
     ]);
+    const data = rawData.map(({ showtime, totalAmount, ...b }) => ({
+      ...b,
+      totalAmount: Number(totalAmount),
+      movieTitle: showtime?.movie?.title ?? null,
+      cinemaName: showtime?.cinema?.name ?? null,
+      roomName: showtime?.room?.name ?? null,
+      showtime: showtime ? {
+        ...showtime,
+        basePrice: Number(showtime.basePrice),
+        format: mapRoomFormat(showtime.format),
+      } : null,
+    }));
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
