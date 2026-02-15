@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cinect-nest-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cinect_node
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cinect-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  nest-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cinect-nest-backend
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/cinect_node
+      DIRECT_URL: postgresql://postgres:postgres@postgres:5432/cinect_node
+      JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm}
+      JWT_ACCESS_SECONDS: ${JWT_ACCESS_SECONDS:-900}
+      JWT_REFRESH_SECONDS: ${JWT_REFRESH_SECONDS:-604800}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080}
+      PORT: 3001
+      HOLD_TTL_MINUTES: ${HOLD_TTL_MINUTES:-10}
+      PAYMENT_TIMEOUT_MINUTES: ${PAYMENT_TIMEOUT_MINUTES:-2}
+      POINTS_PER_BOOKING: ${POINTS_PER_BOOKING:-10}
+      MAINTENANCE_MODE: ${MAINTENANCE_MODE:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cinect-network
+
+networks:
+  cinect-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

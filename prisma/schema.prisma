@@ -1,0 +1,830 @@
+// CiNect Cinema Platform - Prisma Schema
+// PostgreSQL - Matches V1__init_schema.sql exactly
+// Database: cinect_node via DATABASE_URL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============ ENUMS (matching SQL) ============
+enum UserRole {
+  ADMIN
+  STAFF
+  USER
+
+  @@map("user_role")
+}
+
+enum MovieStatus {
+  NOW_SHOWING
+  COMING_SOON
+  ENDED
+
+  @@map("movie_status")
+}
+
+enum AgeRating {
+  P
+  C13
+  C16
+  C18
+
+  @@map("age_rating")
+}
+
+enum RoomFormat {
+  STANDARD2D @map("2D")
+  STANDARD3D @map("3D")
+  IMAX
+  FOURDX     @map("4DX")
+  DOLBY
+
+  @@map("room_format")
+}
+
+enum SeatType {
+  STANDARD
+  VIP
+  COUPLE
+  DISABLED
+
+  @@map("seat_type")
+}
+
+enum SeatStatus {
+  AVAILABLE
+  BOOKED
+  BLOCKED
+
+  @@map("seat_status")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+
+  @@map("booking_status")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+
+  @@map("payment_status")
+}
+
+enum PaymentMethod {
+  CARD
+  MOMO
+  ZALOPAY
+  VNPAY
+  BANK_TRANSFER
+  CASH
+
+  @@map("payment_method")
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+
+  @@map("discount_type")
+}
+
+enum PromotionStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+
+  @@map("promotion_status")
+}
+
+enum DayType {
+  WEEKDAY
+  WEEKEND
+  HOLIDAY
+
+  @@map("day_type")
+}
+
+enum TimeSlot {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+
+  @@map("time_slot")
+}
+
+enum NotificationType {
+  BOOKING
+  PROMOTION
+  SYSTEM
+  MEMBERSHIP
+
+  @@map("notification_type")
+}
+
+enum GiftCardStatus {
+  AVAILABLE
+  SOLD_OUT
+  REDEEMED
+  EXPIRED
+
+  @@map("gift_card_status")
+}
+
+enum CouponStatus {
+  ACTIVE
+  USED
+  EXPIRED
+
+  @@map("coupon_status")
+}
+
+enum NewsCategory {
+  REVIEWS
+  TRAILERS
+  PROMOTIONS
+  GUIDES
+  GENERAL
+
+  @@map("news_category")
+}
+
+enum HoldStatus {
+  ACTIVE
+  RELEASED
+  EXPIRED
+  CONVERTED
+
+  @@map("hold_status")
+}
+
+enum PointsTxType {
+  EARNED
+  SPENT
+  EXPIRED
+  ADJUSTED
+
+  @@map("points_tx_type")
+}
+
+enum SupportCategory {
+  BOOKING
+  PAYMENT
+  ACCOUNT
+  TECHNICAL
+  OTHER
+
+  @@map("support_category")
+}
+
+// ============ MODELS ============
+model Role {
+  id          String   @id @default(uuid()) @map("id")
+  name        UserRole @unique @map("name")
+  permissions Json     @default("[]") @map("permissions")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userRoles UserRoleJoin[]
+
+  @@map("roles")
+}
+
+model User {
+  id            String    @id @default(uuid()) @map("id")
+  email         String    @unique @map("email")
+  passwordHash  String    @map("password_hash")
+  fullName      String    @map("full_name")
+  phone         String?   @map("phone")
+  avatar        String?   @map("avatar")
+  dateOfBirth   DateTime? @map("date_of_birth") @db.Date
+  gender        String?   @map("gender")
+  city          String?   @map("city")
+  isActive      Boolean   @default(true) @map("is_active")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  refreshToken  String?   @map("refresh_token")
+  resetToken    String?   @map("reset_token")
+  resetTokenExp DateTime? @map("reset_token_exp")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  userRoles         UserRoleJoin[]
+  memberships       Membership[]
+  pointsHistory     PointsHistory[]
+  bookings          Booking[]
+  holds             Hold[]
+  reviews           Review[]
+  notifications     Notification[]
+  supportTickets    SupportTicket[]
+  auditLogs         AuditLog[]
+  couponAssignments Coupon[]
+  giftRedemptions   GiftTransaction[] @relation("GiftRedemptions")
+
+  @@index([email])
+  @@index([city])
+  @@map("users")
+}
+
+model UserRoleJoin {
+  userId String @map("user_id")
+  roleId String @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Genre {
+  id   String @id @default(uuid()) @map("id")
+  name String @unique @map("name")
+  slug String @unique @map("slug")
+
+  movieGenres MovieGenre[]
+
+  @@map("genres")
+}
+
+model Movie {
+  id            String      @id @default(uuid()) @map("id")
+  title         String      @map("title")
+  originalTitle String?     @map("original_title")
+  slug          String      @unique @map("slug")
+  description   String      @map("description")
+  posterUrl     String      @map("poster_url")
+  bannerUrl     String?     @map("banner_url")
+  trailerUrl    String?     @map("trailer_url")
+  galleryUrls   Json        @default("[]") @map("gallery_urls")
+  duration      Int         @map("duration")
+  releaseDate   DateTime    @map("release_date") @db.Date
+  endDate       DateTime?   @map("end_date") @db.Date
+  director      String      @map("director")
+  castMembers   Json        @default("[]") @map("cast_members")
+  language      String      @default("Vietnamese") @map("language")
+  subtitles     String?     @map("subtitles")
+  rating        Decimal     @default(0) @map("rating") @db.Decimal(3, 1)
+  ratingCount   Int         @default(0) @map("rating_count")
+  ageRating     AgeRating   @default(P) @map("age_rating")
+  formats       Json        @default("[\"2D\"]") @map("formats")
+  status        MovieStatus @default(COMING_SOON) @map("status")
+  isDeleted     Boolean     @default(false) @map("is_deleted")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  movieGenres MovieGenre[]
+  showtimes   Showtime[]
+  reviews     Review[]
+
+  @@index([status])
+  @@index([slug])
+  @@index([releaseDate])
+  @@map("movies")
+}
+
+model MovieGenre {
+  movieId String @map("movie_id")
+  genreId String @map("genre_id")
+
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, genreId])
+  @@map("movie_genres")
+}
+
+model Cinema {
+  id        String   @id @default(uuid()) @map("id")
+  name      String   @map("name")
+  slug      String   @unique @map("slug")
+  address   String   @map("address")
+  city      String   @map("city")
+  district  String?  @map("district")
+  phone     String?  @map("phone")
+  email     String?  @map("email")
+  imageUrl  String?  @map("image_url")
+  amenities Json     @default("[]") @map("amenities")
+  latitude  Float?   @map("latitude")
+  longitude Float?   @map("longitude")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  rooms        Room[]
+  showtimes    Showtime[]
+  snacks       Snack[]
+  pricingRules PricingRule[]
+
+  @@index([city])
+  @@map("cinemas")
+}
+
+model Room {
+  id         String     @id @default(uuid()) @map("id")
+  cinemaId   String     @map("cinema_id")
+  name       String     @map("name")
+  format     RoomFormat @default(STANDARD2D) @map("format")
+  totalSeats Int        @default(0) @map("total_seats")
+  rows       Int        @default(0) @map("rows")
+  columns    Int        @default(0) @map("columns")
+  isActive   Boolean    @default(true) @map("is_active")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  cinema    Cinema     @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+  seats     Seat[]
+  showtimes Showtime[]
+
+  @@unique([cinemaId, name])
+  @@index([cinemaId])
+  @@map("rooms")
+}
+
+model Seat {
+  id       String     @id @default(uuid()) @map("id")
+  roomId   String     @map("room_id")
+  rowLabel String     @map("row_label")
+  number   Int        @map("number")
+  type     SeatType   @default(STANDARD) @map("type")
+  status   SeatStatus @default(AVAILABLE) @map("status")
+  pairId   String?    @map("pair_id")
+  isAisle  Boolean    @default(false) @map("is_aisle")
+  price    Decimal?   @map("price") @db.Decimal(12, 2)
+
+  room         Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  pair         Seat?         @relation("SeatPair", fields: [pairId], references: [id])
+  pairedWith   Seat[]        @relation("SeatPair")
+  holdSeats    HoldSeat[]
+  bookingItems BookingItem[]
+
+  @@unique([roomId, rowLabel, number])
+  @@index([roomId])
+  @@map("seats")
+}
+
+model Showtime {
+  id              String     @id @default(uuid()) @map("id")
+  movieId         String     @map("movie_id")
+  roomId          String     @map("room_id")
+  cinemaId        String     @map("cinema_id")
+  startTime       DateTime   @map("start_time")
+  endTime         DateTime   @map("end_time")
+  basePrice       Decimal    @map("base_price") @db.Decimal(12, 2)
+  format          RoomFormat @default(STANDARD2D) @map("format")
+  language        String?    @map("language")
+  subtitles       String?    @map("subtitles")
+  isActive        Boolean    @default(true) @map("is_active")
+  memberExclusive Boolean    @default(false) @map("member_exclusive")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  movie        Movie         @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  room         Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  cinema       Cinema        @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+  holds        Hold[]
+  bookings     Booking[]
+  holdSeats    HoldSeat[]
+  bookingItems BookingItem[]
+
+  @@index([movieId])
+  @@index([cinemaId])
+  @@index([roomId])
+  @@index([startTime, endTime])
+  @@map("showtimes")
+}
+
+model Hold {
+  id         String     @id @default(uuid()) @map("id")
+  userId     String     @map("user_id")
+  showtimeId String     @map("showtime_id")
+  seatIds    Json       @default("[]") @map("seat_ids")
+  status     HoldStatus @default(ACTIVE) @map("status")
+  expiresAt  DateTime   @map("expires_at")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  showtime  Showtime   @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+  holdSeats HoldSeat[]
+  bookings  Booking[]
+
+  @@index([userId])
+  @@index([showtimeId])
+  @@index([expiresAt])
+  @@map("holds")
+}
+
+model HoldSeat {
+  holdId     String @map("hold_id")
+  showtimeId String @map("showtime_id")
+  seatId     String @map("seat_id")
+
+  hold     Hold     @relation(fields: [holdId], references: [id], onDelete: Cascade)
+  showtime Showtime @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+  seat     Seat     @relation(fields: [seatId], references: [id], onDelete: Cascade)
+
+  @@id([holdId, seatId])
+  @@unique([showtimeId, seatId])
+  @@map("hold_seats")
+}
+
+model Booking {
+  id             String        @id @default(uuid()) @map("id")
+  userId         String        @map("user_id")
+  showtimeId     String        @map("showtime_id")
+  holdId         String?       @map("hold_id")
+  totalAmount    Decimal       @default(0) @map("total_amount") @db.Decimal(12, 2)
+  discountAmount Decimal       @default(0) @map("discount_amount") @db.Decimal(12, 2)
+  finalAmount    Decimal       @default(0) @map("final_amount") @db.Decimal(12, 2)
+  status         BookingStatus @default(PENDING) @map("status")
+  promotionCode  String?       @map("promotion_code")
+  pointsUsed     Int           @default(0) @map("points_used")
+  giftCardCode   String?       @map("gift_card_code")
+  qrCode         String?       @map("qr_code")
+  expiresAt      DateTime?     @map("expires_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  user          User            @relation(fields: [userId], references: [id])
+  showtime      Showtime        @relation(fields: [showtimeId], references: [id])
+  hold          Hold?           @relation(fields: [holdId], references: [id])
+  bookingItems  BookingItem[]
+  bookingSnacks BookingSnack[]
+  payments      Payment[]
+  pointsHistory PointsHistory[]
+
+  @@index([userId])
+  @@index([showtimeId])
+  @@index([status])
+  @@map("bookings")
+}
+
+model BookingItem {
+  id         String   @id @default(uuid()) @map("id")
+  bookingId  String   @map("booking_id")
+  seatId     String   @map("seat_id")
+  showtimeId String   @map("showtime_id")
+  rowLabel   String   @map("row_label")
+  seatNumber Int      @map("seat_number")
+  seatType   SeatType @map("seat_type")
+  price      Decimal  @map("price") @db.Decimal(12, 2)
+
+  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  seat     Seat     @relation(fields: [seatId], references: [id])
+  showtime Showtime @relation(fields: [showtimeId], references: [id])
+
+  @@index([bookingId])
+  @@index([showtimeId, seatId])
+  @@map("booking_items")
+}
+
+model Snack {
+  id          String   @id @default(uuid()) @map("id")
+  cinemaId    String?  @map("cinema_id")
+  name        String   @map("name")
+  description String?  @map("description")
+  price       Decimal  @map("price") @db.Decimal(12, 2)
+  imageUrl    String?  @map("image_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  cinema        Cinema?        @relation(fields: [cinemaId], references: [id], onDelete: SetNull)
+  bookingSnacks BookingSnack[]
+
+  @@index([cinemaId])
+  @@map("snacks")
+}
+
+model BookingSnack {
+  id         String  @id @default(uuid()) @map("id")
+  bookingId  String  @map("booking_id")
+  snackId    String  @map("snack_id")
+  name       String  @map("name")
+  quantity   Int     @map("quantity")
+  unitPrice  Decimal @map("unit_price") @db.Decimal(12, 2)
+  totalPrice Decimal @map("total_price") @db.Decimal(12, 2)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  snack   Snack   @relation(fields: [snackId], references: [id])
+
+  @@index([bookingId])
+  @@map("booking_snacks")
+}
+
+model Payment {
+  id            String        @id @default(uuid()) @map("id")
+  bookingId     String        @map("booking_id")
+  method        PaymentMethod @map("method")
+  amount        Decimal       @map("amount") @db.Decimal(12, 2)
+  status        PaymentStatus @default(PENDING) @map("status")
+  transactionId String?       @map("transaction_id")
+  paymentUrl    String?       @map("payment_url")
+  errorReason   String?       @map("error_reason")
+  paidAt        DateTime?     @map("paid_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([transactionId])
+  @@map("payments")
+}
+
+model PricingRule {
+  id        String      @id @default(uuid()) @map("id")
+  name      String?     @map("name")
+  cinemaId  String?     @map("cinema_id")
+  seatType  SeatType?   @map("seat_type")
+  format    RoomFormat? @map("format")
+  dayType   DayType?    @map("day_type")
+  timeSlot  TimeSlot?   @map("time_slot")
+  isHoliday Boolean     @default(false) @map("is_holiday")
+  price     Decimal     @map("price") @db.Decimal(12, 2)
+  isActive  Boolean     @default(true) @map("is_active")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  cinema Cinema? @relation(fields: [cinemaId], references: [id], onDelete: SetNull)
+
+  @@index([isActive])
+  @@map("pricing_rules")
+}
+
+model Promotion {
+  id            String          @id @default(uuid()) @map("id")
+  title         String          @map("title")
+  description   String?         @map("description")
+  code          String?         @unique @map("code")
+  discountType  DiscountType    @map("discount_type")
+  discountValue Decimal         @map("discount_value") @db.Decimal(12, 2)
+  minPurchase   Decimal?        @map("min_purchase") @db.Decimal(12, 2)
+  maxDiscount   Decimal?        @map("max_discount") @db.Decimal(12, 2)
+  usageLimit    Int?            @map("usage_limit")
+  usageCount    Int             @default(0) @map("usage_count")
+  startDate     DateTime        @map("start_date")
+  endDate       DateTime        @map("end_date")
+  imageUrl      String?         @map("image_url")
+  conditions    String?         @map("conditions")
+  status        PromotionStatus @default(ACTIVE) @map("status")
+  isTrending    Boolean         @default(false) @map("is_trending")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  coupons Coupon[]
+
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("promotions")
+}
+
+model Coupon {
+  id            String       @id @default(uuid()) @map("id")
+  userId        String?      @map("user_id")
+  promotionId   String?      @map("promotion_id")
+  code          String       @unique @map("code")
+  discountType  DiscountType @map("discount_type")
+  discountValue Decimal      @map("discount_value") @db.Decimal(12, 2)
+  minPurchase   Decimal?     @map("min_purchase") @db.Decimal(12, 2)
+  maxDiscount   Decimal?     @map("max_discount") @db.Decimal(12, 2)
+  status        CouponStatus @default(ACTIVE) @map("status")
+  expiresAt     DateTime     @map("expires_at")
+  usedAt        DateTime?    @map("used_at")
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  promotion Promotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([code])
+  @@map("coupons")
+}
+
+model MembershipTier {
+  id              String   @id @default(uuid()) @map("id")
+  name            String   @unique @map("name")
+  level           Int      @unique @map("level")
+  pointsRequired  Int      @default(0) @map("points_required")
+  benefits        Json     @default("[]") @map("benefits")
+  discountPercent Decimal  @default(0) @map("discount_percent") @db.Decimal(5, 2)
+  color           String   @default("#6B7280") @map("color")
+  icon            String?  @map("icon")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  memberships Membership[]
+
+  @@map("membership_tiers")
+}
+
+model Membership {
+  id            String    @id @default(uuid()) @map("id")
+  userId        String    @unique @map("user_id")
+  tierId        String    @map("tier_id")
+  currentPoints Int       @default(0) @map("current_points")
+  totalPoints   Int       @default(0) @map("total_points")
+  memberSince   DateTime  @default(now()) @map("member_since")
+  expiresAt     DateTime? @map("expires_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier MembershipTier @relation(fields: [tierId], references: [id])
+
+  @@index([userId])
+  @@map("memberships")
+}
+
+model PointsHistory {
+  id          String       @id @default(uuid()) @map("id")
+  userId      String       @map("user_id")
+  type        PointsTxType @map("type")
+  points      Int          @map("points")
+  balance     Int          @default(0) @map("balance")
+  description String?      @map("description")
+  bookingId   String?      @map("booking_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("points_history")
+}
+
+model GiftCard {
+  id          String         @id @default(uuid()) @map("id")
+  title       String         @map("title")
+  description String?        @map("description")
+  imageUrl    String?        @map("image_url")
+  value       Decimal        @map("value") @db.Decimal(12, 2)
+  price       Decimal        @map("price") @db.Decimal(12, 2)
+  code        String?        @unique @map("code")
+  status      GiftCardStatus @default(AVAILABLE) @map("status")
+  expiresAt   DateTime?      @map("expires_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  giftTransactions GiftTransaction[]
+
+  @@index([status])
+  @@map("gift_cards")
+}
+
+model GiftTransaction {
+  id             String    @id @default(uuid()) @map("id")
+  giftCardId     String    @map("gift_card_id")
+  buyerId        String?   @map("buyer_id")
+  recipientEmail String?   @map("recipient_email")
+  message        String?   @map("message")
+  purchasedAt    DateTime  @default(now()) @map("purchased_at")
+  redeemedAt     DateTime? @map("redeemed_at")
+  redeemedBy     String?   @map("redeemed_by")
+  bookingId      String?   @map("booking_id")
+
+  giftCard     GiftCard @relation(fields: [giftCardId], references: [id])
+  redeemedUser User?    @relation("GiftRedemptions", fields: [redeemedBy], references: [id], onDelete: SetNull)
+
+  @@index([buyerId])
+  @@map("gift_transactions")
+}
+
+model Review {
+  id        String   @id @default(uuid()) @map("id")
+  userId    String   @map("user_id")
+  movieId   String   @map("movie_id")
+  rating    Int      @map("rating")
+  content   String   @map("content")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+  @@index([movieId])
+  @@map("reviews")
+}
+
+model NewsArticle {
+  id                String       @id @default(uuid()) @map("id")
+  title             String       @map("title")
+  slug              String       @unique @map("slug")
+  excerpt           String       @map("excerpt")
+  content           String       @map("content")
+  category          NewsCategory @default(GENERAL) @map("category")
+  imageUrl          String?      @map("image_url")
+  author            String       @map("author")
+  tags              Json         @default("[]") @map("tags")
+  relatedArticleIds Json         @default("[]") @map("related_article_ids")
+  publishedAt       DateTime     @default(now()) @map("published_at")
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  @@index([slug])
+  @@index([category])
+  @@map("news_articles")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @map("id")
+  userId    String           @map("user_id")
+  title     String           @map("title")
+  message   String           @map("message")
+  type      NotificationType @default(SYSTEM) @map("type")
+  isRead    Boolean          @default(false) @map("is_read")
+  link      String?          @map("link")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @map("id")
+  userId     String?  @map("user_id")
+  userEmail  String?  @map("user_email")
+  action     String   @map("action")
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  oldValues  Json?    @map("old_values")
+  newValues  Json?    @map("new_values")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SupportTicket {
+  id         String          @id @default(uuid()) @map("id")
+  userId     String?         @map("user_id")
+  name       String          @map("name")
+  email      String          @map("email")
+  subject    String          @map("subject")
+  category   SupportCategory @default(OTHER) @map("category")
+  message    String          @map("message")
+  bookingId  String?         @map("booking_id")
+  isResolved Boolean         @default(false) @map("is_resolved")
+  createdAt  DateTime        @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("support_tickets")
+}
+
+model Campaign {
+  id          String   @id @default(uuid()) @map("id")
+  title       String   @map("title")
+  slug        String   @unique @map("slug")
+  description String?  @map("description")
+  content     String?  @map("content")
+  imageUrl    String?  @map("image_url")
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  isActive    Boolean  @default(true) @map("is_active")
+  metadata    Json     @default("{}") @map("metadata")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  banners Banner[]
+
+  @@map("campaigns")
+}
+
+model Banner {
+  id         String    @id @default(uuid()) @map("id")
+  title      String?   @map("title")
+  imageUrl   String    @map("image_url")
+  linkUrl    String?   @map("link_url")
+  position   String    @default("home") @map("position")
+  sortOrder  Int       @default(0) @map("sort_order")
+  isActive   Boolean   @default(true) @map("is_active")
+  campaignId String?   @map("campaign_id")
+  startDate  DateTime? @map("start_date")
+  endDate    DateTime? @map("end_date")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([position])
+  @@map("banners")
+}
