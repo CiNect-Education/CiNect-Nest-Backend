@@ -14,6 +14,12 @@ export class PromotionsController {
     return this.promotionsService.findAll();
   }
 
+  @Get('active')
+  @ApiQuery({ name: 'limit', required: false })
+  findActive(@Query('limit') limit?: string) {
+    return this.promotionsService.findActive(limit ? parseInt(limit, 10) : 8);
+  }
+
   @Get('trending')
   findTrending() {
     return this.promotionsService.findTrending();
