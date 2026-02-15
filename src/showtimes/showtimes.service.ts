@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HoldStatus } from '@prisma/client';
+import { mapRoomFormat } from '../common/helpers/format.helper';
 
 @Injectable()
 export class ShowtimesService {
@@ -24,7 +25,7 @@ export class ShowtimesService {
       where.startTime = { gte: start, lte: end };
     }
 
-    return this.prisma.showtime.findMany({
+    const showtimes = await this.prisma.showtime.findMany({
       where,
       include: {
         movie: { select: { id: true, title: true, slug: true, posterUrl: true, duration: true } },
@@ -33,6 +34,19 @@ export class ShowtimesService {
       },
       orderBy: { startTime: 'asc' },
     });
+
+    // Flatten nested objects to match frontend expected format
+    return showtimes.map(({ movie, room, cinema, basePrice, format, ...st }) => ({
+      ...st,
+      basePrice: Number(basePrice),
+      format: mapRoomFormat(format),
+      movieTitle: movie?.title ?? null,
+      moviePosterUrl: movie?.posterUrl ?? null,
+      cinemaName: cinema?.name ?? null,
+      roomName: room?.name ?? null,
+      availableSeats: null,
+      totalSeats: null,
+    }));
   }
 
   async findOne(id: string) {
@@ -47,7 +61,21 @@ export class ShowtimesService {
     if (!showtime) {
       throw new NotFoundException('Showtime not found');
     }
-    return showtime;
+    const { movie, room, cinema, basePrice, format, ...st } = showtime;
+    return {
+      ...st,
+      basePrice: Number(basePrice),
+      format: mapRoomFormat(format),
+      movieTitle: movie?.title ?? null,
+      moviePosterUrl: movie?.posterUrl ?? null,
+      cinemaName: cinema?.name ?? null,
+      roomName: room?.name ?? null,
+      availableSeats: null,
+      totalSeats: null,
+      movie,
+      room,
+      cinema,
+    };
   }
 
   async findSeats(showtimeId: string) {
