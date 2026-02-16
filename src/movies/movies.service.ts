@@ -49,7 +49,7 @@ export class MoviesService {
       };
     }
 
-    const [items, total] = await Promise.all([
+    const [rawItems, total] = await Promise.all([
       this.prisma.movie.findMany({
         where,
         skip,
@@ -61,6 +61,13 @@ export class MoviesService {
       }),
       this.prisma.movie.count({ where }),
     ]);
+
+    const items = rawItems.map(({ movieGenres, rating, castMembers, ...m }) => ({
+      ...m,
+      genres: movieGenres.map((mg) => mg.genre),
+      cast: castMembers ?? [],
+      rating: rating ? Number(rating) : null,
+    }));
 
     const meta = new PageMeta(page, limit, total);
     return { data: items.map((m) => this.toResponse(m)), meta };

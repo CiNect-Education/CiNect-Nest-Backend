@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { mapRoomFormat } from '../common/helpers/format.helper';
 
 @Injectable()
 export class CinemasService {
@@ -46,11 +47,16 @@ export class CinemasService {
     if (!cinema) {
       throw new NotFoundException('Cinema not found');
     }
-    return this.prisma.room.findMany({
+    const rooms = await this.prisma.room.findMany({
       where: { cinemaId, isActive: true },
       include: { seats: true },
       orderBy: { name: 'asc' },
     });
+    return rooms.map(({ format, ...r }) => ({
+      ...r,
+      format: mapRoomFormat(format),
+      cinemaName: cinema.name,
+    }));
   }
 
   async findShowtimes(cinemaId: string, date?: string, movieId?: string) {
@@ -79,13 +85,26 @@ export class CinemasService {
       (where as Record<string, unknown>).movieId = movieId;
     }
 
-    return this.prisma.showtime.findMany({
+    const showtimes = await this.prisma.showtime.findMany({
       where,
       include: {
         movie: { select: { id: true, title: true, slug: true, posterUrl: true, duration: true } },
         room: { select: { id: true, name: true, format: true } },
+        cinema: { select: { id: true, name: true } },
       },
       orderBy: { startTime: 'asc' },
     });
+
+    return showtimes.map(({ movie, room, cinema: cin, basePrice, format, ...st }) => ({
+      ...st,
+      basePrice: Number(basePrice),
+      format: mapRoomFormat(format),
+      movieTitle: movie?.title ?? null,
+      moviePosterUrl: movie?.posterUrl ?? null,
+      cinemaName: cin?.name ?? null,
+      roomName: room?.name ?? null,
+      availableSeats: null,
+      totalSeats: null,
+    }));
   }
 }
