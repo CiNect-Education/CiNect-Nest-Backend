@@ -1,4 +1,4 @@
-import { Controller, Post, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Post, Delete, Get, Body, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { HoldsService } from './holds.service';
 import { CreateHoldDto } from './dto/create-hold.dto';
@@ -14,6 +14,14 @@ export class HoldsController {
   @Post()
   create(@Body() dto: CreateHoldDto, @CurrentUser('id') userId: string) {
     return this.holdsService.create(dto.showtimeId, userId, dto.seatIds);
+  }
+
+  @Get(':id')
+  findOne(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.holdsService.findOne(id, userId);
   }
 
   @Delete(':id')

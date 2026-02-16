@@ -2,11 +2,11 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Param,
   Query,
   ParseIntPipe,
   DefaultValuePipe,
-  ParseBoolPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
@@ -45,8 +45,21 @@ export class NotificationsController {
     return this.notificationsService.markRead(id, userId);
   }
 
+  @Patch(':id/read')
+  markReadPatch(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.notificationsService.markRead(id, userId);
+  }
+
   @Post('read-all')
   markAllRead(@CurrentUser('id') userId: string) {
+    return this.notificationsService.markAllRead(userId);
+  }
+
+  @Patch('read-all')
+  markAllReadPatch(@CurrentUser('id') userId: string) {
     return this.notificationsService.markAllRead(userId);
   }
 }

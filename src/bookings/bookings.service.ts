@@ -86,7 +86,8 @@ export class BookingsService {
       let discountAmount = new Decimal(0);
       let promotionCode: string | null = null;
       let pointsUsed = 0;
-      const giftCardCode = dto.giftCardCode ?? null;
+      let giftCardCode: string | null = dto.giftCardCode ?? null;
+      let appliedGiftCardId: string | null = null;
 
       if (dto.promotionCode) {
         const promos = await tx.promotion.findMany({
@@ -147,6 +148,26 @@ export class BookingsService {
         pointsUsed = pointsToUse;
       }
 
+      if (dto.giftCardCode) {
+        const giftCard = await tx.giftCard.findFirst({
+          where: { code: dto.giftCardCode, status: 'AVAILABLE' },
+        });
+        if (!giftCard) {
+          throw new BadRequestException(
+            'Gift card not found or already used',
+          );
+        }
+        if (giftCard.expiresAt && giftCard.expiresAt < new Date()) {
+          throw new BadRequestException('Gift card has expired');
+        }
+        const remainingAmount = Number(totalAmount) - Number(discountAmount);
+        const giftValue = Number(giftCard.value);
+        const appliedValue = Math.min(giftValue, Math.max(0, remainingAmount));
+        discountAmount = discountAmount.add(appliedValue);
+        giftCardCode = dto.giftCardCode;
+        appliedGiftCardId = giftCard.id;
+      }
+
       let snackTotal = new Decimal(0);
       const snackItems: {
         snackId: string;
@@ -202,6 +223,13 @@ export class BookingsService {
         where: { id: hold.id },
         data: { status: HoldStatus.CONVERTED },
       });
+
+      if (appliedGiftCardId) {
+        await tx.giftCard.update({
+          where: { id: appliedGiftCardId },
+          data: { status: 'REDEEMED' },
+        });
+      }
 
       for (const hs of hold.holdSeats) {
         const seatPrice = await this.pricing.getSeatPrice({
@@ -383,5 +411,152 @@ export class BookingsService {
     }
 
     return { message: 'Booking cancelled' };
+  }
+
+  async applyPromo(bookingId: string, userId: string, code: string) {
+    const booking = await this.prisma.booking.findFirst({
+      where: { id: bookingId, userId, status: 'PENDING' },
+    });
+    if (!booking) {
+      throw new NotFoundException('Booking not found or not pending');
+    }
+
+    const promotion = await this.prisma.promotion.findFirst({
+      where: {
+        code,
+        status: 'ACTIVE',
+        startDate: { lte: new Date() },
+        endDate: { gte: new Date() },
+      },
+    });
+    if (!promotion) {
+      throw new NotFoundException('Promotion not found or expired');
+    }
+
+    if (promotion.minPurchase && booking.totalAmount.toNumber() < promotion.minPurchase.toNumber()) {
+      throw new BadRequestException('Booking total does not meet minimum purchase requirement');
+    }
+
+    let discount = 0;
+    if (promotion.discountType === 'PERCENTAGE') {
+      discount = booking.totalAmount.toNumber() * (promotion.discountValue.toNumber() / 100);
+    } else {
+      discount = promotion.discountValue.toNumber();
+    }
+    if (promotion.maxDiscount && discount > promotion.maxDiscount.toNumber()) {
+      discount = promotion.maxDiscount.toNumber();
+    }
+
+    const newDiscount = booking.discountAmount.toNumber() + discount;
+    const newFinal = booking.totalAmount.toNumber() - newDiscount;
+
+    const updated = await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        promotionCode: code,
+        discountAmount: newDiscount,
+        finalAmount: Math.max(0, newFinal),
+      },
+    });
+
+    await this.prisma.promotion.update({
+      where: { id: promotion.id },
+      data: { usageCount: { increment: 1 } },
+    });
+
+    return updated;
+  }
+
+  async applyPoints(bookingId: string, userId: string, points: number) {
+    const booking = await this.prisma.booking.findFirst({
+      where: { id: bookingId, userId, status: 'PENDING' },
+    });
+    if (!booking) {
+      throw new NotFoundException('Booking not found or not pending');
+    }
+
+    const membership = await this.prisma.membership.findUnique({
+      where: { userId },
+    });
+    if (!membership || membership.currentPoints < points) {
+      throw new BadRequestException('Insufficient points');
+    }
+
+    const pointsValue = points * 0.01; // 1 point = 0.01 currency unit
+    const newDiscount = booking.discountAmount.toNumber() + pointsValue;
+    const newFinal = booking.totalAmount.toNumber() - newDiscount;
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.membership.update({
+        where: { userId },
+        data: { currentPoints: { decrement: points } },
+      });
+
+      await tx.pointsHistory.create({
+        data: {
+          userId,
+          type: 'SPENT',
+          points: -points,
+          balance: membership.currentPoints - points,
+          description: `Redeemed ${points} points for booking`,
+          bookingId,
+        },
+      });
+
+      return tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          pointsUsed: (booking.pointsUsed || 0) + points,
+          discountAmount: newDiscount,
+          finalAmount: Math.max(0, newFinal),
+        },
+      });
+    });
+
+    return updated;
+  }
+
+  async applyGiftCard(bookingId: string, userId: string, code: string) {
+    const booking = await this.prisma.booking.findFirst({
+      where: { id: bookingId, userId, status: 'PENDING' },
+    });
+    if (!booking) {
+      throw new NotFoundException('Booking not found or not pending');
+    }
+
+    const giftCard = await this.prisma.giftCard.findFirst({
+      where: { code, status: 'AVAILABLE' },
+    });
+    if (!giftCard) {
+      throw new NotFoundException('Gift card not found or already used');
+    }
+    if (giftCard.expiresAt && giftCard.expiresAt < new Date()) {
+      throw new BadRequestException('Gift card has expired');
+    }
+
+    const giftValue = giftCard.value.toNumber();
+    const remainingAmount = booking.finalAmount.toNumber();
+    const appliedValue = Math.min(giftValue, remainingAmount);
+
+    const newDiscount = booking.discountAmount.toNumber() + appliedValue;
+    const newFinal = booking.totalAmount.toNumber() - newDiscount;
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.giftCard.update({
+        where: { id: giftCard.id },
+        data: { status: 'REDEEMED' },
+      });
+
+      return tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          giftCardCode: code,
+          discountAmount: newDiscount,
+          finalAmount: Math.max(0, newFinal),
+        },
+      });
+    });
+
+    return updated;
   }
 }

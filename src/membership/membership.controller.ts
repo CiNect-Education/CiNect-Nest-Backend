@@ -21,6 +21,12 @@ export class MembershipController {
     return this.membershipService.getTiers();
   }
 
+  @Public()
+  @Get('events')
+  getEvents() {
+    return this.membershipService.getEvents();
+  }
+
   @ApiBearerAuth()
   @Get('profile')
   getProfile(@CurrentUser('id') userId: string) {

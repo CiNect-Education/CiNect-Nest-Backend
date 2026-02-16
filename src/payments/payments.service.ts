@@ -82,6 +82,15 @@ export class PaymentsService {
     };
   }
 
+  async getByTransactionId(transactionId: string) {
+    const payment = await this.prisma.payment.findFirst({
+      where: { transactionId },
+      select: { id: true, bookingId: true, status: true },
+    });
+    if (!payment) throw new NotFoundException('Payment not found');
+    return payment;
+  }
+
   async getStatus(paymentId: string, userId: string) {
     const payment = await this.prisma.payment.findFirst({
       where: { id: paymentId },

@@ -25,6 +25,12 @@ export class PromotionsController {
     return this.promotionsService.findTrending();
   }
 
+  @Get('eligible')
+  @ApiQuery({ name: 'bookingId', required: true })
+  findEligible(@Query('bookingId') bookingId: string) {
+    return this.promotionsService.findEligible(bookingId);
+  }
+
   @Get(':code/validate')
   @ApiQuery({ name: 'amount', required: false })
   validate(

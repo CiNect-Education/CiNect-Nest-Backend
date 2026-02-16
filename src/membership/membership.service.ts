@@ -12,6 +12,23 @@ export class MembershipService {
     });
   }
 
+  async getEvents() {
+    return this.prisma.showtime.findMany({
+      where: {
+        memberExclusive: true,
+        isActive: true,
+        startTime: { gte: new Date() },
+      },
+      include: {
+        movie: { select: { id: true, title: true, slug: true, posterUrl: true, duration: true } },
+        room: { select: { id: true, name: true, format: true } },
+        cinema: { select: { id: true, name: true, slug: true, address: true, city: true } },
+      },
+      orderBy: { startTime: 'asc' },
+      take: 20,
+    });
+  }
+
   async getProfile(userId: string) {
     const membership = await this.prisma.membership.findUnique({
       where: { userId },
