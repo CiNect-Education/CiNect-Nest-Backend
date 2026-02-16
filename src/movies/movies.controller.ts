@@ -47,6 +47,16 @@ export class MoviesController {
   }
 
   @Public()
+  @Get(':id/showtimes')
+  @ApiQuery({ name: 'date', required: false })
+  findShowtimes(
+    @Param('id', ParseUuidPipe) id: string,
+    @Query('date') date?: string,
+  ) {
+    return this.moviesService.findShowtimesByMovie(id, date);
+  }
+
+  @Public()
   @Get(':id/reviews')
   findReviews(
     @Param('id', ParseUuidPipe) id: string,

@@ -14,6 +14,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { MembershipModule } from './membership/membership.module';
 import { GiftsModule } from './gifts/gifts.module';
 import { PromotionsModule } from './promotions/promotions.module';
+import { CouponsModule } from './coupons/coupons.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { NewsModule } from './news/news.module';
 import { SnacksModule } from './snacks/snacks.module';
@@ -22,6 +23,11 @@ import { AdminModule } from './admin/admin.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { HealthModule } from './health/health.module';
+import { MeModule } from './me/me.module';
+import { StatusModule } from './status/status.module';
+import { PricingModule } from './pricing/pricing.module';
+import { CampaignsModule } from './campaigns/campaigns.module';
+import { BannersModule } from './banners/banners.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PrismaService } from './prisma/prisma.service';
@@ -56,6 +62,7 @@ import { PrismaService } from './prisma/prisma.service';
     MembershipModule,
     GiftsModule,
     PromotionsModule,
+    CouponsModule,
     NotificationsModule,
     NewsModule,
     SnacksModule,
@@ -64,6 +71,11 @@ import { PrismaService } from './prisma/prisma.service';
     AnalyticsModule,
     WebsocketModule,
     HealthModule,
+    MeModule,
+    StatusModule,
+    PricingModule,
+    CampaignsModule,
+    BannersModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

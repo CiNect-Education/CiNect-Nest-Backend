@@ -179,4 +179,23 @@ export class MoviesService {
       },
     });
   }
+
+  async findShowtimesByMovie(movieId: string, date?: string) {
+    const where: any = { movieId, isActive: true };
+    if (date) {
+      const d = new Date(date);
+      const start = new Date(d.setHours(0, 0, 0, 0));
+      const end = new Date(new Date(date).setHours(23, 59, 59, 999));
+      where.startTime = { gte: start, lte: end };
+    }
+    return this.prisma.showtime.findMany({
+      where,
+      include: {
+        movie: { select: { id: true, title: true, slug: true, posterUrl: true, duration: true } },
+        room: { select: { id: true, name: true, format: true } },
+        cinema: { select: { id: true, name: true, slug: true, address: true, city: true } },
+      },
+      orderBy: { startTime: 'asc' },
+    });
+  }
 }

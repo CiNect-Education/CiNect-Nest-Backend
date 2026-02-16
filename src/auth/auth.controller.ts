@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Req, Res } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, UseGuards, Req, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
@@ -8,6 +8,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { GoogleAuthGuard } from '../common/guards/google-auth.guard';
 import { FacebookAuthGuard } from '../common/guards/facebook-auth.guard';
@@ -66,6 +67,13 @@ export class AuthController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Put('profile')
+  updateProfile(@CurrentUser('id') userId: string, @Body() dto: UpdateProfileDto) {
+    return this.authService.updateProfile(userId, dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(@CurrentUser('id') userId: string) {
     return this.authService.logout(userId);
@@ -91,7 +99,7 @@ export class AuthController {
       token: result.accessToken,
       refreshToken: result.refreshToken,
     });
-    return res.redirect(`${this.frontendUrl}/auth/callback?${params.toString()}`);
+    return res.redirect(`${this.frontendUrl}/callback?${params.toString()}`);
   }
 
   // ========================
@@ -114,7 +122,7 @@ export class AuthController {
       token: result.accessToken,
       refreshToken: result.refreshToken,
     });
-    return res.redirect(`${this.frontendUrl}/auth/callback?${params.toString()}`);
+    return res.redirect(`${this.frontendUrl}/callback?${params.toString()}`);
   }
 
   // ========================
@@ -137,6 +145,6 @@ export class AuthController {
       token: result.accessToken,
       refreshToken: result.refreshToken,
     });
-    return res.redirect(`${this.frontendUrl}/auth/callback?${params.toString()}`);
+    return res.redirect(`${this.frontendUrl}/callback?${params.toString()}`);
   }
 }

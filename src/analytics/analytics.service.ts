@@ -116,4 +116,82 @@ export class AnalyticsService {
 
     return { topMovies: top };
   }
+
+  async getForecast(months?: string) {
+    const numMonths = parseInt(months || '3', 10);
+    const pastMonths = 6;
+    const since = new Date();
+    since.setMonth(since.getMonth() - pastMonths);
+
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        status: 'CONFIRMED',
+        createdAt: { gte: since },
+      },
+      select: { finalAmount: true, createdAt: true },
+    });
+
+    const monthlyRevenue: Record<string, number> = {};
+    for (const b of bookings) {
+      const key = `${b.createdAt.getFullYear()}-${String(b.createdAt.getMonth() + 1).padStart(2, '0')}`;
+      monthlyRevenue[key] =
+        (monthlyRevenue[key] || 0) + Number(b.finalAmount ?? 0);
+    }
+
+    const values = Object.values(monthlyRevenue);
+    const avgGrowth =
+      values.length > 1
+        ? values
+            .slice(1)
+            .reduce((s, v, i) => s + (v - values[i]) / values[i], 0) /
+          (values.length - 1)
+        : 0;
+
+    const lastRevenue = values[values.length - 1] || 0;
+    const forecast = [];
+    for (let i = 1; i <= numMonths; i++) {
+      const d = new Date();
+      d.setMonth(d.getMonth() + i);
+      forecast.push({
+        month: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        predictedRevenue: Math.round(
+          lastRevenue * Math.pow(1 + avgGrowth, i),
+        ),
+      });
+    }
+
+    return {
+      historical: monthlyRevenue,
+      forecast,
+      averageGrowthRate: avgGrowth,
+    };
+  }
+
+  async getCustomerSegments() {
+    const [totalUsers, activeCustomers, tiers] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.user.count({
+        where: { bookings: { some: { status: 'CONFIRMED' } } },
+      }),
+      this.prisma.membership.groupBy({
+        by: ['tierId'],
+        _count: true,
+      }),
+    ]);
+
+    const tierDetails = await this.prisma.membershipTier.findMany();
+    const byTier = tiers.map((t) => {
+      const tier = tierDetails.find((td) => td.id === t.tierId);
+      return {
+        tier: tier?.name || 'Unknown',
+        count: t._count,
+        percentage:
+          totalUsers > 0
+            ? ((t._count / totalUsers) * 100).toFixed(1)
+            : '0',
+      };
+    });
+
+    return { totalUsers, activeCustomers, byTier };
+  }
 }

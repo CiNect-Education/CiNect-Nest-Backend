@@ -50,4 +50,31 @@ export class BookingsController {
   cancel(@Param('id', ParseUuidPipe) id: string, @CurrentUser('id') userId: string) {
     return this.bookingsService.cancel(id, userId);
   }
+
+  @Post(':id/apply-promo')
+  applyPromo(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+    @Body() body: { code: string },
+  ) {
+    return this.bookingsService.applyPromo(id, userId, body.code);
+  }
+
+  @Post(':id/apply-points')
+  applyPoints(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+    @Body() body: { points: number },
+  ) {
+    return this.bookingsService.applyPoints(id, userId, body.points);
+  }
+
+  @Post(':id/apply-gift-card')
+  applyGiftCard(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+    @Body() body: { code: string },
+  ) {
+    return this.bookingsService.applyGiftCard(id, userId, body.code);
+  }
 }

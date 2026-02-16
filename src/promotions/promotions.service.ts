@@ -68,6 +68,35 @@ export class PromotionsService {
     };
   }
 
+  async findEligible(bookingId: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    const now = new Date();
+    const promotions = await this.prisma.promotion.findMany({
+      where: {
+        status: 'ACTIVE',
+        startDate: { lte: now },
+        endDate: { gte: now },
+      },
+    });
+
+    // Filter in JS for complex conditions
+    return promotions.filter((p) => {
+      if (p.minPurchase && booking.totalAmount.toNumber() < p.minPurchase.toNumber()) {
+        return false;
+      }
+      if (p.usageLimit && p.usageCount >= p.usageLimit) {
+        return false;
+      }
+      return true;
+    });
+  }
+
   async validate(code: string, amount?: number) {
     const promo = await this.prisma.promotion.findFirst({
       where: {
