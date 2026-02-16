@@ -90,6 +90,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    if (!user.passwordHash) {
+      throw new UnauthorizedException(
+        'This account uses social login. Please sign in with your social provider.',
+      );
+    }
+
     const match = await bcrypt.compare(dto.password, user.passwordHash);
     if (!match) {
       throw new UnauthorizedException('Invalid email or password');
@@ -212,6 +218,80 @@ export class AuthService {
       data: { refreshToken: null },
     });
     return { message: 'Logged out successfully' };
+  }
+
+  async findOrCreateOAuthUser(profile: {
+    provider: string;
+    providerId: string;
+    email: string;
+    fullName: string;
+    avatar?: string;
+  }) {
+    const { provider, providerId, email, fullName, avatar } = profile;
+
+    // 1. Check if user exists by provider + providerId
+    let user = await this.prisma.user.findFirst({
+      where: { provider, providerId },
+    });
+
+    if (!user && email) {
+      // 2. Check if user exists by email — link the provider
+      user = await this.prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+      });
+
+      if (user) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { provider, providerId, avatar: user.avatar || avatar },
+        });
+      }
+    }
+
+    if (!user) {
+      // 3. Create new user (no password, emailVerified=true)
+      const userRole = await this.prisma.role.findFirst({
+        where: { name: 'USER' },
+      });
+      const bronzeTier = await this.prisma.membershipTier.findFirst({
+        where: { name: 'Bronze' },
+      });
+
+      user = await this.prisma.$transaction(async (tx) => {
+        const u = await tx.user.create({
+          data: {
+            email: email?.toLowerCase() ?? `${provider.toLowerCase()}_${providerId}@oauth.local`,
+            fullName,
+            avatar,
+            provider,
+            providerId,
+            emailVerified: true,
+            isActive: true,
+          },
+        });
+
+        if (userRole) {
+          await tx.userRoleJoin.create({
+            data: { userId: u.id, roleId: userRole.id },
+          });
+        }
+
+        if (bronzeTier) {
+          await tx.membership.create({
+            data: { userId: u.id, tierId: bronzeTier.id },
+          });
+        }
+
+        return u;
+      });
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: this.sanitizeUser(user),
+    };
   }
 
   private async generateTokens(userId: string, email: string) {

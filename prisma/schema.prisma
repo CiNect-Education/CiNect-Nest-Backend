@@ -206,13 +206,15 @@ model Role {
 model User {
   id            String    @id @default(uuid()) @map("id")
   email         String    @unique @map("email")
-  passwordHash  String    @map("password_hash")
+  passwordHash  String?   @map("password_hash")
   fullName      String    @map("full_name")
   phone         String?   @map("phone")
   avatar        String?   @map("avatar")
   dateOfBirth   DateTime? @map("date_of_birth") @db.Date
   gender        String?   @map("gender")
   city          String?   @map("city")
+  provider      String?   @default("LOCAL") @map("provider")
+  providerId    String?   @map("provider_id")
   isActive      Boolean   @default(true) @map("is_active")
   emailVerified Boolean   @default(false) @map("email_verified")
   refreshToken  String?   @map("refresh_token")
@@ -233,6 +235,7 @@ model User {
   couponAssignments Coupon[]
   giftRedemptions   GiftTransaction[] @relation("GiftRedemptions")
 
+  @@unique([provider, providerId])
   @@index([email])
   @@index([city])
   @@map("users")
