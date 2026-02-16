@@ -63,7 +63,7 @@ export class MoviesService {
     ]);
 
     const meta = new PageMeta(page, limit, total);
-    return { data: items, meta };
+    return { data: items.map((m) => this.toResponse(m)), meta };
   }
 
   async findBySlug(slug: string) {
@@ -76,7 +76,19 @@ export class MoviesService {
     if (!movie) {
       throw new NotFoundException('Movie not found');
     }
-    return movie;
+    return this.toResponse(movie);
+  }
+
+  private toResponse(movie: any) {
+    const { movieGenres, castMembers, rating, isDeleted, ...rest } = movie;
+    return {
+      ...rest,
+      rating: typeof rating === 'object' && rating !== null ? Number(rating) : Number(rating ?? 0),
+      genres: movieGenres?.map((mg: any) => mg.genre) ?? [],
+      cast: Array.isArray(castMembers)
+        ? castMembers.map((name: string) => ({ name, role: 'Actor', avatarUrl: null }))
+        : [],
+    };
   }
 
   async findReviews(movieId: string, page = 1, limit = 10) {
