@@ -10,23 +10,34 @@ export class CinemasService {
     const where = city ? { city, isActive: true } : { isActive: true };
     const cinemas = await this.prisma.cinema.findMany({
       where,
-      include: { _count: { select: { rooms: true } } },
+      include: { rooms: { where: { isActive: true }, select: { id: true } } },
       orderBy: { name: 'asc' },
     });
-    return cinemas.map(({ _count, ...c }) => ({
-      ...c,
-      roomCount: _count.rooms,
-    }));
+    return cinemas.map((c) => this.toListResponse(c));
   }
 
   async findBySlug(slug: string) {
     const cinema = await this.prisma.cinema.findFirst({
       where: { slug, isActive: true },
+      include: {
+        rooms: {
+          where: { isActive: true },
+          orderBy: { name: 'asc' },
+        },
+      },
     });
     if (!cinema) {
       throw new NotFoundException('Cinema not found');
     }
     return cinema;
+  }
+
+  private toListResponse(cinema: any) {
+    const { rooms, isActive, ...rest } = cinema;
+    return {
+      ...rest,
+      roomCount: rooms?.length ?? 0,
+    };
   }
 
   async findRooms(cinemaId: string) {

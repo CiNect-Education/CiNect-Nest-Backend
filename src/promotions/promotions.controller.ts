@@ -17,7 +17,7 @@ export class PromotionsController {
   @Get('active')
   @ApiQuery({ name: 'limit', required: false })
   findActive(@Query('limit') limit?: string) {
-    return this.promotionsService.findActive(limit ? parseInt(limit, 10) : 8);
+    return this.promotionsService.findAll(limit ? parseInt(limit, 10) : 8);
   }
 
   @Get('trending')

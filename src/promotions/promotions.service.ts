@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class PromotionsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(limit?: number) {
     const now = new Date();
     const promos = await this.prisma.promotion.findMany({
       where: {
@@ -14,6 +14,7 @@ export class PromotionsService {
         endDate: { gte: now },
       },
       orderBy: { endDate: 'asc' },
+      ...(limit ? { take: limit } : {}),
     });
     return promos.map(this.toResponse);
   }

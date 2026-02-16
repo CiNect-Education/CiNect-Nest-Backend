@@ -70,7 +70,7 @@ export class MoviesService {
     }));
 
     const meta = new PageMeta(page, limit, total);
-    return { data: items, meta };
+    return { data: items.map((m) => this.toResponse(m)), meta };
   }
 
   async findBySlug(slug: string) {
@@ -83,12 +83,18 @@ export class MoviesService {
     if (!movie) {
       throw new NotFoundException('Movie not found');
     }
-    const { movieGenres, rating, castMembers, ...m } = movie;
+    return this.toResponse(movie);
+  }
+
+  private toResponse(movie: any) {
+    const { movieGenres, castMembers, rating, isDeleted, ...rest } = movie;
     return {
-      ...m,
-      genres: movieGenres.map((mg) => mg.genre),
-      cast: castMembers ?? [],
-      rating: rating ? Number(rating) : null,
+      ...rest,
+      rating: typeof rating === 'object' && rating !== null ? Number(rating) : Number(rating ?? 0),
+      genres: movieGenres?.map((mg: any) => mg.genre) ?? [],
+      cast: Array.isArray(castMembers)
+        ? castMembers.map((name: string) => ({ name, role: 'Actor', avatarUrl: null }))
+        : [],
     };
   }
 
