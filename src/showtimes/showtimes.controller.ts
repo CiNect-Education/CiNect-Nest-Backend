@@ -22,6 +22,20 @@ export class ShowtimesController {
     return this.showtimesService.findAll({ movieId, cinemaId, date });
   }
 
+  @Get('search')
+  @ApiQuery({ name: 'movieId', required: false })
+  @ApiQuery({ name: 'cinemaId', required: false })
+  @ApiQuery({ name: 'date', required: false })
+  @ApiQuery({ name: 'format', required: false })
+  search(
+    @Query('movieId') movieId?: string,
+    @Query('cinemaId') cinemaId?: string,
+    @Query('date') date?: string,
+    @Query('format') format?: string,
+  ) {
+    return this.showtimesService.findAll({ movieId, cinemaId, date });
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUuidPipe) id: string) {
     return this.showtimesService.findOne(id);

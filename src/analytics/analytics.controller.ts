@@ -54,4 +54,15 @@ export class AnalyticsController {
   getTopMovies(@Query('limit') limit?: string) {
     return this.analyticsService.getTopMovies(limit ? parseInt(limit, 10) : 10);
   }
+
+  @Get('forecast')
+  @ApiQuery({ name: 'months', required: false })
+  getForecast(@Query('months') months?: string) {
+    return this.analyticsService.getForecast(months);
+  }
+
+  @Get('customer-segments')
+  getCustomerSegments() {
+    return this.analyticsService.getCustomerSegments();
+  }
 }

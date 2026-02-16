@@ -25,6 +25,12 @@ export class PaymentsController {
   }
 
   @Public()
+  @Get('callback')
+  callbackGet(@Query('transactionId') transactionId: string) {
+    return this.paymentsService.getByTransactionId(transactionId);
+  }
+
+  @Public()
   @Post('callback')
   callback(
     @Query('transactionId') transactionId: string,

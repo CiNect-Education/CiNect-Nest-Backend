@@ -18,4 +18,13 @@ export class SupportController {
   ) {
     return this.supportService.contact(dto, userId);
   }
+
+  @Public()
+  @Post('ticket')
+  submitTicket(
+    @Body() dto: ContactDto,
+    @CurrentUser('id') userId?: string,
+  ) {
+    return this.supportService.contact(dto, userId);
+  }
 }

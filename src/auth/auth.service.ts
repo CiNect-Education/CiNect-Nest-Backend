@@ -15,6 +15,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
@@ -210,6 +211,27 @@ export class AuthService {
     });
 
     return { message: 'Password reset successfully' };
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const data: any = {};
+    if (dto.fullName !== undefined) data.fullName = dto.fullName;
+    if (dto.phone !== undefined) data.phone = dto.phone;
+    if (dto.avatar !== undefined) data.avatar = dto.avatar;
+    if (dto.dateOfBirth !== undefined) data.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
+    if (dto.gender !== undefined) data.gender = dto.gender;
+    if (dto.city !== undefined) data.city = dto.city;
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+    return this.sanitizeUser(updated);
   }
 
   async logout(userId: string) {

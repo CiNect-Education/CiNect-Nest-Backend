@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GiftsService } from './gifts.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -16,6 +16,20 @@ export class GiftsController {
     return this.giftsService.findAll();
   }
 
+  @ApiBearerAuth()
+  @Post('purchase')
+  purchaseByBody(
+    @Body() body: { giftCardId: string; recipientEmail?: string; message?: string },
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.giftsService.purchase(
+      body.giftCardId,
+      userId,
+      body.recipientEmail,
+      body.message,
+    );
+  }
+
   @Public()
   @Get(':id')
   findOne(@Param('id', ParseUuidPipe) id: string) {
@@ -24,7 +38,12 @@ export class GiftsController {
 
   @ApiBearerAuth()
   @Post(':id/purchase')
-  purchase(@Param('id', ParseUuidPipe) id: string, @CurrentUser('id') userId: string) {
-    return this.giftsService.purchase(id, userId);
+  purchase(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+    @Query('recipientEmail') recipientEmail?: string,
+    @Query('message') message?: string,
+  ) {
+    return this.giftsService.purchase(id, userId, recipientEmail, message);
   }
 }

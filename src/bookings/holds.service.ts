@@ -91,6 +91,20 @@ export class HoldsService {
     return result;
   }
 
+  async findOne(holdId: string, userId: string) {
+    const hold = await this.prisma.hold.findUnique({
+      where: { id: holdId },
+      include: { holdSeats: { include: { seat: true } } },
+    });
+    if (!hold) {
+      throw new NotFoundException('Hold not found');
+    }
+    if (hold.userId !== userId) {
+      throw new ForbiddenException('You can only view your own holds');
+    }
+    return hold;
+  }
+
   async release(holdId: string, userId: string) {
     const hold = await this.prisma.hold.findUnique({
       where: { id: holdId },
