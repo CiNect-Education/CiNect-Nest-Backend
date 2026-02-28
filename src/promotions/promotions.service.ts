@@ -46,6 +46,36 @@ export class PromotionsService {
     return promos.map(this.toResponse);
   }
 
+  /**
+   * Lookup an active promotion by code for voucher input.
+   * This mirrors the Spring /promotions/lookup endpoint used by the frontend.
+   */
+  async lookupByCode(code: string) {
+    if (!code) {
+      throw new NotFoundException('Promotion code is required');
+    }
+
+    const now = new Date();
+    const promo = await this.prisma.promotion.findFirst({
+      where: {
+        code,
+        status: 'ACTIVE',
+        startDate: { lte: now },
+        endDate: { gte: now },
+      },
+    });
+
+    if (!promo) {
+      throw new NotFoundException('Invalid or expired promotion code');
+    }
+
+    if (promo.usageLimit && promo.usageCount >= promo.usageLimit) {
+      throw new NotFoundException('Promotion usage limit reached');
+    }
+
+    return this.toResponse(promo);
+  }
+
   private toResponse(p: any) {
     return {
       id: p.id,
