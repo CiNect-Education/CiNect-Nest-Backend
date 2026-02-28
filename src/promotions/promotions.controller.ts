@@ -14,6 +14,12 @@ export class PromotionsController {
     return this.promotionsService.findAll();
   }
 
+  @Get('lookup')
+  @ApiQuery({ name: 'code', required: true })
+  lookup(@Query('code') code: string) {
+    return this.promotionsService.lookupByCode(code);
+  }
+
   @Get('active')
   @ApiQuery({ name: 'limit', required: false })
   findActive(@Query('limit') limit?: string) {
