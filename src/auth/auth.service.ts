@@ -56,8 +56,7 @@ export class AuthService {
           email: dto.email.toLowerCase(),
           passwordHash: hash,
           fullName: dto.fullName,
-          phone: dto.phone,
-          city: dto.city,
+          phone: dto.phoneNumber,
         },
       });
 
