@@ -41,6 +41,31 @@ export class HoldsService {
     const ttlMs = this.getTtlMinutes() * 60 * 1000;
     const expiresAt = new Date(now.getTime() + ttlMs);
 
+    // Clean up expired ACTIVE holds for these seats to avoid unique constraint errors
+    // when hold seats are kept but the hold has expired.
+    const expired = await this.prisma.hold.findMany({
+      where: {
+        showtimeId,
+        status: HoldStatus.ACTIVE,
+        expiresAt: { lte: now },
+        holdSeats: { some: { seatId: { in: seatIds } } },
+      },
+      include: { holdSeats: true },
+    });
+    if (expired.length > 0) {
+      const expiredHoldIds = expired.map((h) => h.id);
+      const expiredSeatIds = [...new Set(expired.flatMap((h) => h.holdSeats.map((hs) => hs.seatId)))];
+      await this.prisma.$transaction([
+        this.prisma.hold.updateMany({
+          where: { id: { in: expiredHoldIds } },
+          data: { status: HoldStatus.EXPIRED },
+        }),
+        this.prisma.holdSeat.deleteMany({ where: { holdId: { in: expiredHoldIds } } }),
+      ]);
+      // Notify clients that seats are free again
+      this.ws.emitHoldExpired(showtimeId, expiredSeatIds);
+    }
+
     const [heldSeats, bookedSeats] = await Promise.all([
       this.prisma.holdSeat.findMany({
         where: {
@@ -72,13 +97,18 @@ export class HoldsService {
         },
       });
 
-      await tx.holdSeat.createMany({
-        data: seatIds.map((seatId) => ({
-          holdId: h.id,
-          showtimeId,
-          seatId,
-        })),
-      });
+      try {
+        await tx.holdSeat.createMany({
+          data: seatIds.map((seatId) => ({
+            holdId: h.id,
+            showtimeId,
+            seatId,
+          })),
+        });
+      } catch {
+        // Fallback: surface a clean conflict instead of a 500 in case of race conditions.
+        throw new ConflictException('One or more seats are already held or booked');
+      }
 
       return h;
     });

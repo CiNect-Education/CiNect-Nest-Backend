@@ -24,10 +24,13 @@ export class HoldExpirationScheduler {
 
     for (const hold of expired) {
       const seatIds = hold.holdSeats.map((hs) => hs.seatId);
-      await this.prisma.hold.update({
-        where: { id: hold.id },
-        data: { status: HoldStatus.EXPIRED },
-      });
+      await this.prisma.$transaction([
+        this.prisma.hold.update({
+          where: { id: hold.id },
+          data: { status: HoldStatus.EXPIRED },
+        }),
+        this.prisma.holdSeat.deleteMany({ where: { holdId: hold.id } }),
+      ]);
       this.ws.emitHoldExpired(hold.showtimeId, seatIds);
     }
   }
