@@ -41,29 +41,34 @@ export class HoldsService {
     const ttlMs = this.getTtlMinutes() * 60 * 1000;
     const expiresAt = new Date(now.getTime() + ttlMs);
 
-    // Clean up expired ACTIVE holds for these seats to avoid unique constraint errors
-    // when hold seats are kept but the hold has expired.
-    const expired = await this.prisma.hold.findMany({
+    // Clean up stale hold seats to avoid unique constraint errors.
+    // Stale = the hold is not ACTIVE anymore OR it is ACTIVE but already expired.
+    const stale = await this.prisma.hold.findMany({
       where: {
         showtimeId,
-        status: HoldStatus.ACTIVE,
-        expiresAt: { lte: now },
         holdSeats: { some: { seatId: { in: seatIds } } },
+        OR: [{ status: { not: HoldStatus.ACTIVE } }, { expiresAt: { lte: now } }],
       },
       include: { holdSeats: true },
     });
-    if (expired.length > 0) {
-      const expiredHoldIds = expired.map((h) => h.id);
-      const expiredSeatIds = [...new Set(expired.flatMap((h) => h.holdSeats.map((hs) => hs.seatId)))];
+    if (stale.length > 0) {
+      const staleHoldIds = stale.map((h) => h.id);
+      const staleSeatIds = [...new Set(stale.flatMap((h) => h.holdSeats.map((hs) => hs.seatId)))];
       await this.prisma.$transaction([
+        // Mark ACTIVE-but-expired holds as EXPIRED
         this.prisma.hold.updateMany({
-          where: { id: { in: expiredHoldIds } },
+          where: {
+            id: { in: staleHoldIds },
+            status: HoldStatus.ACTIVE,
+            expiresAt: { lte: now },
+          },
           data: { status: HoldStatus.EXPIRED },
         }),
-        this.prisma.holdSeat.deleteMany({ where: { holdId: { in: expiredHoldIds } } }),
+        // Always remove their hold-seat rows
+        this.prisma.holdSeat.deleteMany({ where: { holdId: { in: staleHoldIds } } }),
       ]);
       // Notify clients that seats are free again
-      this.ws.emitHoldExpired(showtimeId, expiredSeatIds);
+      this.ws.emitHoldExpired(showtimeId, staleSeatIds);
     }
 
     const [heldSeats, bookedSeats] = await Promise.all([
@@ -150,10 +155,13 @@ export class HoldsService {
       throw new ConflictException('Hold is no longer active');
     }
 
-    await this.prisma.hold.update({
-      where: { id: holdId },
-      data: { status: HoldStatus.RELEASED },
-    });
+    await this.prisma.$transaction([
+      this.prisma.hold.update({
+        where: { id: holdId },
+        data: { status: HoldStatus.RELEASED },
+      }),
+      this.prisma.holdSeat.deleteMany({ where: { holdId } }),
+    ]);
     const seatIds = hold.holdSeats.map((hs) => hs.seatId);
     this.ws.emitSeatReleased(hold.showtimeId, seatIds);
     return { message: 'Hold released' };
