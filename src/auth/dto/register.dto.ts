@@ -12,6 +12,12 @@ export class RegisterDto {
   @MinLength(6, { message: 'Password must be at least 6 characters' })
   password: string;
 
+  // Optional: some clients send confirmPassword for UX validation
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  confirmPassword?: string;
+
   @ApiProperty({ example: 'Nguyen Van A' })
   @IsString()
   @IsNotEmpty()

@@ -27,6 +27,10 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
+    if (dto.confirmPassword !== undefined && dto.confirmPassword !== dto.password) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -113,7 +117,7 @@ export class AuthService {
   async refresh(dto: RefreshTokenDto) {
     try {
       const payload = this.jwt.verify(dto.refreshToken, {
-        secret: this.config.get('JWT_SECRET'),
+        secret: this.config.get<string>('JWT_SECRET') ?? 'development-secret',
       });
       if (payload.type !== 'refresh') {
         throw new UnauthorizedException('Invalid refresh token');

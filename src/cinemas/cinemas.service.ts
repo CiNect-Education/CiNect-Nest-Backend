@@ -17,6 +17,22 @@ export class CinemasService {
   }
 
   async findBySlug(slug: string) {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(slug);
+
+    if (isUuid) {
+      const byId = await this.prisma.cinema.findFirst({
+        where: { id: slug, isActive: true },
+        include: {
+          rooms: {
+            where: { isActive: true },
+            orderBy: { name: 'asc' },
+          },
+        },
+      });
+      if (byId) return byId;
+    }
+
     const cinema = await this.prisma.cinema.findFirst({
       where: { slug, isActive: true },
       include: {
