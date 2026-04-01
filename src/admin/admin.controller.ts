@@ -17,7 +17,7 @@ import { AdminService } from './admin.service';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
-import { UserRole } from '@prisma/client';
+import { RoomFormat, UserRole } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMovieDto } from '../movies/dto/create-movie.dto';
@@ -36,6 +36,29 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly prisma: PrismaService,
   ) {}
+
+  private parseRangeDays(range?: string): number {
+    if (range === '7d') return 7;
+    if (range === '90d') return 90;
+    return 30;
+  }
+
+  private toDateKey(d: Date): string {
+    // Use ISO date (UTC) for stable keys.
+    return d.toISOString().slice(0, 10);
+  }
+
+  private parseRoomFormat(input?: string): RoomFormat {
+    if (!input) return RoomFormat.STANDARD2D;
+    // Accept either Prisma enum key or frontend label.
+    if (Object.values(RoomFormat).includes(input as RoomFormat)) return input as RoomFormat;
+    if (input === '2D') return RoomFormat.STANDARD2D;
+    if (input === '3D') return RoomFormat.STANDARD3D;
+    if (input === '4DX') return RoomFormat.FOURDX;
+    if (input === 'IMAX') return RoomFormat.IMAX;
+    if (input === 'DOLBY') return RoomFormat.DOLBY;
+    return RoomFormat.STANDARD2D;
+  }
 
   @Get('audit-logs')
   @ApiQuery({ name: 'page', required: false })
@@ -57,7 +80,8 @@ export class AdminController {
     const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : 30;
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    const [revenue, bookings, users, showtimes] = await Promise.all([
+    const [revenue, bookings, users, showtimes, totalMovies, totalCinemas, capacitySeats, bookedSeats] =
+      await Promise.all([
       this.prisma.booking.aggregate({
         where: { status: 'CONFIRMED', createdAt: { gte: since } },
         _sum: { finalAmount: true },
@@ -68,7 +92,25 @@ export class AdminController {
       this.prisma.showtime.count({
         where: { isActive: true, startTime: { gte: since } },
       }),
+      this.prisma.movie.count({ where: { isDeleted: false } }),
+      this.prisma.cinema.count({ where: { isActive: true } }),
+      this.prisma.showtime.findMany({
+        where: { isActive: true, startTime: { gte: since } },
+        select: { room: { select: { totalSeats: true } } },
+      }),
+      this.prisma.bookingItem.count({
+        where: {
+          booking: { status: { in: ['CONFIRMED', 'COMPLETED'] } },
+          showtime: { isActive: true, startTime: { gte: since } },
+        },
+      }),
     ]);
+
+    let capacity = 0;
+    for (const st of capacitySeats) {
+      capacity += st.room.totalSeats ?? 0;
+    }
+    const occupancyRate = capacity > 0 ? bookedSeats / capacity : 0;
 
     return {
       totalRevenue: Number(revenue._sum.finalAmount ?? 0),
@@ -76,10 +118,141 @@ export class AdminController {
       totalUsers: users,
       confirmedBookings: revenue._count,
       totalShowtimes: showtimes,
+      totalMovies,
+      totalCinemas,
+      occupancyRate,
     };
   }
 
+  @Get('revenue')
+  @ApiQuery({ name: 'range', required: false })
+  async getRevenueSeries(@Query('range') range?: string) {
+    const days = this.parseRangeDays(range);
+    const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        status: { in: ['CONFIRMED', 'COMPLETED'] },
+        createdAt: { gte: start },
+      },
+      select: { createdAt: true, finalAmount: true },
+    });
+
+    const byDate = new Map<string, number>();
+    for (const b of bookings) {
+      const k = this.toDateKey(b.createdAt);
+      byDate.set(k, (byDate.get(k) ?? 0) + Number(b.finalAmount ?? 0));
+    }
+
+    // Fill missing dates with 0 to stabilize chart UX.
+    const out: Array<{ date: string; revenue: number }> = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const k = this.toDateKey(d);
+      out.push({ date: k, revenue: byDate.get(k) ?? 0 });
+    }
+    return out;
+  }
+
+  @Get('occupancy')
+  @ApiQuery({ name: 'range', required: false })
+  async getOccupancySeries(@Query('range') range?: string) {
+    const days = this.parseRangeDays(range);
+    const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const showtimes = await this.prisma.showtime.findMany({
+      where: { isActive: true, startTime: { gte: start } },
+      select: {
+        id: true,
+        startTime: true,
+        room: { select: { totalSeats: true } },
+      },
+    });
+
+    const showtimeIds = showtimes.map((s) => s.id);
+    const bookedByShowtime = new Map<string, number>();
+
+    if (showtimeIds.length > 0) {
+      const booked = await this.prisma.bookingItem.groupBy({
+        by: ['showtimeId'],
+        where: {
+          showtimeId: { in: showtimeIds },
+          booking: { status: { in: ['CONFIRMED', 'COMPLETED'] } },
+        },
+        _count: true,
+      });
+      for (const b of booked) {
+        bookedByShowtime.set(b.showtimeId, b._count);
+      }
+    }
+
+    const byDate = new Map<string, { booked: number; capacity: number }>();
+    for (const st of showtimes) {
+      const k = this.toDateKey(st.startTime);
+      const capacity = st.room.totalSeats ?? 0;
+      const booked = bookedByShowtime.get(st.id) ?? 0;
+      const prev = byDate.get(k) ?? { booked: 0, capacity: 0 };
+      prev.booked += booked;
+      prev.capacity += capacity;
+      byDate.set(k, prev);
+    }
+
+    const out: Array<{ date: string; occupancy: number }> = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const k = this.toDateKey(d);
+      const v = byDate.get(k);
+      const occupancy = v && v.capacity > 0 ? v.booked / v.capacity : 0;
+      out.push({ date: k, occupancy });
+    }
+    return out;
+  }
+
   // Movies CRUD
+  @Get('movies')
+  async listMovies() {
+    const raw = await this.prisma.movie.findMany({
+      where: { isDeleted: false },
+      include: { movieGenres: { include: { genre: true } } },
+      orderBy: { releaseDate: 'desc' },
+    });
+
+    const data = raw.map((m) => ({
+      id: m.id,
+      title: m.title,
+      originalTitle: m.originalTitle ?? undefined,
+      slug: m.slug,
+      description: m.description,
+      posterUrl: m.posterUrl,
+      bannerUrl: m.bannerUrl ?? undefined,
+      trailerUrl: m.trailerUrl ?? undefined,
+      galleryUrls: Array.isArray(m.galleryUrls) ? m.galleryUrls : [],
+      duration: m.duration,
+      releaseDate: m.releaseDate.toISOString(),
+      endDate: m.endDate ? m.endDate.toISOString() : undefined,
+      genres: m.movieGenres.map((mg) => ({
+        id: mg.genre.id,
+        name: mg.genre.name,
+        slug: mg.genre.slug,
+      })),
+      director: m.director,
+      cast: [],
+      language: m.language,
+      subtitles: m.subtitles ?? undefined,
+      rating: Number(m.rating ?? 0),
+      ratingCount: m.ratingCount,
+      ageRating: m.ageRating,
+      formats: Array.isArray(m.formats) ? m.formats : [],
+      status: m.status,
+      createdAt: m.createdAt.toISOString(),
+      updatedAt: m.updatedAt.toISOString(),
+    }));
+
+    return { data };
+  }
+
   @Post('movies')
   createMovie(@Body() dto: CreateMovieDto) {
     return this.prisma.movie.create({
@@ -149,6 +322,46 @@ export class AdminController {
   }
 
   // Cinemas CRUD
+  @Get('cinemas')
+  async listCinemas() {
+    const raw = await this.prisma.cinema.findMany({
+      where: { isActive: true },
+      include: { rooms: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const data = raw.map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      address: c.address,
+      city: c.city,
+      district: c.district ?? undefined,
+      phone: c.phone ?? undefined,
+      email: c.email ?? undefined,
+      imageUrl: c.imageUrl ?? undefined,
+      amenities: Array.isArray(c.amenities) ? c.amenities : [],
+      latitude: c.latitude ?? undefined,
+      longitude: c.longitude ?? undefined,
+      rooms: c.rooms.map((r) => ({
+        id: r.id,
+        cinemaId: r.cinemaId,
+        name: r.name,
+        format: mapRoomFormat(r.format),
+        totalSeats: r.totalSeats ?? 0,
+        rows: r.rows ?? 0,
+        columns: r.columns ?? 0,
+        isActive: r.isActive,
+        createdAt: r.createdAt.toISOString(),
+        updatedAt: r.updatedAt.toISOString(),
+      })),
+      createdAt: c.createdAt.toISOString(),
+      updatedAt: c.updatedAt.toISOString(),
+    }));
+
+    return { data };
+  }
+
   @Post('cinemas')
   createCinema(@Body() dto: CreateCinemaDto) {
     return this.prisma.cinema.create({
@@ -208,6 +421,31 @@ export class AdminController {
     });
   }
 
+  @Post('rooms')
+  async createRoomDirect(@Body() body: Partial<CreateRoomDto> & { cinemaId?: string }) {
+    if (!body.cinemaId) {
+      throw new NotFoundException('cinemaId is required');
+    }
+    const created = await this.prisma.room.create({
+      data: {
+        cinemaId: body.cinemaId,
+        name: body.name ?? 'New Room',
+        format: this.parseRoomFormat(body.format),
+        totalSeats: body.totalSeats ?? 0,
+        rows: body.rows ?? 0,
+        columns: body.columns ?? 0,
+        isActive: body.isActive ?? true,
+      },
+    });
+
+    return {
+      ...created,
+      format: mapRoomFormat(created.format),
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
+    };
+  }
+
   @Get('rooms')
   @ApiQuery({ name: 'cinemaId', required: false })
   @ApiQuery({ name: 'page', required: false })
@@ -245,7 +483,7 @@ export class AdminController {
       },
     });
     if (!room) throw new NotFoundException('Room not found');
-    return room;
+    return { data: room.seats };
   }
 
   @Put('rooms/:roomId/seats')
@@ -264,7 +502,7 @@ export class AdminController {
             roomId,
             rowLabel: String(s.rowLabel ?? s.row ?? ''),
             number: Number(s.number ?? 0),
-            type: (s.type as 'STANDARD' | 'VIP' | 'COUPLE') ?? 'STANDARD',
+            type: (s.type as 'STANDARD' | 'VIP' | 'COUPLE' | 'DISABLED') ?? 'STANDARD',
             status: (s.status as 'AVAILABLE' | 'BOOKED' | 'BLOCKED') ?? 'AVAILABLE',
             pairId: s.pairId as string | undefined,
             isAisle: Boolean(s.isAisle),
@@ -277,10 +515,11 @@ export class AdminController {
         data: { totalSeats: body.seats?.length ?? 0 },
       });
     });
-    return this.prisma.room.findUnique({
-      where: { id: roomId },
-      include: { seats: true },
+    const seats = await this.prisma.seat.findMany({
+      where: { roomId },
+      orderBy: [{ rowLabel: 'asc' }, { number: 'asc' }],
     });
+    return { data: seats };
   }
 
   @Post('rooms/:roomId/seats/import')

@@ -83,13 +83,17 @@ export class AuthService {
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: this.sanitizeUser(user),
+      // Newly registered users always start as USER.
+      user: this.sanitizeUser(user, [UserRole.USER]),
     };
   }
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase(), isActive: true },
+      include: {
+        userRoles: { include: { role: true } },
+      },
     });
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
@@ -107,10 +111,18 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email);
+    const userWithRoles = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      include: { userRoles: { include: { role: true } } },
+    });
+    const roles =
+      userWithRoles?.userRoles.map((ur) => ur.role.name) ??
+      // Defensive fallback; should not happen if roles were seeded.
+      [UserRole.USER];
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: this.sanitizeUser(user),
+      user: this.sanitizeUser(userWithRoles ?? user, roles),
     };
   }
 
@@ -157,9 +169,10 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    const roles = user.userRoles.map((ur) => ur.role.name);
     return {
-      ...this.sanitizeUser(user),
-      roles: user.userRoles.map((ur) => ur.role.name),
+      ...this.sanitizeUser(user, roles),
+      roles,
       membership: user.memberships[0]?.tier
         ? {
             tier: user.memberships[0].tier.name,
@@ -313,10 +326,18 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email);
+    const userWithRoles = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      include: { userRoles: { include: { role: true } } },
+    });
+    const roles =
+      userWithRoles?.userRoles.map((ur) => ur.role.name) ??
+      // Defensive fallback; should not happen if roles were seeded.
+      [UserRole.USER];
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: this.sanitizeUser(user),
+      user: this.sanitizeUser(userWithRoles ?? user, roles),
     };
   }
 
@@ -343,13 +364,24 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private sanitizeUser(user: { id: string; email: string; fullName: string; phone: string | null; avatar: string | null }) {
+  private pickPrimaryRole(roles: UserRole[] | undefined): UserRole {
+    const set = new Set(roles ?? []);
+    if (set.has(UserRole.ADMIN)) return UserRole.ADMIN;
+    if (set.has(UserRole.STAFF)) return UserRole.STAFF;
+    return UserRole.USER;
+  }
+
+  private sanitizeUser(
+    user: { id: string; email: string; fullName: string; phone: string | null; avatar: string | null },
+    roles?: UserRole[],
+  ) {
     return {
       id: user.id,
       email: user.email,
       fullName: user.fullName,
       phone: user.phone,
       avatar: user.avatar,
+      role: this.pickPrimaryRole(roles),
     };
   }
 }
