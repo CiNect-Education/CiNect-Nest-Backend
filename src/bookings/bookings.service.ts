@@ -16,6 +16,7 @@ import {
   PaymentStatus,
 } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
+import { bookingApiInclude, mapBookingToApi } from './booking-api.mapper';
 
 @Injectable()
 export class BookingsService {
@@ -269,14 +270,11 @@ export class BookingsService {
       return b;
     });
 
-    return this.prisma.booking.findUnique({
+    const created = await this.prisma.booking.findUniqueOrThrow({
       where: { id: booking.id },
-      include: {
-        bookingItems: { include: { seat: true } },
-        bookingSnacks: true,
-        showtime: { include: { movie: true, room: true } },
-      },
+      include: bookingApiInclude,
     });
+    return mapBookingToApi(created);
   }
 
   async findAll(userId: string, page = 1, limit = 20) {
@@ -286,30 +284,24 @@ export class BookingsService {
         where: { userId },
         skip,
         take: limit,
-        include: {
-          showtime: { include: { movie: true, room: true } },
-        },
+        include: bookingApiInclude,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.booking.count({ where: { userId } }),
     ]);
     const meta = new PageMeta(page, limit, total);
-    return { data: items, meta };
+    return { data: items.map(mapBookingToApi), meta };
   }
 
   async findOne(id: string, userId: string) {
     const booking = await this.prisma.booking.findFirst({
       where: { id, userId },
-      include: {
-        bookingItems: { include: { seat: true } },
-        bookingSnacks: true,
-        showtime: { include: { movie: true, room: true, cinema: true } },
-      },
+      include: bookingApiInclude,
     });
     if (!booking) {
       throw new NotFoundException('Booking not found');
     }
-    return booking;
+    return mapBookingToApi(booking);
   }
 
   async confirm(id: string, userId: string) {
@@ -450,7 +442,7 @@ export class BookingsService {
     const newDiscount = booking.discountAmount.toNumber() + discount;
     const newFinal = booking.totalAmount.toNumber() - newDiscount;
 
-    const updated = await this.prisma.booking.update({
+    await this.prisma.booking.update({
       where: { id: bookingId },
       data: {
         promotionCode: code,
@@ -464,7 +456,7 @@ export class BookingsService {
       data: { usageCount: { increment: 1 } },
     });
 
-    return updated;
+    return this.findOne(bookingId, userId);
   }
 
   async applyPoints(bookingId: string, userId: string, points: number) {
@@ -513,7 +505,7 @@ export class BookingsService {
       });
     });
 
-    return updated;
+    return this.findOne(bookingId, userId);
   }
 
   async applyGiftCard(bookingId: string, userId: string, code: string) {
@@ -557,6 +549,6 @@ export class BookingsService {
       });
     });
 
-    return updated;
+    return this.findOne(bookingId, userId);
   }
 }

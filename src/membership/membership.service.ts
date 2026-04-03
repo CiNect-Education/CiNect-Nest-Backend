@@ -34,10 +34,25 @@ export class MembershipService {
       where: { userId },
       include: { tier: true },
     });
-    if (!membership) {
-      throw new NotFoundException('Membership not found');
+    if (membership) return membership;
+
+    // Auto-provision a default membership for new users.
+    const defaultTier = await this.prisma.membershipTier.findFirst({
+      orderBy: { level: 'asc' },
+    });
+    if (!defaultTier) {
+      throw new NotFoundException('Membership tier not found');
     }
-    return membership;
+
+    return this.prisma.membership.create({
+      data: {
+        userId,
+        tierId: defaultTier.id,
+        currentPoints: 0,
+        totalPoints: 0,
+      },
+      include: { tier: true },
+    });
   }
 
   async getPointsHistory(userId: string, page = 1, limit = 20) {
