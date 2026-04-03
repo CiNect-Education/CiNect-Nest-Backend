@@ -47,7 +47,7 @@ import { PrismaService } from './prisma/prisma.service';
     ScheduleModule.forRoot(),
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET ?? 'development-secret-change-in-production',
+      secret: process.env.JWT_SECRET ?? 'development-secret',
       signOptions: {
         expiresIn: parseInt(process.env.JWT_ACCESS_SECONDS ?? '900', 10),
       },

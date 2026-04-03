@@ -74,6 +74,21 @@ export class MoviesService {
   }
 
   async findBySlug(slug: string) {
+    // Frontend routes may pass either a slug or a UUID id.
+    // To keep backward compatibility, try id first then slug.
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(slug);
+
+    if (isUuid) {
+      const byId = await this.prisma.movie.findFirst({
+        where: { id: slug, isDeleted: false },
+        include: {
+          movieGenres: { include: { genre: true } },
+        },
+      });
+      if (byId) return this.toResponse(byId);
+    }
+
     const movie = await this.prisma.movie.findFirst({
       where: { slug, isDeleted: false },
       include: {
