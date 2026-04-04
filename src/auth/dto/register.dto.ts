@@ -1,7 +1,7 @@
 ﻿import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsEmail, IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
-
+import { IsOptional } from 'class-validator';
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
@@ -19,12 +19,15 @@ export class RegisterDto {
   })
   password: string;
 
-  @ApiProperty({ example: 'Đinh Thế Vinh' })
-  @IsString({ message: 'Họ và tên phải là chuỗi ký tự' })
-  @IsNotEmpty({ message: 'Họ và tên là bắt buộc' })
-  @Matches(new RegExp('^\\p{L}+(?: \\p{L}+)*$', 'u'), {
-    message: 'Họ và tên chỉ được chứa chữ cái và dấu cách',
-  })
+  // Optional: some clients send confirmPassword for UX validation
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  confirmPassword?: string;
+
+  @ApiProperty({ example: 'Nguyen Van A' })
+  @IsString()
+  @IsNotEmpty()
   fullName: string;
 
   @ApiProperty({ example: '0901234567' })

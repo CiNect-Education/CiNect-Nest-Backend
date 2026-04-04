@@ -1,27 +1,49 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { HoldStatus } from '@prisma/client';
+import { HoldStatus, Prisma } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
+
+type ShowtimeFilters = {
+  movieId?: string;
+  cinemaId?: string;
+  cinemaSlug?: string;
+  city?: string;
+  date?: string;
+};
 
 @Injectable()
 export class ShowtimesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(filters: { movieId?: string; cinemaId?: string; date?: string }) {
-    const where: {
-      isActive?: boolean;
-      movieId?: string;
-      cinemaId?: string;
-      startTime?: { gte: Date; lte: Date };
-    } = { isActive: true };
+  async findAll(filters: ShowtimeFilters) {
+    const where: Prisma.ShowtimeWhereInput = { isActive: true };
 
     if (filters.movieId) where.movieId = filters.movieId;
     if (filters.cinemaId) where.cinemaId = filters.cinemaId;
 
+    const cinemaWhere: Prisma.CinemaWhereInput = {};
+    if (filters.cinemaSlug) cinemaWhere.slug = filters.cinemaSlug;
+    if (filters.city) cinemaWhere.city = filters.city;
+
+    if (Object.keys(cinemaWhere).length > 0) {
+      where.cinema = { is: cinemaWhere };
+    }
+
     if (filters.date) {
-      const d = new Date(filters.date);
-      const start = new Date(d.setHours(0, 0, 0, 0));
-      const end = new Date(d.setHours(23, 59, 59, 999));
+      const parsedDate = new Date(filters.date);
+      if (Number.isNaN(parsedDate.getTime())) {
+        throw new BadRequestException(
+          'Invalid date parameter. Expected ISO date string (YYYY-MM-DD).',
+        );
+      }
+      const start = new Date(parsedDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(parsedDate);
+      end.setHours(23, 59, 59, 999);
       where.startTime = { gte: start, lte: end };
     }
 

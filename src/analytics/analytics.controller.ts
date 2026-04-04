@@ -5,64 +5,74 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { UserRole } from '@prisma/client';
 
+/**
+ * Contract aligned with Spring {@code cinect-spring-backend} AdminController
+ * ({@code range} / {@code from} / {@code to} as {@code YYYY-MM-DD}).
+ */
 @ApiTags('admin/analytics')
 @ApiBearerAuth()
 @Controller('admin/analytics')
 @UseGuards(RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.STAFF)
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('revenue')
-  @ApiQuery({ name: 'startDate', required: false })
-  @ApiQuery({ name: 'endDate', required: false })
+  @ApiQuery({ name: 'range', required: false, description: '7d | 30d | 90d | custom' })
+  @ApiQuery({ name: 'from', required: false, description: 'YYYY-MM-DD (with custom range)' })
+  @ApiQuery({ name: 'to', required: false, description: 'YYYY-MM-DD (with custom range)' })
   getRevenue(
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query('range') range?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
-    return this.analyticsService.getRevenue(
-      startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined,
-    );
+    return this.analyticsService.getRevenueChart(range, from, to);
+  }
+
+  @Get('forecast')
+  @ApiQuery({ name: 'range', required: false })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  getForecast(
+    @Query('range') range?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.analyticsService.getForecastSeries(range, from, to);
   }
 
   @Get('occupancy')
-  @ApiQuery({ name: 'showtimeId', required: false })
-  @ApiQuery({ name: 'cinemaId', required: false })
+  @ApiQuery({ name: 'range', required: false })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
   getOccupancy(
-    @Query('showtimeId') showtimeId?: string,
-    @Query('cinemaId') cinemaId?: string,
+    @Query('range') range?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
-    return this.analyticsService.getOccupancy(showtimeId, cinemaId);
+    return this.analyticsService.getOccupancyByCinemaDate(range, from, to);
+  }
+
+  @Get('customer-segments')
+  getCustomerSegments() {
+    return this.analyticsService.getCustomerSegmentsChart();
   }
 
   @Get('peak-hours')
-  @ApiQuery({ name: 'cinemaId', required: false })
-  @ApiQuery({ name: 'days', required: false })
+  @ApiQuery({ name: 'range', required: false })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
   getPeakHours(
-    @Query('cinemaId') cinemaId?: string,
-    @Query('days') days?: string,
+    @Query('range') range?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
-    return this.analyticsService.getPeakHours(
-      cinemaId,
-      days ? parseInt(days, 10) : 30,
-    );
+    return this.analyticsService.getPeakHoursSeries(range, from, to);
   }
 
   @Get('top-movies')
   @ApiQuery({ name: 'limit', required: false })
   getTopMovies(@Query('limit') limit?: string) {
     return this.analyticsService.getTopMovies(limit ? parseInt(limit, 10) : 10);
-  }
-
-  @Get('forecast')
-  @ApiQuery({ name: 'months', required: false })
-  getForecast(@Query('months') months?: string) {
-    return this.analyticsService.getForecast(months);
-  }
-
-  @Get('customer-segments')
-  getCustomerSegments() {
-    return this.analyticsService.getCustomerSegments();
   }
 }
