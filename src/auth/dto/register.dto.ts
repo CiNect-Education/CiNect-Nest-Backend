@@ -33,7 +33,7 @@ export class RegisterDto {
   @ApiProperty({ example: '0901234567' })
   @IsString({ message: 'Số điện thoại phải là chuỗi ký tự' })
   @IsNotEmpty({ message: 'Số điện thoại là bắt buộc' })
-  @Matches(/^0\\d{9}$/, {
+  @Matches(/^0\d{9}$/, {
     message: 'Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số',
   })
   phoneNumber: string;
