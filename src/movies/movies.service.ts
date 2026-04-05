@@ -5,6 +5,7 @@ import { UpdateMovieDto } from './dto/update-movie.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PageMeta } from '../common/dto/page-meta.dto';
 import { MovieStatus, Prisma } from '@prisma/client';
+import { resolveCinemaProvinceCode } from '../common/helpers/booking-city.helper';
 
 @Injectable()
 export class MoviesService {
@@ -195,13 +196,19 @@ export class MoviesService {
     });
   }
 
-  async findShowtimesByMovie(movieId: string, date?: string) {
-    const where: any = { movieId, isActive: true };
+  async findShowtimesByMovie(movieId: string, date?: string, city?: string) {
+    const where: Prisma.ShowtimeWhereInput = { movieId, isActive: true };
     if (date) {
       const d = new Date(date);
-      const start = new Date(d.setHours(0, 0, 0, 0));
-      const end = new Date(new Date(date).setHours(23, 59, 59, 999));
+      const start = new Date(d);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
       where.startTime = { gte: start, lte: end };
+    }
+    const provinceCode = resolveCinemaProvinceCode(city);
+    if (provinceCode) {
+      where.cinema = { provinceNew: { code: provinceCode } };
     }
     return this.prisma.showtime.findMany({
       where,
