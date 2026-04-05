@@ -27,7 +27,7 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    if (dto.confirmPassword !== undefined && dto.confirmPassword !== dto.password) {
+    if (dto.confirmPassword !== dto.password) {
       throw new BadRequestException('Passwords do not match');
     }
 
