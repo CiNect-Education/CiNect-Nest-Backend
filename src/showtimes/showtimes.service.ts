@@ -132,14 +132,25 @@ export class ShowtimesService {
     const heldSet = new Set(heldSeatIds);
     const bookedSet = new Set(bookedSeatIds);
 
-    const seatMap = showtime.room.seats.map((seat) => ({
-      ...seat,
-      status: bookedSet.has(seat.id)
+    const seatMap = showtime.room.seats.map((seat) => {
+      const status = bookedSet.has(seat.id)
         ? 'BOOKED'
         : heldSet.has(seat.id)
           ? 'HELD'
-          : seat.status,
-    }));
+          : seat.status;
+      return {
+        id: seat.id,
+        roomId: seat.roomId,
+        row: seat.rowLabel,
+        rowLabel: seat.rowLabel,
+        number: seat.number,
+        type: seat.type,
+        status,
+        pairId: seat.pairId,
+        isAisle: seat.isAisle,
+        price: seat.price != null ? Number(seat.price) : null,
+      };
+    });
 
     return {
       showtime: {

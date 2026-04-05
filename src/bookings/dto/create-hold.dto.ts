@@ -9,6 +9,6 @@ export class CreateHoldDto {
   @ApiProperty({ type: [String], description: 'Seat IDs to hold' })
   @IsArray()
   @ArrayMinSize(1)
-  @IsUUID('4', { each: true })
+  @IsUUID('all', { each: true })
   seatIds: string[];
 }

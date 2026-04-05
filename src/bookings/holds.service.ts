@@ -7,7 +7,19 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebsocketGateway } from '../websocket/websocket.gateway';
+import { mapRoomFormat } from '../common/helpers/format.helper';
 import { HoldStatus } from '@prisma/client';
+
+const holdCheckoutInclude = {
+  holdSeats: { include: { seat: true } },
+  showtime: {
+    include: {
+      movie: { select: { title: true } },
+      cinema: { select: { id: true, name: true } },
+      room: { select: { name: true, format: true } },
+    },
+  },
+} as const;
 
 @Injectable()
 export class HoldsService {
@@ -120,16 +132,16 @@ export class HoldsService {
 
     const result = await this.prisma.hold.findUnique({
       where: { id: hold.id },
-      include: { holdSeats: { include: { seat: true } } },
+      include: holdCheckoutInclude,
     });
     this.ws.emitSeatHeld(showtimeId, seatIds);
-    return result;
+    return this.mapHoldCheckout(result!);
   }
 
   async findOne(holdId: string, userId: string) {
     const hold = await this.prisma.hold.findUnique({
       where: { id: holdId },
-      include: { holdSeats: { include: { seat: true } } },
+      include: holdCheckoutInclude,
     });
     if (!hold) {
       throw new NotFoundException('Hold not found');
@@ -137,7 +149,40 @@ export class HoldsService {
     if (hold.userId !== userId) {
       throw new ForbiddenException('You can only view your own holds');
     }
-    return hold;
+    return this.mapHoldCheckout(hold);
+  }
+
+  /** Checkout / booking UI: nested seats + showtime summary (matches Spring HoldResponse). */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma result with holdCheckoutInclude
+  private mapHoldCheckout(hold: any) {
+    const st = hold.showtime;
+    const basePrice = st ? Number(st.basePrice) : 0;
+    return {
+      holdId: hold.id,
+      id: hold.id,
+      userId: hold.userId,
+      showtimeId: hold.showtimeId,
+      status: hold.status,
+      expiresAt: hold.expiresAt.toISOString(),
+      createdAt: hold.createdAt.toISOString(),
+      seats: hold.holdSeats.map((hs: { seat: { id: string; rowLabel: string; number: number; type: string; price: unknown } }) => ({
+        id: hs.seat.id,
+        row: hs.seat.rowLabel,
+        number: hs.seat.number,
+        type: hs.seat.type,
+        price: hs.seat.price != null ? Number(hs.seat.price) : basePrice,
+      })),
+      showtime: st
+        ? {
+            movieTitle: st.movie?.title ?? undefined,
+            cinemaName: st.cinema?.name ?? undefined,
+            roomName: st.room?.name ?? undefined,
+            startTime: st.startTime.toISOString(),
+            format: mapRoomFormat(st.format),
+            cinemaId: st.cinemaId,
+          }
+        : undefined,
+    };
   }
 
   async release(holdId: string, userId: string) {
