@@ -9,7 +9,7 @@ import { isUUID } from 'class-validator';
 @Injectable()
 export class ParseUuidPipe implements PipeTransform<string, string> {
   transform(value: string, metadata: ArgumentMetadata): string {
-    if (!value || !isUUID(value, '4')) {
+    if (!value || !isUUID(value)) {
       throw new BadRequestException(
         `Validation failed: '${metadata.data}' must be a valid UUID`,
       );
