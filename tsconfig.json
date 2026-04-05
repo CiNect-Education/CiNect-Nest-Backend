@@ -21,6 +21,7 @@
     "strictPropertyInitialization": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "ignoreDeprecations": "5.0",
     "paths": { "@/*": ["src/*"] }
   }
 }
