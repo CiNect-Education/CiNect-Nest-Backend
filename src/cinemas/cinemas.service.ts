@@ -1,13 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { mapRoomFormat } from '../common/helpers/format.helper';
+import { resolveCinemaCityFilter } from '../common/helpers/booking-city.helper';
 
 @Injectable()
 export class CinemasService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(city?: string) {
-    const where = city ? { city, isActive: true } : { isActive: true };
+    const dbCity = resolveCinemaCityFilter(city);
+    const where = dbCity ? { city: dbCity, isActive: true } : { isActive: true };
     const cinemas = await this.prisma.cinema.findMany({
       where,
       include: { rooms: { where: { isActive: true }, select: { id: true } } },
