@@ -49,11 +49,13 @@ export class MoviesController {
   @Public()
   @Get(':id/showtimes')
   @ApiQuery({ name: 'date', required: false })
+  @ApiQuery({ name: 'city', required: false, description: 'Booking region slug or province code' })
   findShowtimes(
     @Param('id', ParseUuidPipe) id: string,
     @Query('date') date?: string,
+    @Query('city') city?: string,
   ) {
-    return this.moviesService.findShowtimesByMovie(id, date);
+    return this.moviesService.findShowtimesByMovie(id, date, city);
   }
 
   @Public()

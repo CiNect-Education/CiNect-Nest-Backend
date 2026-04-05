@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HoldStatus } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
-import { resolveCinemaCityFilter } from '../common/helpers/booking-city.helper';
+import { resolveCinemaProvinceCode } from '../common/helpers/booking-city.helper';
 
 @Injectable()
 export class ShowtimesService {
@@ -13,7 +13,7 @@ export class ShowtimesService {
       isActive?: boolean;
       movieId?: string;
       cinemaId?: string;
-      cinema?: { city: string };
+      cinema?: { provinceNew?: { code: string } };
       startTime?: { gte: Date; lte: Date };
     } = { isActive: true };
 
@@ -21,9 +21,9 @@ export class ShowtimesService {
     if (filters.cinemaId) {
       where.cinemaId = filters.cinemaId;
     } else {
-      const dbCity = resolveCinemaCityFilter(filters.city);
-      if (dbCity) {
-        where.cinema = { city: dbCity };
+      const provinceCode = resolveCinemaProvinceCode(filters.city);
+      if (provinceCode) {
+        where.cinema = { provinceNew: { code: provinceCode } };
       }
     }
 
