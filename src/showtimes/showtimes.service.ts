@@ -14,7 +14,7 @@ export class ShowtimesService {
       movieId?: string;
       cinemaId?: string;
       cinema?: { provinceNew?: { code: string } };
-      startTime?: { gte: Date; lte: Date };
+      startTime?: { gte: Date; lt: Date };
     } = { isActive: true };
 
     if (filters.movieId) where.movieId = filters.movieId;
@@ -31,10 +31,17 @@ export class ShowtimesService {
       const parts = filters.date.split('-').map((x) => parseInt(x, 10));
       if (parts.length === 3 && parts.every((n) => !Number.isNaN(n))) {
         const [y, m, day] = parts;
-        const start = new Date(y, m - 1, day, 0, 0, 0, 0);
-        const end = new Date(y, m - 1, day, 23, 59, 59, 999);
-        where.startTime = { gte: start, lte: end };
+        const dayStart = new Date(y, m - 1, day, 0, 0, 0, 0);
+        const dayEndExclusive = new Date(y, m - 1, day + 1, 0, 0, 0, 0);
+        const now = new Date();
+        // Hide already-started showtimes when querying today's date.
+        const start = dayStart < now ? now : dayStart;
+        where.startTime = { gte: start, lt: dayEndExclusive };
       }
+    } else {
+      const now = new Date();
+      const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      where.startTime = { gte: now, lt: next7Days };
     }
 
     const showtimes = await this.prisma.showtime.findMany({
