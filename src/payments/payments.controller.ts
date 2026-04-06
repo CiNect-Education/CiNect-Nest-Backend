@@ -33,11 +33,15 @@ export class PaymentsController {
   @Public()
   @Post('callback')
   callback(
-    @Query('transactionId') transactionId: string,
+    @Query('transactionId') transactionId?: string,
     @Query('success') successParam?: string,
+    @Body() body?: { transactionId?: string; success?: boolean | string | number },
   ) {
-    const success = successParam === 'true' || successParam === '1';
-    return this.paymentsService.callback(transactionId, success);
+    const tx = transactionId ?? body?.transactionId ?? '';
+    const successFromQuery = successParam === 'true' || successParam === '1';
+    const successFromBody =
+      body?.success === true || body?.success === 'true' || body?.success === 1 || body?.success === '1';
+    return this.paymentsService.callback(tx, successFromBody || successFromQuery);
   }
 
   @ApiBearerAuth()

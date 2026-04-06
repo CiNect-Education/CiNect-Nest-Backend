@@ -674,6 +674,8 @@ model Membership {
   tierId        String    @map("tier_id")
   currentPoints Int       @default(0) @map("current_points")
   totalPoints   Int       @default(0) @map("total_points")
+  dailyCheckinStreak Int  @default(0) @map("daily_checkin_streak")
+  lastDailyCheckinAt DateTime? @map("last_daily_checkin_at")
   memberSince   DateTime  @default(now()) @map("member_since")
   expiresAt     DateTime? @map("expires_at")
   createdAt     DateTime  @default(now()) @map("created_at")

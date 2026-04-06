@@ -16,7 +16,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
-import { MovieStatus } from '@prisma/client';
+import { MovieStatus, AgeRating } from '@prisma/client';
 
 @ApiTags('movies')
 @Controller('movies')
@@ -30,14 +30,38 @@ export class MoviesController {
   @ApiQuery({ name: 'status', enum: MovieStatus, required: false })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'genre', required: false })
+  @ApiQuery({ name: 'language', required: false })
+  @ApiQuery({ name: 'ageRating', enum: AgeRating, required: false })
+  @ApiQuery({ name: 'durationMin', required: false })
+  @ApiQuery({ name: 'durationMax', required: false })
+  @ApiQuery({ name: 'format', required: false })
+  @ApiQuery({ name: 'sort', required: false })
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('status') status?: MovieStatus,
     @Query('search') search?: string,
     @Query('genre') genre?: string,
+    @Query('language') language?: string,
+    @Query('ageRating') ageRating?: AgeRating,
+    @Query('durationMin') durationMin?: string,
+    @Query('durationMax') durationMax?: string,
+    @Query('format') format?: string,
+    @Query('sort') sort?: string,
   ) {
-    return this.moviesService.findAll({ page, limit, status, search, genre });
+    return this.moviesService.findAll({
+      page,
+      limit,
+      status,
+      search,
+      genre,
+      language,
+      ageRating,
+      durationMin: durationMin ? Number(durationMin) : undefined,
+      durationMax: durationMax ? Number(durationMax) : undefined,
+      format,
+      sort,
+    });
   }
 
   @Public()

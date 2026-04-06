@@ -37,7 +37,7 @@ export class ShowtimesController {
     @Query('date') date?: string,
     @Query('format') format?: string,
   ) {
-    return this.showtimesService.findAll({ movieId, cinemaId, city, date });
+    return this.showtimesService.findAll({ movieId, cinemaId, city, date, format });
   }
 
   @Get(':id')

@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Query,
   ParseIntPipe,
   DefaultValuePipe,
@@ -43,5 +44,17 @@ export class MembershipController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
     return this.membershipService.getPointsHistory(userId, page, limit);
+  }
+
+  @ApiBearerAuth()
+  @Get('daily-checkin/status')
+  getDailyCheckinStatus(@CurrentUser('id') userId: string) {
+    return this.membershipService.getDailyCheckinStatus(userId);
+  }
+
+  @ApiBearerAuth()
+  @Post('daily-checkin/claim')
+  claimDailyCheckin(@CurrentUser('id') userId: string) {
+    return this.membershipService.claimDailyCheckin(userId);
   }
 }

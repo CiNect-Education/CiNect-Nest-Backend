@@ -2,13 +2,22 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HoldStatus } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
-import { resolveCinemaProvinceCode } from '../common/helpers/booking-city.helper';
+import { ProvinceResolverService } from '../provinces/province-resolver.service';
 
 @Injectable()
 export class ShowtimesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly provinceResolver: ProvinceResolverService,
+  ) {}
 
-  async findAll(filters: { movieId?: string; cinemaId?: string; city?: string; date?: string }) {
+  async findAll(filters: {
+    movieId?: string;
+    cinemaId?: string;
+    city?: string;
+    date?: string;
+    format?: string;
+  }) {
     const where: {
       isActive?: boolean;
       movieId?: string;
@@ -21,9 +30,16 @@ export class ShowtimesService {
     if (filters.cinemaId) {
       where.cinemaId = filters.cinemaId;
     } else {
-      const provinceCode = resolveCinemaProvinceCode(filters.city);
+      const provinceCode = await this.provinceResolver.resolveToNewCode(filters.city);
       if (provinceCode) {
         where.cinema = { provinceNew: { code: provinceCode } };
+      }
+    }
+    const format = filters.format?.trim().toUpperCase();
+    if (format) {
+      (where as Record<string, unknown>).format = format.startsWith('_') ? format : `_${format}`;
+      if (format === 'IMAX' || format === 'DOLBY') {
+        (where as Record<string, unknown>).format = format;
       }
     }
 

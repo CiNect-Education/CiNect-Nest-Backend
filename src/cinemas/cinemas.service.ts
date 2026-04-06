@@ -2,14 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { mapRoomFormat } from '../common/helpers/format.helper';
-import { resolveCinemaProvinceCode } from '../common/helpers/booking-city.helper';
+import { ProvinceResolverService } from '../provinces/province-resolver.service';
 
 @Injectable()
 export class CinemasService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly provinceResolver: ProvinceResolverService,
+  ) {}
 
   async findAll(city?: string) {
-    const provinceCode = resolveCinemaProvinceCode(city);
+    const provinceCode = await this.provinceResolver.resolveToNewCode(city);
     const where: Prisma.CinemaWhereInput = { isActive: true };
     if (provinceCode) {
       where.OR = [{ provinceNew: { code: provinceCode } }];

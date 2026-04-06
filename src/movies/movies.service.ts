@@ -4,12 +4,15 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PageMeta } from '../common/dto/page-meta.dto';
-import { MovieStatus, Prisma } from '@prisma/client';
-import { resolveCinemaProvinceCode } from '../common/helpers/booking-city.helper';
+import { MovieStatus, Prisma, AgeRating } from '@prisma/client';
+import { ProvinceResolverService } from '../provinces/province-resolver.service';
 
 @Injectable()
 export class MoviesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly provinceResolver: ProvinceResolverService,
+  ) {}
 
   async findAll(params: {
     page?: number;
@@ -17,6 +20,12 @@ export class MoviesService {
     status?: MovieStatus;
     search?: string;
     genre?: string;
+    language?: string;
+    ageRating?: AgeRating;
+    durationMin?: number;
+    durationMax?: number;
+    format?: string;
+    sort?: string;
   }) {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(50, Math.max(1, params.limit ?? 20));
@@ -44,11 +53,49 @@ export class MoviesService {
             OR: [
               { id: params.genre },
               { slug: params.genre },
+              { name: { contains: params.genre, mode: 'insensitive' } },
             ],
           },
         },
       };
     }
+
+    if (params.language) {
+      where.language = { contains: params.language, mode: 'insensitive' };
+    }
+
+    if (params.ageRating) {
+      where.ageRating = params.ageRating;
+    }
+
+    if (params.durationMin !== undefined || params.durationMax !== undefined) {
+      where.duration = {
+        ...(params.durationMin !== undefined ? { gte: params.durationMin } : {}),
+        ...(params.durationMax !== undefined ? { lte: params.durationMax } : {}),
+      };
+    }
+
+    if (params.format) {
+      where.formats = { array_contains: [params.format] };
+    }
+
+    const sortKey = (params.sort || 'releaseDate:desc').toLowerCase();
+    const orderBy: Prisma.MovieOrderByWithRelationInput = (() => {
+      switch (sortKey) {
+        case 'releasedate:asc':
+          return { releaseDate: 'asc' };
+        case 'title:asc':
+          return { title: 'asc' };
+        case 'title:desc':
+          return { title: 'desc' };
+        case 'rating:asc':
+          return { rating: 'asc' };
+        case 'rating:desc':
+          return { rating: 'desc' };
+        default:
+          return { releaseDate: 'desc' };
+      }
+    })();
 
     const [rawItems, total] = await Promise.all([
       this.prisma.movie.findMany({
@@ -58,7 +105,7 @@ export class MoviesService {
         include: {
           movieGenres: { include: { genre: true } },
         },
-        orderBy: { releaseDate: 'desc' },
+        orderBy,
       }),
       this.prisma.movie.count({ where }),
     ]);
@@ -206,7 +253,7 @@ export class MoviesService {
       end.setHours(23, 59, 59, 999);
       where.startTime = { gte: start, lte: end };
     }
-    const provinceCode = resolveCinemaProvinceCode(city);
+    const provinceCode = await this.provinceResolver.resolveToNewCode(city);
     if (provinceCode) {
       where.cinema = { provinceNew: { code: provinceCode } };
     }
