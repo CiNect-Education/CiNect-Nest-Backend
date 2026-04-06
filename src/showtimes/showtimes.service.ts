@@ -2,27 +2,39 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HoldStatus } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
+import { resolveCinemaProvinceCode } from '../common/helpers/booking-city.helper';
 
 @Injectable()
 export class ShowtimesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(filters: { movieId?: string; cinemaId?: string; date?: string }) {
+  async findAll(filters: { movieId?: string; cinemaId?: string; city?: string; date?: string }) {
     const where: {
       isActive?: boolean;
       movieId?: string;
       cinemaId?: string;
+      cinema?: { provinceNew?: { code: string } };
       startTime?: { gte: Date; lte: Date };
     } = { isActive: true };
 
     if (filters.movieId) where.movieId = filters.movieId;
-    if (filters.cinemaId) where.cinemaId = filters.cinemaId;
+    if (filters.cinemaId) {
+      where.cinemaId = filters.cinemaId;
+    } else {
+      const provinceCode = resolveCinemaProvinceCode(filters.city);
+      if (provinceCode) {
+        where.cinema = { provinceNew: { code: provinceCode } };
+      }
+    }
 
     if (filters.date) {
-      const d = new Date(filters.date);
-      const start = new Date(d.setHours(0, 0, 0, 0));
-      const end = new Date(d.setHours(23, 59, 59, 999));
-      where.startTime = { gte: start, lte: end };
+      const parts = filters.date.split('-').map((x) => parseInt(x, 10));
+      if (parts.length === 3 && parts.every((n) => !Number.isNaN(n))) {
+        const [y, m, day] = parts;
+        const start = new Date(y, m - 1, day, 0, 0, 0, 0);
+        const end = new Date(y, m - 1, day, 23, 59, 59, 999);
+        where.startTime = { gte: start, lte: end };
+      }
     }
 
     const showtimes = await this.prisma.showtime.findMany({

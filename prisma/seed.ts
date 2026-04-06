@@ -1,5 +1,8 @@
 import { PrismaClient, UserRole, MovieStatus, AgeRating, RoomFormat, SeatType, SeatStatus, PromotionStatus, DiscountType, NewsCategory, GiftCardStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { PROVINCES_NEW } from './data/provinces-new';
+import { PROVINCES_LEGACY } from './data/provinces-legacy';
+import { REAL_CINEMAS } from './data/real-cinemas.seed';
 
 const prisma = new PrismaClient();
 
@@ -254,56 +257,75 @@ async function main() {
     }
   }
 
-  // ============ CINEMAS ============
-  console.log('Creating cinemas...');
-  const cinemasData = [
-    {
-      name: 'CiNect Landmark 81',
-      slug: 'cinect-landmark-81',
-      address: 'Tầng 3, Landmark 81, 720A Điện Biên Phủ, Phường 22',
-      city: 'Ho Chi Minh',
-      district: 'Binh Thanh',
-      phone: '028 7108 8881',
-      email: 'landmark81@cinect.vn',
-      imageUrl: 'https://placehold.co/800x400/0984e3/dfe6e9?text=CiNect+Landmark+81',
-      amenities: ['IMAX', '4DX', 'Dolby Atmos', 'VIP Lounge', 'Parking', 'F&B Court'] as object,
-      latitude: 10.7950,
-      longitude: 106.7220,
-    },
-    {
-      name: 'CiNect Vincom Center',
-      slug: 'cinect-vincom-center',
-      address: 'Tầng 5, Vincom Center, 72 Lê Thánh Tôn, Phường Bến Nghé',
-      city: 'Ho Chi Minh',
-      district: 'District 1',
-      phone: '028 3827 8888',
-      email: 'vincom@cinect.vn',
-      imageUrl: 'https://placehold.co/800x400/00b894/dfe6e9?text=CiNect+Vincom',
-      amenities: ['3D', 'Dolby Atmos', 'Couple Seats', 'Cafe', 'Parking'] as object,
-      latitude: 10.7769,
-      longitude: 106.7009,
-    },
-    {
-      name: 'CiNect Royal City',
-      slug: 'cinect-royal-city',
-      address: 'Tầng 4, Royal City, 72A Nguyễn Trãi, Phường Thượng Đình',
-      city: 'Ha Noi',
-      district: 'Thanh Xuan',
-      phone: '024 6262 8888',
-      email: 'royalcity@cinect.vn',
-      imageUrl: 'https://placehold.co/800x400/e17055/dfe6e9?text=CiNect+Royal+City',
-      amenities: ['IMAX', '3D', 'VIP Lounge', 'Parking', 'Kids Zone'] as object,
-      latitude: 21.0018,
-      longitude: 105.8156,
-    },
-  ];
+  // ============ PROVINCES (34 mới + 63 cũ) ============
+  console.log('Creating provinces (new + legacy)...');
+  for (const p of PROVINCES_NEW) {
+    await prisma.provinceNew.upsert({
+      where: { code: p.code },
+      update: { nameVi: p.nameVi, nameEn: p.nameEn, sortOrder: p.sortOrder },
+      create: {
+        code: p.code,
+        nameVi: p.nameVi,
+        nameEn: p.nameEn,
+        sortOrder: p.sortOrder,
+      },
+    });
+  }
+  const provinceRows = await prisma.provinceNew.findMany();
+  const provinceIdByCode = Object.fromEntries(provinceRows.map((r) => [r.code, r.id])) as Record<string, string>;
+  for (const L of PROVINCES_LEGACY) {
+    const pid = provinceIdByCode[L.mergedInto];
+    if (!pid) throw new Error(`Missing province new code for legacy ${L.code} -> ${L.mergedInto}`);
+    await prisma.provinceLegacy.upsert({
+      where: { code: L.code },
+      update: { nameVi: L.nameVi, nameEn: L.nameEn, provinceNewId: pid },
+      create: {
+        code: L.code,
+        nameVi: L.nameVi,
+        nameEn: L.nameEn,
+        provinceNewId: pid,
+      },
+    });
+  }
 
+  // ============ CINEMAS ============
+  console.log('Creating cinemas (real addresses)...');
   const cinemaIds: Record<string, string> = {};
-  for (const c of cinemasData) {
+  for (const c of REAL_CINEMAS) {
+    const provinceNewId = provinceIdByCode[c.provinceCode];
+    if (!provinceNewId) throw new Error(`Unknown provinceCode ${c.provinceCode} for cinema ${c.slug}`);
+    const imageUrl = `https://placehold.co/800x400/0984e3/dfe6e9?text=${encodeURIComponent(c.name)}`;
     const cinema = await prisma.cinema.upsert({
       where: { slug: c.slug },
-      update: {},
-      create: c,
+      update: {
+        name: c.name,
+        address: c.address,
+        ward: c.ward ?? null,
+        district: c.district ?? null,
+        city: c.city,
+        phone: c.phone ?? null,
+        email: c.email ?? null,
+        imageUrl,
+        amenities: c.amenities as object,
+        latitude: c.latitude,
+        longitude: c.longitude,
+        provinceNewId,
+      },
+      create: {
+        name: c.name,
+        slug: c.slug,
+        address: c.address,
+        ward: c.ward ?? null,
+        district: c.district ?? null,
+        city: c.city,
+        phone: c.phone ?? null,
+        email: c.email ?? null,
+        imageUrl,
+        amenities: c.amenities as object,
+        latitude: c.latitude,
+        longitude: c.longitude,
+        provinceNewId,
+      },
     });
     cinemaIds[c.slug] = cinema.id;
   }
@@ -320,7 +342,7 @@ async function main() {
     { cinemaSlug: 'cinect-royal-city', name: 'Screen 2 - Standard', format: RoomFormat.STANDARD2D, rows: 8, columns: 12 },
   ];
 
-  const roomIds: string[] = [];
+  const roomIdsForShowtimes: string[] = [];
   const roomCinemaMap: Record<string, string> = {};
   for (const r of roomsData) {
     const cinemaId = cinemaIds[r.cinemaSlug];
@@ -377,8 +399,47 @@ async function main() {
       }
       await prisma.seat.createMany({ data: seats });
     }
-    roomIds.push(room.id);
+    roomIdsForShowtimes.push(room.id);
     roomCinemaMap[room.id] = cinemaId;
+  }
+
+  // Default single screen for other cinemas (có ghế để có thể mở suất sau)
+  const defaultRoomName = 'Phòng 1 - 2D';
+  for (const c of REAL_CINEMAS) {
+    if (c.seedFullRooms) continue;
+    const cinemaId = cinemaIds[c.slug];
+    const existingRoom = await prisma.room.findFirst({
+      where: { cinemaId, name: defaultRoomName },
+    });
+    if (existingRoom) continue;
+    const rows = 6;
+    const columns = 10;
+    const room = await prisma.room.create({
+      data: {
+        cinemaId,
+        name: defaultRoomName,
+        format: RoomFormat.STANDARD2D,
+        totalSeats: rows * columns,
+        rows,
+        columns,
+      },
+    });
+    const rowLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const seats = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 1; col <= columns; col++) {
+        seats.push({
+          roomId: room.id,
+          rowLabel: rowLabels[row],
+          number: col,
+          type: SeatType.STANDARD,
+          status: SeatStatus.AVAILABLE,
+          isAisle: false,
+          price: 85000,
+        });
+      }
+    }
+    await prisma.seat.createMany({ data: seats });
   }
 
   // ============ SHOWTIMES ============
@@ -389,8 +450,8 @@ async function main() {
   );
 
   for (const [movieSlug, movieId] of nowShowingMovies) {
-    for (let roomIdx = 0; roomIdx < roomIds.length; roomIdx++) {
-      const roomId = roomIds[roomIdx];
+    for (let roomIdx = 0; roomIdx < roomIdsForShowtimes.length; roomIdx++) {
+      const roomId = roomIdsForShowtimes[roomIdx];
       const cinemaId = roomCinemaMap[roomId];
 
       // Create showtimes for today and next 5 days
