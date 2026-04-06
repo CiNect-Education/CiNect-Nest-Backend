@@ -11,17 +11,17 @@ import {
 } from 'class-validator';
 
 const FULL_NAME_REGEX = /^[\p{L}\s]+$/u;
-const GMAIL_EMAIL_REGEX = /^[A-Za-z0-9]+@gmail\.com$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_REGEX = /^0\d{9}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 export class RegisterDto {
-  @ApiProperty({ example: 'username@gmail.com' })
+  @ApiProperty({ example: 'username@domain.com' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsString()
   @IsNotEmpty()
-  @Matches(GMAIL_EMAIL_REGEX, {
-    message: 'Email must be in ten@gmail.com format and contain no special characters',
+  @Matches(EMAIL_REGEX, {
+    message: 'Email format is invalid',
   })
   email: string;
 
