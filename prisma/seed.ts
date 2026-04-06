@@ -3,8 +3,159 @@ import * as bcrypt from 'bcrypt';
 import { PROVINCES_NEW } from './data/provinces-new';
 import { PROVINCES_LEGACY } from './data/provinces-legacy';
 import { REAL_CINEMAS } from './data/real-cinemas.seed';
+import moviesCatalogJson from './data/movies-catalog.omdb.json';
 
 const prisma = new PrismaClient();
+
+const CINEMA_IMAGE_POOL = [
+  "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1460881680858-30d872d5b530?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?auto=format&fit=crop&w=1600&q=80",
+] as const;
+
+const WIKIMEDIA_API = "https://commons.wikimedia.org/w/api.php";
+const GOOGLE_PLACES_TEXTSEARCH_API = "https://maps.googleapis.com/maps/api/place/textsearch/json";
+const GOOGLE_PLACES_PHOTO_API = "https://maps.googleapis.com/maps/api/place/photo";
+const imageCache = new Map<string, string>();
+
+function stableHash(input: string): number {
+  let h = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    h = (h * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
+function resolveCinemaImage(slug: string): string {
+  return CINEMA_IMAGE_POOL[stableHash(slug) % CINEMA_IMAGE_POOL.length];
+}
+
+async function fetchWikimediaImage(query: string): Promise<string | undefined> {
+  try {
+    const params = new URLSearchParams({
+      action: "query",
+      generator: "search",
+      gsrsearch: query,
+      gsrlimit: "3",
+      prop: "pageimages",
+      piprop: "original|thumbnail",
+      pithumbsize: "1600",
+      format: "json",
+      origin: "*",
+    });
+    const res = await fetch(`${WIKIMEDIA_API}?${params.toString()}`);
+    if (!res.ok) return undefined;
+    const json = (await res.json()) as {
+      query?: { pages?: Record<string, { original?: { source?: string }; thumbnail?: { source?: string } }> };
+    };
+    const pages = Object.values(json.query?.pages ?? {});
+    for (const p of pages) {
+      const src = p.original?.source || p.thumbnail?.source;
+      if (src && /^https?:\/\//i.test(src)) return src;
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function fetchGooglePlaceImage(
+  query: string,
+  apiKey: string
+): Promise<string | undefined> {
+  try {
+    const params = new URLSearchParams({
+      query,
+      language: "vi",
+      region: "vn",
+      key: apiKey,
+    });
+    const searchRes = await fetch(`${GOOGLE_PLACES_TEXTSEARCH_API}?${params.toString()}`);
+    if (!searchRes.ok) return undefined;
+    const searchJson = (await searchRes.json()) as {
+      status?: string;
+      results?: Array<{ photos?: Array<{ photo_reference?: string }> }>;
+    };
+    if (searchJson.status !== "OK" || !searchJson.results?.length) return undefined;
+
+    const photoRef = searchJson.results[0]?.photos?.[0]?.photo_reference;
+    if (!photoRef) return undefined;
+
+    const photoParams = new URLSearchParams({
+      maxwidth: "1600",
+      photoreference: photoRef,
+      key: apiKey,
+    });
+    const photoRes = await fetch(`${GOOGLE_PLACES_PHOTO_API}?${photoParams.toString()}`);
+    if (!photoRes.ok) return undefined;
+    return photoRes.url || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function resolveCinemaImageReal(
+  slug: string,
+  name: string,
+  address: string,
+  city: string
+): Promise<string> {
+  const cached = imageCache.get(slug);
+  if (cached) return cached;
+
+  const queries = [
+    `${name} ${city}`,
+    `${name} cinema`,
+    `${name} ${address}`,
+    `${city} cinema exterior`,
+  ];
+
+  const googleApiKey = process.env.GOOGLE_MAPS_API_KEY?.trim();
+  if (googleApiKey) {
+    for (const q of queries) {
+      const img = await fetchGooglePlaceImage(q, googleApiKey);
+      if (img) {
+        imageCache.set(slug, img);
+        return img;
+      }
+    }
+  }
+
+  for (const q of queries) {
+    const img = await fetchWikimediaImage(q);
+    if (img) {
+      imageCache.set(slug, img);
+      return img;
+    }
+  }
+
+  const fallback = resolveCinemaImage(slug);
+  imageCache.set(slug, fallback);
+  return fallback;
+}
+
+function appendIfMissing(parts: string[], value?: string): string[] {
+  const v = (value || "").trim();
+  if (!v) return parts;
+  if (parts.some((p) => p.toLowerCase() === v.toLowerCase())) return parts;
+  return [...parts, v];
+}
+
+function toFullAddress(address: string, ward?: string, district?: string, city?: string): string {
+  let parts = (address || "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+  parts = appendIfMissing(parts, ward);
+  parts = appendIfMissing(parts, district);
+  parts = appendIfMissing(parts, city);
+  return parts.join(", ");
+}
 
 async function main() {
   console.log('🌱 Starting seed...');
@@ -110,128 +261,38 @@ async function main() {
   }
 
   // ============ MOVIES ============
+  /** OMDb-sourced catalog (regenerate: node scripts/generate-movies-catalog.mjs) */
   console.log('Creating movies...');
-  const moviesData = [
-    {
-      title: 'Avengers: Secret Wars',
-      originalTitle: 'Avengers: Secret Wars',
-      slug: 'avengers-secret-wars',
-      description: 'The Avengers face their greatest threat yet as the multiverse collides in an epic battle that will determine the fate of all realities. Heroes from across dimensions must unite against an enemy that threatens to destroy everything.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/f0YBuh4hyiAheXhh4JnJWoKi9g5.jpg',
-      bannerUrl: 'https://image.tmdb.org/t/p/w1280/rytc6Lf4447C0CDncwFa4gxe0vY.jpg',
-      trailerUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      duration: 165,
-      releaseDate: new Date('2026-01-15'),
-      director: 'The Russo Brothers',
-      castMembers: ['Robert Downey Jr.', 'Chris Evans', 'Scarlett Johansson', 'Tom Holland'] as object,
-      language: 'English',
-      subtitles: 'Vietnamese',
-      rating: 8.5,
-      ratingCount: 1250,
-      ageRating: AgeRating.C13,
-      formats: ['2D', '3D', 'IMAX'] as object,
-      status: MovieStatus.NOW_SHOWING,
-      genreSlugs: ['action', 'sci-fi', 'adventure'],
-    },
-    {
-      title: 'Lật Mặt 8: Hồi Kết',
-      originalTitle: 'Face Off 8: The Finale',
-      slug: 'lat-mat-8-hoi-ket',
-      description: 'Phần cuối cùng của loạt phim Lật Mặt đình đám. Mọi bí mật sẽ được hé lộ trong cuộc chiến cuối cùng giữa thiện và ác, nơi ranh giới giữa đúng và sai trở nên mờ nhạt.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/kP84jB5ClTA6cU3JEZ0z8xiVsz8.jpg',
-      bannerUrl: 'https://image.tmdb.org/t/p/w1280/3m0j3hCS8kMAaP9El6Vy5Lqnyft.jpg',
-      duration: 135,
-      releaseDate: new Date('2026-02-01'),
-      director: 'Ly Hai',
-      castMembers: ['Ly Hai', 'Truong Giang', 'Oc Thanh Van', 'Huy Khanh'] as object,
-      language: 'Vietnamese',
-      rating: 7.8,
-      ratingCount: 3400,
-      ageRating: AgeRating.C16,
-      formats: ['2D'] as object,
-      status: MovieStatus.NOW_SHOWING,
-      genreSlugs: ['action', 'thriller', 'drama'],
-    },
-    {
-      title: 'Inside Out 3',
-      originalTitle: 'Inside Out 3',
-      slug: 'inside-out-3',
-      description: 'Riley is now in college and faces a whole new set of emotions. Watch as Anxiety, Nostalgia, and Ambition join the team inside headquarters, creating hilarious and heartwarming adventures.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/wAIFnJ5OeFU7tTnCWHiROsszS29.jpg',
-      bannerUrl: 'https://image.tmdb.org/t/p/w1280/p5ozvmdgsmbWe0H8Xk7Rc8SCwAB.jpg',
-      duration: 105,
-      releaseDate: new Date('2026-02-10'),
-      director: 'Kelsey Mann',
-      castMembers: ['Amy Poehler', 'Maya Hawke', 'Ayo Edebiri', 'Lewis Black'] as object,
-      language: 'English',
-      subtitles: 'Vietnamese',
-      rating: 8.2,
-      ratingCount: 2100,
-      ageRating: AgeRating.P,
-      formats: ['2D', '3D'] as object,
-      status: MovieStatus.NOW_SHOWING,
-      genreSlugs: ['animation', 'comedy', 'drama'],
-    },
-    {
-      title: 'Dune: Part Three',
-      originalTitle: 'Dune: Part Three',
-      slug: 'dune-part-three',
-      description: 'The epic conclusion to the Dune saga. Paul Atreides faces the consequences of his choices as the fate of the universe hangs in the balance. An explosive finale filled with breathtaking visuals.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/8QdnKQyZDlN6rBSrfU1V5PctfUu.jpg',
-      bannerUrl: 'https://image.tmdb.org/t/p/w1280/o869RihWTdTyBcEZBjz0izvEsVf.jpg',
-      duration: 175,
-      releaseDate: new Date('2026-03-20'),
-      director: 'Denis Villeneuve',
-      castMembers: ['Timothée Chalamet', 'Zendaya', 'Florence Pugh', 'Austin Butler'] as object,
-      language: 'English',
-      subtitles: 'Vietnamese',
-      rating: 9.0,
-      ratingCount: 500,
-      ageRating: AgeRating.C13,
-      formats: ['2D', 'IMAX'] as object,
-      status: MovieStatus.COMING_SOON,
-      genreSlugs: ['sci-fi', 'adventure', 'drama'],
-    },
-    {
-      title: 'Mai 2',
-      originalTitle: 'Mai 2',
-      slug: 'mai-2',
-      description: 'Phần tiếp theo của bộ phim Mai đình đám. Câu chuyện tình yêu đầy cảm xúc tiếp tục với những bất ngờ mới, khi Mai phải đối mặt với quá khứ và tìm lại chính mình.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/2nF8xD200rcDawuCg5ObxxqA2fC.jpg',
-      bannerUrl: 'https://image.tmdb.org/t/p/w1280/zZ6nRdNQNxRnZ1LQ2ttPBZl9AXV.jpg',
-      duration: 125,
-      releaseDate: new Date('2026-04-10'),
-      director: 'Tran Thanh',
-      castMembers: ['Phuong Anh Dao', 'Tuan Tran', 'NSUT Viet Huong', 'Ngoc Giau'] as object,
-      language: 'Vietnamese',
-      rating: 0,
-      ratingCount: 0,
-      ageRating: AgeRating.C16,
-      formats: ['2D'] as object,
-      status: MovieStatus.COMING_SOON,
-      genreSlugs: ['romance', 'drama'],
-    },
-    {
-      title: 'The Batman 2',
-      originalTitle: 'The Batman Part II',
-      slug: 'the-batman-2',
-      description: 'Bruce Wayne continues his journey as Gotham\'s protector, facing new villains that threaten to tear the city apart. A dark, gripping sequel that pushes the boundaries of superhero storytelling.',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/6kRczrPsqRmAlq4ix2jZsVV4Khr.jpg',
-      bannerUrl: 'https://image.tmdb.org/t/p/w1280/xQyGkQ8ICa4lgifGr3oZjkm3AJ2.jpg',
-      duration: 155,
-      releaseDate: new Date('2026-02-05'),
-      director: 'Matt Reeves',
-      castMembers: ['Robert Pattinson', 'Zoë Kravitz', 'Colin Farrell', 'Jeffrey Wright'] as object,
-      language: 'English',
-      subtitles: 'Vietnamese',
-      rating: 8.7,
-      ratingCount: 1800,
-      ageRating: AgeRating.C16,
-      formats: ['2D', 'IMAX', '4DX'] as object,
-      status: MovieStatus.NOW_SHOWING,
-      genreSlugs: ['action', 'thriller'],
-    },
+  const obsoleteDemoSlugs = [
+    'avengers-secret-wars',
+    'lat-mat-8-hoi-ket',
+    'inside-out-3',
+    'dune-part-three',
+    'mai-2',
+    'the-batman-2',
   ];
+  // Do NOT hard-delete: may be referenced by historical bookings in an existing DB.
+  await prisma.movie.updateMany({
+    where: { slug: { in: obsoleteDemoSlugs } },
+    data: { isDeleted: true },
+  });
+  type CatalogRow = (typeof moviesCatalogJson)[number] & { genreSlugs: string[]; imdbId?: string };
+  const moviesData = (moviesCatalogJson as CatalogRow[]).map((row) => {
+    const { imdbId: _imdb, genreSlugs, ...rest } = row;
+    return {
+      ...rest,
+      releaseDate: new Date(row.releaseDate),
+      status: row.status as MovieStatus,
+      ageRating: row.ageRating as AgeRating,
+      castMembers: row.castMembers as object,
+      formats: row.formats as object,
+      posterUrl: row.posterUrl ?? '',
+      bannerUrl: row.bannerUrl ?? undefined,
+      trailerUrl: row.trailerUrl ?? undefined,
+      subtitles: row.subtitles ?? undefined,
+      genreSlugs,
+    };
+  });
 
   const movieIds: Record<string, string> = {};
   for (const m of moviesData) {
@@ -239,8 +300,23 @@ async function main() {
     const movie = await prisma.movie.upsert({
       where: { slug: m.slug },
       update: {
+        title: movieData.title,
+        originalTitle: movieData.originalTitle,
+        description: movieData.description,
         posterUrl: movieData.posterUrl,
         bannerUrl: movieData.bannerUrl,
+        trailerUrl: movieData.trailerUrl,
+        duration: movieData.duration,
+        releaseDate: movieData.releaseDate,
+        director: movieData.director,
+        castMembers: movieData.castMembers,
+        language: movieData.language,
+        subtitles: movieData.subtitles,
+        rating: movieData.rating,
+        ratingCount: movieData.ratingCount,
+        ageRating: movieData.ageRating,
+        formats: movieData.formats,
+        status: movieData.status,
       },
       create: movieData,
     });
@@ -294,12 +370,13 @@ async function main() {
   for (const c of REAL_CINEMAS) {
     const provinceNewId = provinceIdByCode[c.provinceCode];
     if (!provinceNewId) throw new Error(`Unknown provinceCode ${c.provinceCode} for cinema ${c.slug}`);
-    const imageUrl = `https://placehold.co/800x400/0984e3/dfe6e9?text=${encodeURIComponent(c.name)}`;
+    const imageUrl = await resolveCinemaImageReal(c.slug, c.name, c.address, c.city);
+    const fullAddress = toFullAddress(c.address, c.ward, c.district, c.city);
     const cinema = await prisma.cinema.upsert({
       where: { slug: c.slug },
       update: {
         name: c.name,
-        address: c.address,
+        address: fullAddress,
         ward: c.ward ?? null,
         district: c.district ?? null,
         city: c.city,
@@ -314,7 +391,7 @@ async function main() {
       create: {
         name: c.name,
         slug: c.slug,
-        address: c.address,
+        address: fullAddress,
         ward: c.ward ?? null,
         district: c.district ?? null,
         city: c.city,
@@ -445,62 +522,128 @@ async function main() {
   // ============ SHOWTIMES ============
   console.log('Creating showtimes...');
   const today = new Date();
-  const nowShowingMovies = Object.entries(movieIds).filter(([slug]) =>
-    ['avengers-secret-wars', 'lat-mat-8-hoi-ket', 'inside-out-3', 'the-batman-2'].includes(slug)
+  // User requested: generate showtimes for ALL market movies (no size limit).
+  // Strategy: for each room/day/slot pick an eligible movie deterministically.
+  const daysToGenerate = 30;
+  const allNowShowing = moviesData.filter((m) => m.status === MovieStatus.NOW_SHOWING);
+  const comingSoonWindowEnd = new Date(today);
+  comingSoonWindowEnd.setDate(comingSoonWindowEnd.getDate() + daysToGenerate);
+  const allComingSoon = moviesData.filter(
+    (m) => m.status === MovieStatus.COMING_SOON && m.releaseDate <= comingSoonWindowEnd
   );
 
-  for (const [movieSlug, movieId] of nowShowingMovies) {
-    for (let roomIdx = 0; roomIdx < roomIdsForShowtimes.length; roomIdx++) {
-      const roomId = roomIdsForShowtimes[roomIdx];
-      const cinemaId = roomCinemaMap[roomId];
+  const roomRows = await prisma.room.findMany({
+    where: { id: { in: roomIdsForShowtimes } },
+    select: { id: true, format: true },
+  });
+  const roomFormatById = Object.fromEntries(roomRows.map((r) => [r.id, r.format])) as Record<
+    string,
+    RoomFormat
+  >;
 
-      // Create showtimes for today and next 5 days
-      for (let dayOffset = 0; dayOffset <= 5; dayOffset++) {
-        const times = [
+  function supportsRoomFormat(movieFormats: unknown, roomFormat: RoomFormat): boolean {
+    const fmts = Array.isArray(movieFormats) ? movieFormats : [];
+    const key =
+      roomFormat === RoomFormat.STANDARD2D
+        ? '2D'
+        : roomFormat === RoomFormat.STANDARD3D
+          ? '3D'
+          : roomFormat === RoomFormat.FOURDX
+            ? '4DX'
+            : roomFormat;
+    return fmts.includes(key);
+  }
+
+  function isWeekend(d: Date): boolean {
+    const day = d.getDay();
+    return day === 0 || day === 6;
+  }
+
+  function timeSlotsForDate(d: Date): Array<{ hour: number; min: number }> {
+    // Typical VN cinema slots (weekend has an extra morning slot)
+    return isWeekend(d)
+      ? [
+          { hour: 9, min: 30 },
+          { hour: 12, min: 0 },
+          { hour: 14, min: 30 },
+          { hour: 17, min: 0 },
+          { hour: 19, min: 30 },
+          { hour: 22, min: 0 },
+        ]
+      : [
           { hour: 10, min: 0 },
-          { hour: 13, min: 30 },
+          { hour: 13, min: 0 },
           { hour: 16, min: 0 },
           { hour: 19, min: 30 },
           { hour: 22, min: 0 },
         ];
+  }
 
-        // Each movie gets different time slots per room to avoid overlap
-        const movieIndex = nowShowingMovies.findIndex(([s]) => s === movieSlug);
-        const timeSlot = times[(movieIndex + roomIdx) % times.length];
+  function basePriceForFormat(format: RoomFormat, weekend: boolean): number {
+    const w = weekend ? 1.15 : 1.0;
+    if (format === RoomFormat.IMAX) return Math.round(150000 * w);
+    if (format === RoomFormat.FOURDX) return Math.round(170000 * w);
+    if (format === RoomFormat.DOLBY) return Math.round(120000 * w);
+    if (format === RoomFormat.STANDARD3D) return Math.round(105000 * w);
+    return Math.round(85000 * w);
+  }
 
-        const startTime = new Date(today);
-        startTime.setDate(startTime.getDate() + dayOffset);
-        startTime.setHours(timeSlot.hour, timeSlot.min, 0, 0);
+  // Clear existing schedules. (User requested: we can wipe transactional data.)
+  await prisma.bookingItem.deleteMany();
+  await prisma.booking.deleteMany();
+  await prisma.holdSeat.deleteMany();
+  await prisma.hold.deleteMany();
+  await prisma.showtime.deleteMany();
 
-        const movieDuration = moviesData.find(m => m.slug === movieSlug)?.duration || 120;
-        const endTime = new Date(startTime.getTime() + movieDuration * 60 * 1000);
+  for (let roomIdx = 0; roomIdx < roomIdsForShowtimes.length; roomIdx++) {
+    const roomId = roomIdsForShowtimes[roomIdx];
+    const cinemaId = roomCinemaMap[roomId];
+    const roomFormat = roomFormatById[roomId] ?? RoomFormat.STANDARD2D;
 
-        // Only create if in the future
-        if (startTime > today) {
-          const existingShowtime = await prisma.showtime.findFirst({
-            where: {
-              movieId,
-              roomId,
-              startTime,
-            },
-          });
+    for (let dayOffset = 0; dayOffset <= daysToGenerate; dayOffset++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() + dayOffset);
+      const slots = timeSlotsForDate(date);
 
-          if (!existingShowtime) {
-            await prisma.showtime.create({
-              data: {
-                movieId,
-                roomId,
-                cinemaId,
-                startTime,
-                endTime,
-                basePrice: 85000,
-                format: RoomFormat.STANDARD2D,
-                language: movieSlug.includes('lat-mat') || movieSlug.includes('mai') ? 'Vietnamese' : 'English',
-                subtitles: movieSlug.includes('lat-mat') || movieSlug.includes('mai') ? undefined : 'Vietnamese',
-              },
-            });
-          }
-        }
+      for (let slotIdx = 0; slotIdx < slots.length; slotIdx++) {
+        const slot = slots[slotIdx];
+        const startTime = new Date(date);
+        startTime.setHours(slot.hour, slot.min, 0, 0);
+        if (startTime <= today) continue;
+
+        const poolNowShowing = allNowShowing.filter((m) => supportsRoomFormat(m.formats, roomFormat));
+        const poolComingSoon = allComingSoon.filter(
+          (m) => m.releaseDate <= startTime && supportsRoomFormat(m.formats, roomFormat)
+        );
+        const pool = poolNowShowing.length > 0 ? poolNowShowing : poolComingSoon;
+        if (pool.length === 0) continue;
+
+        // Deterministic selection: rotate by (roomIdx + dayOffset + slotIdx)
+        const pick = pool[(roomIdx + dayOffset + slotIdx) % pool.length];
+        const movieId = movieIds[pick.slug];
+        if (!movieId) continue;
+
+        const endTime = new Date(startTime.getTime() + (pick.duration || 120) * 60 * 1000);
+        const weekend = isWeekend(date);
+        const existingShowtime = await prisma.showtime.findFirst({
+          where: { movieId, roomId, startTime },
+        });
+        if (existingShowtime) continue;
+
+        const isVi = pick.language === 'Vietnamese';
+        await prisma.showtime.create({
+          data: {
+            movieId,
+            roomId,
+            cinemaId,
+            startTime,
+            endTime,
+            basePrice: basePriceForFormat(roomFormat, weekend),
+            format: roomFormat,
+            language: isVi ? 'Vietnamese' : 'English',
+            subtitles: isVi ? undefined : 'Vietnamese',
+          },
+        });
       }
     }
   }
@@ -586,44 +729,44 @@ async function main() {
   console.log('Creating news articles...');
   const newsData = [
     {
-      title: 'Avengers: Secret Wars Breaks Opening Weekend Records',
-      slug: 'avengers-secret-wars-breaks-records',
-      excerpt: 'The latest Marvel blockbuster shattered box office records with a stunning $400M opening weekend in Vietnam.',
-      content: 'Avengers: Secret Wars has officially become the biggest opening weekend in Vietnamese cinema history. The film, directed by the Russo Brothers, brought together heroes from across the multiverse in an epic battle that had audiences cheering. CiNect cinemas reported sold-out screenings across all locations, with IMAX and 4DX formats being the most popular. The film is expected to continue its strong run through February.',
+      title: 'Deadpool & Wolverine — kỷ lục phòng vé R-rated',
+      slug: 'deadpool-wolverine-box-office-vn',
+      excerpt: 'Phim MCU đầu tiên nhãn R ghi nhận suất chiếu đông khán giả tại các cụm rạp lớn.',
+      content: 'Deadpool & Wolverine (Shawn Levy) đánh dấu sự trở lại của Wade Wilson bên cạnh Wolverine, với doanh thu toàn cầu vượt một tỷ USD. Tại Việt Nam, các suất tối và cuối tuần tại hệ thống rạp quốc tế thường kín chỗ ở định dạng IMAX và 2D phụ đề.',
       category: NewsCategory.GENERAL,
-      imageUrl: 'https://placehold.co/800x400/1a1a2e/e94560?text=Box+Office+Record',
+      imageUrl: 'https://placehold.co/800x400/1a1a2e/e94560?text=Deadpool+Wolverine',
       author: 'CiNect Editorial',
-      tags: ['box office', 'marvel', 'avengers'] as object,
+      tags: ['box office', 'marvel', 'deadpool'] as object,
     },
     {
-      title: 'CiNect Launches Premium IMAX Experience at Landmark 81',
+      title: 'CiNect nâng cấp trải nghiệm IMAX tại Landmark 81',
       slug: 'cinect-imax-landmark-81',
-      excerpt: 'Experience movies like never before with our new state-of-the-art IMAX screen at Landmark 81.',
-      content: 'We are thrilled to announce the opening of our premium IMAX theater at CiNect Landmark 81. Featuring the latest IMAX with Laser technology, a 25-meter screen, and 12-channel sound system, this is the ultimate movie-watching experience in Ho Chi Minh City. Grand opening screenings include Avengers: Secret Wars and Dune: Part Three. Members get early access to bookings.',
+      excerpt: 'Màn hình lớn và âm thanh đa kênh cho các bom tấn năm 2024–2025.',
+      content: 'Chúng tôi mở rộng lịch chiếu các phim bom tấn như Dune: Part Two, Godzilla x Kong và các tác phẩm hoạt hình Pixar trên hệ thống IMAX. Thành viên ưu tiên đặt vé sớm qua ứng dụng CiNect.',
       category: NewsCategory.GENERAL,
       imageUrl: 'https://placehold.co/800x400/0984e3/ffffff?text=IMAX+Launch',
       author: 'CiNect PR Team',
       tags: ['IMAX', 'landmark 81', 'premium'] as object,
     },
     {
-      title: 'Review: Inside Out 3 - A Heartwarming College Adventure',
-      slug: 'review-inside-out-3',
-      excerpt: 'Pixar delivers another emotional masterpiece with Inside Out 3, exploring the challenges of college life.',
-      content: 'Inside Out 3 takes Riley to college, introducing new emotions like Anxiety, Nostalgia, and Ambition. The film brilliantly captures the universal experience of leaving home for the first time. With stunning animation and a touching story, this is Pixar at its finest. We give it 4.5 out of 5 stars. A must-watch for the whole family.',
+      title: 'Review: Inside Out 2 — Pixar và tuổi mới lớn',
+      slug: 'review-inside-out-2',
+      excerpt: 'Riley bước vào tuổi dậy thì; loạt cảm xúc mới lên màn ảnh.',
+      content: 'Inside Out 2 mở rộng thế giới nội tâm với Anxiety và các cảm xúc mới, phù hợp khán gia đại chúng. Phần hoạt hình và nhịp hài đặc trưng Pixar được giữ vững. Đánh giá của chúng tôi: phim gia đình đáng xem trên màn rộng.',
       category: NewsCategory.REVIEWS,
-      imageUrl: 'https://placehold.co/800x400/6c5ce7/ffeaa7?text=Inside+Out+3+Review',
+      imageUrl: 'https://placehold.co/800x400/6c5ce7/ffeaa7?text=Inside+Out+2',
       author: 'Movie Reviewer',
       tags: ['review', 'pixar', 'animation'] as object,
     },
     {
-      title: 'Coming Soon: Dune Part Three - Everything You Need to Know',
-      slug: 'dune-part-three-preview',
-      excerpt: 'The epic conclusion to the Dune trilogy arrives March 2026. Here\'s what to expect.',
-      content: 'Denis Villeneuve returns to complete his ambitious adaptation of Frank Herbert\'s sci-fi masterpiece. Dune: Part Three promises to be the most visually spectacular film of the year, with the story concluding Paul Atreides\' journey. Expect breathtaking desert sequences, political intrigue, and an unforgettable finale. Pre-booking opens February 28 exclusively for CiNect members.',
+      title: 'Sắp chiếu: Avatar: Fire and Ash — hành tinh Pandora trở lại',
+      slug: 'avatar-fire-and-ash-preview',
+      excerpt: 'Phần tiếp theo của loạt phim Avatar, kỳ vọng định dạng 3D/IMAX.',
+      content: 'James Cameron tiếp tục mở rộng vũ trụ Pandora. Khán giả có thể theo dõi lịch chiếu và đặt vé sớm trên CiNect khi phim mở bán chính thức.',
       category: NewsCategory.TRAILERS,
-      imageUrl: 'https://placehold.co/800x400/d63031/dfe6e9?text=Dune+Preview',
+      imageUrl: 'https://placehold.co/800x400/d63031/dfe6e9?text=Avatar+Preview',
       author: 'CiNect Editorial',
-      tags: ['dune', 'preview', 'sci-fi'] as object,
+      tags: ['avatar', 'preview', 'sci-fi'] as object,
     },
     {
       title: 'How to Get the Best Seats at CiNect - A Complete Guide',
