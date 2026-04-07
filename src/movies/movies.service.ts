@@ -186,7 +186,33 @@ export class MoviesService {
     ]);
 
     const meta = new PageMeta(page, limit, total);
-    return { data: items, meta };
+    return { data: items.map((r) => this.reviewToResponse(r)), meta };
+  }
+
+  private reviewToResponse(
+    review: {
+      id: string;
+      userId: string;
+      movieId: string;
+      rating: number;
+      content: string;
+      createdAt: Date;
+      updatedAt: Date;
+      user?: { id: string; fullName: string; avatar: string | null } | null;
+    },
+  ) {
+    const u = review.user;
+    return {
+      id: review.id,
+      userId: review.userId,
+      movieId: review.movieId,
+      rating: review.rating,
+      content: review.content,
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
+      userName: u?.fullName?.trim() || 'User',
+      userAvatar: u?.avatar ?? undefined,
+    };
   }
 
   async createReview(movieId: string, userId: string, dto: CreateReviewDto) {
@@ -233,7 +259,7 @@ export class MoviesService {
       return r;
     });
 
-    return this.prisma.review.findUnique({
+    const created = await this.prisma.review.findUnique({
       where: { id: review.id },
       include: {
         user: {
@@ -241,6 +267,10 @@ export class MoviesService {
         },
       },
     });
+    if (!created) {
+      throw new NotFoundException('Review not found');
+    }
+    return this.reviewToResponse(created);
   }
 
   async findShowtimesByMovie(movieId: string, date?: string, city?: string) {
