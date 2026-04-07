@@ -735,13 +735,20 @@ export class AdminController {
 
   @Post('showtimes')
   createShowtime(@Body() dto: any) {
+    const start = new Date(dto.startTime);
+    if (Number.isNaN(start.getTime())) {
+      throw new BadRequestException('Invalid startTime');
+    }
+    if (start.getTime() < Date.now() - 30_000) {
+      throw new BadRequestException('Showtime startTime must be in the future');
+    }
     return this.prisma.showtime.create({
       data: {
         movieId: dto.movieId,
         roomId: dto.roomId,
         cinemaId: dto.cinemaId,
-        startTime: new Date(dto.startTime),
-        endTime: new Date(dto.endTime),
+        startTime: start,
+        endTime: dto.endTime ? new Date(dto.endTime) : start,
         basePrice: dto.basePrice,
         format: dto.format ?? 'STANDARD2D',
         language: dto.language,
@@ -754,6 +761,15 @@ export class AdminController {
 
   @Put('showtimes/:id')
   updateShowtime(@Param('id', ParseUuidPipe) id: string, @Body() dto: any) {
+    if (dto.startTime) {
+      const start = new Date(dto.startTime);
+      if (Number.isNaN(start.getTime())) {
+        throw new BadRequestException('Invalid startTime');
+      }
+      if (start.getTime() < Date.now() - 30_000) {
+        throw new BadRequestException('Showtime startTime must be in the future');
+      }
+    }
     return this.prisma.showtime.update({
       where: { id },
       data: {
