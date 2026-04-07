@@ -27,7 +27,7 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    if (dto.confirmPassword !== undefined && dto.confirmPassword !== dto.password) {
+    if (dto.confirmPassword !== dto.password) {
       throw new BadRequestException('Passwords do not match');
     }
 
@@ -231,24 +231,53 @@ export class AuthService {
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { userRoles: { include: { role: true } } },
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
+    // Normalize fields
+    const normalizedFullName =
+      dto.fullName !== undefined ? this.normalize(dto.fullName) : undefined;
+    const normalizedPhone =
+      dto.phone !== undefined ? this.normalize(dto.phone) : undefined;
+    const normalizedAvatar =
+      dto.avatar !== undefined ? this.normalize(dto.avatar) : undefined;
+    const normalizedGender =
+      dto.gender !== undefined ? this.normalize(dto.gender) : undefined;
+    const normalizedCity =
+      dto.city !== undefined ? this.normalize(dto.city) : undefined;
+
+    // Validate dateOfBirth if provided
+    let parsedDob: Date | undefined;
+    if (dto.dateOfBirth !== undefined) {
+      parsedDob = new Date(dto.dateOfBirth);
+      if (parsedDob >= new Date()) {
+        throw new BadRequestException('Date of birth must be in the past');
+      }
+    }
+
     const data: any = {};
-    if (dto.fullName !== undefined) data.fullName = dto.fullName;
-    if (dto.phone !== undefined) data.phone = dto.phone;
-    if (dto.avatar !== undefined) data.avatar = dto.avatar;
-    if (dto.dateOfBirth !== undefined) data.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
-    if (dto.gender !== undefined) data.gender = dto.gender;
-    if (dto.city !== undefined) data.city = dto.city;
+    if (normalizedFullName !== undefined && normalizedFullName !== null) {
+      data.fullName = normalizedFullName;
+    }
+    if (normalizedPhone !== undefined) data.phone = normalizedPhone;
+    if (normalizedAvatar !== undefined) data.avatar = normalizedAvatar;
+    if (parsedDob !== undefined) data.dateOfBirth = parsedDob;
+    if (normalizedGender !== undefined) data.gender = normalizedGender;
+    if (normalizedCity !== undefined) data.city = normalizedCity;
 
     const updated = await this.prisma.user.update({
       where: { id: userId },
       data,
+      include: { userRoles: { include: { role: true } } },
     });
-    return this.sanitizeUser(updated);
+
+    const roles = updated.userRoles.map((ur) => ur.role.name);
+    return this.sanitizeUser(updated, roles);
   }
 
   async logout(userId: string) {
@@ -371,17 +400,54 @@ export class AuthService {
     return UserRole.USER;
   }
 
+  private normalize(value: string | null | undefined): string | null {
+    if (!value) return null;
+    const trimmed = value.trim();
+    return trimmed.length === 0 ? null : trimmed;
+  }
+
+  private normalizeRequired(value: string | null | undefined, fieldName: string): string {
+    if (!value) {
+      throw new BadRequestException(`${fieldName} is required`);
+    }
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      throw new BadRequestException(`${fieldName} cannot be empty`);
+    }
+    return trimmed;
+  }
+
   private sanitizeUser(
-    user: { id: string; email: string; fullName: string; phone: string | null; avatar: string | null },
+    user: {
+      id: string;
+      email: string;
+      fullName: string;
+      phone: string | null;
+      avatar: string | null;
+      gender?: string | null;
+      city?: string | null;
+      dateOfBirth?: Date | null;
+      isActive?: boolean;
+      emailVerified?: boolean;
+      createdAt?: Date;
+      updatedAt?: Date;
+    },
     roles?: UserRole[],
   ) {
     return {
       id: user.id,
       email: user.email,
       fullName: user.fullName,
-      phone: user.phone,
-      avatar: user.avatar,
+      phone: user.phone ?? null,
+      avatar: user.avatar ?? null,
+      gender: user.gender ?? null,
+      city: user.city ?? null,
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString() : null,
+      isActive: user.isActive ?? true,
+      emailVerified: user.emailVerified ?? false,
       role: this.pickPrimaryRole(roles),
+      createdAt: user.createdAt ? user.createdAt.toISOString() : null,
+      updatedAt: user.updatedAt ? user.updatedAt.toISOString() : null,
     };
   }
 }

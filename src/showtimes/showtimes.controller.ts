@@ -13,27 +13,31 @@ export class ShowtimesController {
   @Get()
   @ApiQuery({ name: 'movieId', required: false })
   @ApiQuery({ name: 'cinemaId', required: false })
+  @ApiQuery({ name: 'city', required: false, description: 'Region id e.g. hcm, hn' })
   @ApiQuery({ name: 'date', required: false, description: 'YYYY-MM-DD' })
   findAll(
     @Query('movieId') movieId?: string,
     @Query('cinemaId') cinemaId?: string,
+    @Query('city') city?: string,
     @Query('date') date?: string,
   ) {
-    return this.showtimesService.findAll({ movieId, cinemaId, date });
+    return this.showtimesService.findAll({ movieId, cinemaId, city, date });
   }
 
   @Get('search')
   @ApiQuery({ name: 'movieId', required: false })
   @ApiQuery({ name: 'cinemaId', required: false })
+  @ApiQuery({ name: 'city', required: false })
   @ApiQuery({ name: 'date', required: false })
   @ApiQuery({ name: 'format', required: false })
   search(
     @Query('movieId') movieId?: string,
     @Query('cinemaId') cinemaId?: string,
+    @Query('city') city?: string,
     @Query('date') date?: string,
     @Query('format') format?: string,
   ) {
-    return this.showtimesService.findAll({ movieId, cinemaId, date });
+    return this.showtimesService.findAll({ movieId, cinemaId, city, date, format });
   }
 
   @Get(':id')

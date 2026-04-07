@@ -141,10 +141,10 @@ export class BookingsService {
       const pointsToUse = Math.min(
         dto.pointsToUse ?? 0,
         maxPoints,
-        Math.floor(Number(totalAmount) * 0.1),
+        Math.floor((Number(totalAmount) * 0.1) / 10),
       );
       if (pointsToUse > 0) {
-        const pointsValue = pointsToUse;
+        const pointsValue = pointsToUse * 10;
         discountAmount = discountAmount.add(pointsValue);
         pointsUsed = pointsToUse;
       }
@@ -474,7 +474,8 @@ export class BookingsService {
       throw new BadRequestException('Insufficient points');
     }
 
-    const pointsValue = points * 0.01; // 1 point = 0.01 currency unit
+    // Redemption rate: 1 point = 10 currency units.
+    const pointsValue = points * 10;
     const newDiscount = booking.discountAmount.toNumber() + pointsValue;
     const newFinal = booking.totalAmount.toNumber() - newDiscount;
 

@@ -11,13 +11,14 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
-import { RoomFormat, UserRole } from '@prisma/client';
+import { NewsCategory, Prisma, RoomFormat, UserRole } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMovieDto } from '../movies/dto/create-movie.dto';
@@ -25,12 +26,20 @@ import { UpdateMovieDto } from '../movies/dto/update-movie.dto';
 import { CreateCinemaDto } from '../cinemas/dto/create-cinema.dto';
 import { UpdateCinemaDto } from '../cinemas/dto/update-cinema.dto';
 import { CreateRoomDto } from '../cinemas/dto/create-room.dto';
+import {
+  CreateNewsArticleAdminDto,
+  UpdateNewsArticleAdminDto,
+  CreateCampaignAdminDto,
+  UpdateCampaignAdminDto,
+  CreateBannerAdminDto,
+  UpdateBannerAdminDto,
+} from './dto/admin-content.dto';
 
 @ApiTags('admin')
 @ApiBearerAuth()
 @Controller('admin')
 @UseGuards(RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.STAFF)
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
@@ -65,13 +74,21 @@ export class AdminController {
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'entityType', required: false })
   @ApiQuery({ name: 'userId', required: false })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  @ApiQuery({ name: 'action', required: false })
   getAuditLogs(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
     @Query('entityType') entityType?: string,
     @Query('userId') userId?: string,
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('action') action?: string,
   ) {
-    return this.adminService.getAuditLogs(page, limit, entityType, userId);
+    return this.adminService.getAuditLogs(page, limit, entityType, userId, search, from, to, action);
   }
 
   @Get('kpis')
@@ -208,6 +225,118 @@ export class AdminController {
       out.push({ date: k, occupancy });
     }
     return out;
+  }
+
+  @Get('analytics/revenue')
+  @ApiQuery({ name: 'range', required: false })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  async getAnalyticsRevenue(
+    @Query('range') range?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    if (from && to) {
+      const dateFrom = new Date(`${from}T00:00:00.000Z`);
+      const dateTo = new Date(`${to}T23:59:59.999Z`);
+      const bookings = await this.prisma.booking.findMany({
+        where: {
+          status: { in: ['CONFIRMED', 'COMPLETED'] },
+          createdAt: { gte: dateFrom, lte: dateTo },
+        },
+        select: { createdAt: true, finalAmount: true },
+      });
+      const byDate = new Map<string, number>();
+      for (const b of bookings) {
+        const k = this.toDateKey(b.createdAt);
+        byDate.set(k, (byDate.get(k) ?? 0) + Number(b.finalAmount ?? 0));
+      }
+      return Array.from(byDate.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([date, revenue]) => ({ date, revenue }));
+    }
+    return this.getRevenueSeries(range);
+  }
+
+  @Get('analytics/forecast')
+  @ApiQuery({ name: 'range', required: false })
+  async getAnalyticsForecast(@Query('range') range?: string) {
+    // Lightweight forecast: use recent moving average.
+    const revenue = await this.getRevenueSeries(range);
+    const avg =
+      revenue.length > 0
+        ? revenue.reduce((s, r) => s + Number(r.revenue ?? 0), 0) / revenue.length
+        : 0;
+    const out: Array<{ date: string; revenue: number }> = [];
+    const horizon = 7;
+    for (let i = 1; i <= horizon; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      out.push({ date: this.toDateKey(d), revenue: Math.round(avg) });
+    }
+    return out;
+  }
+
+  @Get('analytics/occupancy')
+  @ApiQuery({ name: 'range', required: false })
+  async getAnalyticsOccupancy(@Query('range') range?: string) {
+    const days = this.parseRangeDays(range);
+    const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const showtimes = await this.prisma.showtime.findMany({
+      where: { isActive: true, startTime: { gte: start } },
+      select: { id: true, startTime: true, cinema: { select: { id: true, name: true } }, room: { select: { totalSeats: true } } },
+    });
+    const showtimeIds = showtimes.map((s) => s.id);
+    const booked = showtimeIds.length
+      ? await this.prisma.bookingItem.groupBy({
+          by: ['showtimeId'],
+          where: { showtimeId: { in: showtimeIds }, booking: { status: { in: ['CONFIRMED', 'COMPLETED'] } } },
+          _count: true,
+        })
+      : [];
+    const bookedMap = new Map(booked.map((b) => [b.showtimeId, b._count]));
+    return showtimes.map((st) => {
+      const capacity = st.room.totalSeats ?? 0;
+      const cnt = bookedMap.get(st.id) ?? 0;
+      return {
+        cinemaId: st.cinema?.id ?? '',
+        cinemaName: st.cinema?.name ?? '',
+        date: this.toDateKey(st.startTime),
+        occupancy: capacity > 0 ? cnt / capacity : 0,
+      };
+    });
+  }
+
+  @Get('analytics/customer-segments')
+  async getAnalyticsCustomerSegments() {
+    const users = await this.prisma.user.findMany({ select: { createdAt: true } });
+    const now = Date.now();
+    let newCount = 0;
+    let returning = 0;
+    for (const u of users) {
+      const ageDays = (now - u.createdAt.getTime()) / (24 * 60 * 60 * 1000);
+      if (ageDays <= 30) newCount++;
+      else returning++;
+    }
+    const total = users.length || 1;
+    return [
+      { segment: 'New', count: newCount, percentage: (newCount / total) * 100 },
+      { segment: 'Returning', count: returning, percentage: (returning / total) * 100 },
+    ];
+  }
+
+  @Get('analytics/peak-hours')
+  async getAnalyticsPeakHours() {
+    const bookings = await this.prisma.booking.findMany({
+      where: { status: { in: ['CONFIRMED', 'COMPLETED'] } },
+      select: { createdAt: true },
+    });
+    const hours = Array.from({ length: 24 }, (_, h) => ({ hour: h, bookings: 0 }));
+    for (const b of bookings) {
+      const h = b.createdAt.getHours();
+      hours[h].bookings += 1;
+    }
+    return hours;
   }
 
   // Movies CRUD
@@ -452,7 +581,7 @@ export class AdminController {
   @ApiQuery({ name: 'limit', required: false })
   async listRooms(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(500), ParseIntPipe) limit: number,
     @Query('cinemaId') cinemaId?: string,
   ) {
     const where: { cinemaId?: string } = {};
@@ -468,8 +597,12 @@ export class AdminController {
       }),
       this.prisma.room.count({ where }),
     ]);
+    const data = items.map((r) => ({
+      ...r,
+      cinemaName: r.cinema?.name ?? undefined,
+    }));
     return {
-      data: items,
+      data,
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -560,19 +693,33 @@ export class AdminController {
   @Get('showtimes')
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'cinemaId', required: false })
+  @ApiQuery({ name: 'date', required: false })
   async getShowtimes(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(500), ParseIntPipe) limit: number,
+    @Query('cinemaId') cinemaId?: string,
+    @Query('date') date?: string,
   ) {
     const skip = (page - 1) * limit;
+    const where: Record<string, unknown> = {};
+    if (cinemaId) where.cinemaId = cinemaId;
+    if (date) {
+      const from = new Date(`${date}T00:00:00.000Z`);
+      const to = new Date(`${date}T23:59:59.999Z`);
+      if (!Number.isNaN(from.getTime()) && !Number.isNaN(to.getTime())) {
+        where.startTime = { gte: from, lte: to };
+      }
+    }
     const [rawData, total] = await Promise.all([
       this.prisma.showtime.findMany({
         skip,
         take: limit,
+        where,
         include: { movie: true, cinema: true, room: true },
         orderBy: { startTime: 'desc' },
       }),
-      this.prisma.showtime.count(),
+      this.prisma.showtime.count({ where }),
     ]);
     const data = rawData.map(({ movie, cinema, room, basePrice, format, ...st }) => ({
       ...st,
@@ -588,13 +735,20 @@ export class AdminController {
 
   @Post('showtimes')
   createShowtime(@Body() dto: any) {
+    const start = new Date(dto.startTime);
+    if (Number.isNaN(start.getTime())) {
+      throw new BadRequestException('Invalid startTime');
+    }
+    if (start.getTime() < Date.now() - 30_000) {
+      throw new BadRequestException('Showtime startTime must be in the future');
+    }
     return this.prisma.showtime.create({
       data: {
         movieId: dto.movieId,
         roomId: dto.roomId,
         cinemaId: dto.cinemaId,
-        startTime: new Date(dto.startTime),
-        endTime: new Date(dto.endTime),
+        startTime: start,
+        endTime: dto.endTime ? new Date(dto.endTime) : start,
         basePrice: dto.basePrice,
         format: dto.format ?? 'STANDARD2D',
         language: dto.language,
@@ -607,6 +761,15 @@ export class AdminController {
 
   @Put('showtimes/:id')
   updateShowtime(@Param('id', ParseUuidPipe) id: string, @Body() dto: any) {
+    if (dto.startTime) {
+      const start = new Date(dto.startTime);
+      if (Number.isNaN(start.getTime())) {
+        throw new BadRequestException('Invalid startTime');
+      }
+      if (start.getTime() < Date.now() - 30_000) {
+        throw new BadRequestException('Showtime startTime must be in the future');
+      }
+    }
     return this.prisma.showtime.update({
       where: { id },
       data: {
@@ -666,7 +829,11 @@ export class AdminController {
       }),
       this.prisma.user.count({ where }),
     ]);
-    return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+    const mapped = data.map((u) => ({
+      ...u,
+      role: u.userRoles?.[0]?.role?.name ?? 'USER',
+    }));
+    return { data: mapped, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
   @Post('users')
@@ -710,7 +877,22 @@ export class AdminController {
     if (body.city !== undefined) data.city = body.city;
     if (body.isActive !== undefined) data.isActive = body.isActive;
     if (body.avatar !== undefined) data.avatar = body.avatar;
-    return this.prisma.user.update({ where: { id }, data: data as any });
+    if (body.role) {
+      const role = await this.prisma.role.findFirst({ where: { name: body.role } });
+      if (role) {
+        await this.prisma.userRoleJoin.deleteMany({ where: { userId: id } });
+        await this.prisma.userRoleJoin.create({ data: { userId: id, roleId: role.id } });
+      }
+    }
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: data as any,
+      include: { userRoles: { include: { role: true } } },
+    });
+    return {
+      ...updated,
+      role: updated.userRoles?.[0]?.role?.name ?? 'USER',
+    };
   }
 
   @Put('users/:id/toggle-active')
@@ -739,27 +921,69 @@ export class AdminController {
   async recentBookings(
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
-    return this.prisma.booking.findMany({
+    const raw = await this.prisma.booking.findMany({
       take: limit,
       orderBy: { createdAt: 'desc' },
       include: {
         user: { select: { id: true, fullName: true, email: true } },
-        showtime: { include: { movie: { select: { title: true } } } },
+        showtime: { include: { movie: true, cinema: true, room: true } },
       },
     });
+    return raw.map(({ showtime, totalAmount, finalAmount, ...b }) => ({
+      ...b,
+      totalAmount: Number(totalAmount),
+      finalAmount: Number(finalAmount),
+      movieTitle: showtime?.movie?.title ?? null,
+      moviePosterUrl: showtime?.movie?.posterUrl ?? null,
+      cinemaName: showtime?.cinema?.name ?? null,
+      roomName: showtime?.room?.name ?? null,
+      showtime: showtime?.startTime?.toISOString() ?? null,
+      format: showtime ? mapRoomFormat(showtime.format) : null,
+    }));
   }
 
   @Get('bookings')
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
   async getBookings(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
     const skip = (page - 1) * limit;
-    const where = status ? { status: status as any } : {};
+    const and: Record<string, unknown>[] = [];
+    if (status) and.push({ status: status as any });
+    if (from || to) {
+      const createdAt: Record<string, Date> = {};
+      if (from) {
+        const d = new Date(`${from}T00:00:00.000Z`);
+        if (!Number.isNaN(d.getTime())) createdAt.gte = d;
+      }
+      if (to) {
+        const d = new Date(`${to}T23:59:59.999Z`);
+        if (!Number.isNaN(d.getTime())) createdAt.lte = d;
+      }
+      if (Object.keys(createdAt).length > 0) and.push({ createdAt });
+    }
+    if (search) {
+      and.push({
+        OR: [
+          { id: { contains: search, mode: 'insensitive' } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+          { user: { fullName: { contains: search, mode: 'insensitive' } } },
+          { showtime: { movie: { title: { contains: search, mode: 'insensitive' } } } },
+          { showtime: { cinema: { name: { contains: search, mode: 'insensitive' } } } },
+        ],
+      });
+    }
+    const where = and.length > 0 ? { AND: and } : {};
     const [rawData, total] = await Promise.all([
       this.prisma.booking.findMany({
         skip,
@@ -842,18 +1066,17 @@ export class AdminController {
       select: { finalAmount: true, createdAt: true },
     });
 
-    const totalRevenue = bookings.reduce(
-      (sum, b) => sum + Number(b.finalAmount ?? 0),
-      0,
-    );
-    return {
-      totalRevenue,
-      totalBookings: bookings.length,
-      averageOrderValue:
-        bookings.length > 0 ? totalRevenue / bookings.length : 0,
-      from: dateFrom,
-      to: dateTo,
-    };
+    const byDate = new Map<string, { revenue: number; bookings: number }>();
+    for (const b of bookings) {
+      const k = this.toDateKey(b.createdAt);
+      const prev = byDate.get(k) ?? { revenue: 0, bookings: 0 };
+      prev.revenue += Number(b.finalAmount ?? 0);
+      prev.bookings += 1;
+      byDate.set(k, prev);
+    }
+    return Array.from(byDate.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, v]) => ({ date, revenue: v.revenue, bookings: v.bookings }));
   }
 
   @Get('reports/movies')
@@ -899,11 +1122,12 @@ export class AdminController {
         );
         return {
           movieId: m.id,
-          title: m.title,
+          movieTitle: m.title,
           posterUrl: m.posterUrl,
-          bookingCount: allBookings.length,
+          bookings: allBookings.length,
           ticketCount: tickets,
           revenue,
+          occupancy: 0,
         };
       })
       .sort((a, b) => b.revenue - a.revenue);
@@ -951,11 +1175,12 @@ export class AdminController {
         );
         return {
           cinemaId: c.id,
-          name: c.name,
+          cinemaName: c.name,
           city: c.city,
-          bookingCount: allBookings.length,
+          bookings: allBookings.length,
           ticketCount: tickets,
           revenue,
+          occupancy: 0,
         };
       })
       .sort((a, b) => b.revenue - a.revenue);
@@ -1018,7 +1243,12 @@ export class AdminController {
     return this.prisma.pricingRule.findMany({
       include: { cinema: true },
       orderBy: { createdAt: 'desc' },
-    });
+    }).then((rows) =>
+      rows.map((r) => ({
+        ...r,
+        roomFormat: r.format ? mapRoomFormat(r.format) : null,
+      })),
+    );
   }
 
   @Post('pricing-rules')
@@ -1028,7 +1258,7 @@ export class AdminController {
         name: dto.name,
         cinemaId: dto.cinemaId,
         seatType: dto.seatType,
-        format: dto.format,
+        format: this.parseRoomFormat(dto.roomFormat ?? dto.format),
         dayType: dto.dayType,
         timeSlot: dto.timeSlot,
         isHoliday: dto.isHoliday ?? false,
@@ -1040,7 +1270,22 @@ export class AdminController {
 
   @Put('pricing-rules/:id')
   updatePricingRule(@Param('id', ParseUuidPipe) id: string, @Body() dto: any) {
-    return this.prisma.pricingRule.update({ where: { id }, data: dto });
+    return this.prisma.pricingRule.update({
+      where: { id },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.cinemaId !== undefined && { cinemaId: dto.cinemaId }),
+        ...(dto.seatType !== undefined && { seatType: dto.seatType }),
+        ...((dto.roomFormat !== undefined || dto.format !== undefined) && {
+          format: this.parseRoomFormat(dto.roomFormat ?? dto.format),
+        }),
+        ...(dto.dayType !== undefined && { dayType: dto.dayType }),
+        ...(dto.timeSlot !== undefined && { timeSlot: dto.timeSlot }),
+        ...(dto.isHoliday !== undefined && { isHoliday: dto.isHoliday }),
+        ...(dto.price !== undefined && { price: dto.price }),
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+      },
+    });
   }
 
   @Delete('pricing-rules/:id')
@@ -1057,5 +1302,317 @@ export class AdminController {
       orderBy: { name: 'asc' },
     });
     return roles;
+  }
+
+  @Put('roles/:id')
+  async updateRolePermissions(
+    @Param('id', ParseUuidPipe) id: string,
+    @Body() body: { permissions?: string[] },
+  ) {
+    const permissions = Array.isArray(body.permissions)
+      ? body.permissions
+          .map((p) => String(p).trim())
+          .filter((p) => p.length > 0)
+      : [];
+    return this.prisma.role.update({
+      where: { id },
+      data: { permissions: permissions as object },
+    });
+  }
+
+  // ─── News (ADMIN only) ─────────────────────────────────────────────
+  private normalizeJsonArray(v: Prisma.JsonValue | null | undefined): string[] | undefined {
+    if (v == null) return undefined;
+    if (Array.isArray(v)) return v.map((x) => String(x));
+    return undefined;
+  }
+
+  private toNewsAdminRow(article: {
+    id: string;
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string;
+    category: NewsCategory;
+    imageUrl: string | null;
+    author: string;
+    tags: Prisma.JsonValue;
+    relatedArticleIds: Prisma.JsonValue;
+    publishedAt: Date;
+    createdAt: Date;
+  }) {
+    return {
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      excerpt: article.excerpt,
+      content: article.content,
+      category: article.category,
+      imageUrl: article.imageUrl ?? undefined,
+      author: article.author,
+      tags: this.normalizeJsonArray(article.tags),
+      relatedArticleIds: this.normalizeJsonArray(article.relatedArticleIds),
+      publishedAt: article.publishedAt.toISOString(),
+      createdAt: article.createdAt.toISOString(),
+    };
+  }
+
+  @Get('news')
+  @Roles(UserRole.ADMIN)
+  async listNewsAdmin(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+  ) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.prisma.newsArticle.findMany({
+        skip,
+        take: limit,
+        orderBy: { publishedAt: 'desc' },
+      }),
+      this.prisma.newsArticle.count(),
+    ]);
+    return {
+      data: items.map((a) => this.toNewsAdminRow(a)),
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  @Post('news')
+  @Roles(UserRole.ADMIN)
+  async createNewsAdmin(@Body() dto: CreateNewsArticleAdminDto) {
+    const dup = await this.prisma.newsArticle.findUnique({ where: { slug: dto.slug } });
+    if (dup) throw new ConflictException('Slug already in use');
+    const created = await this.prisma.newsArticle.create({
+      data: {
+        title: dto.title,
+        slug: dto.slug,
+        excerpt: dto.excerpt,
+        content: dto.content,
+        category: dto.category,
+        imageUrl: dto.imageUrl ?? null,
+        author: dto.author,
+        tags: (dto.tags ?? []) as Prisma.InputJsonValue,
+        relatedArticleIds: (dto.relatedArticleIds ?? []) as Prisma.InputJsonValue,
+        publishedAt: dto.publishedAt ? new Date(dto.publishedAt) : new Date(),
+      },
+    });
+    return { data: this.toNewsAdminRow(created) };
+  }
+
+  @Put('news/:id')
+  @Roles(UserRole.ADMIN)
+  async updateNewsAdmin(
+    @Param('id', ParseUuidPipe) id: string,
+    @Body() dto: UpdateNewsArticleAdminDto,
+  ) {
+    if (dto.slug) {
+      const clash = await this.prisma.newsArticle.findFirst({
+        where: { slug: dto.slug, NOT: { id } },
+      });
+      if (clash) throw new ConflictException('Slug already in use');
+    }
+    const updated = await this.prisma.newsArticle.update({
+      where: { id },
+      data: {
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.slug !== undefined && { slug: dto.slug }),
+        ...(dto.excerpt !== undefined && { excerpt: dto.excerpt }),
+        ...(dto.content !== undefined && { content: dto.content }),
+        ...(dto.category !== undefined && { category: dto.category }),
+        ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
+        ...(dto.author !== undefined && { author: dto.author }),
+        ...(dto.tags !== undefined && { tags: dto.tags as Prisma.InputJsonValue }),
+        ...(dto.relatedArticleIds !== undefined && {
+          relatedArticleIds: dto.relatedArticleIds as Prisma.InputJsonValue,
+        }),
+        ...(dto.publishedAt !== undefined && { publishedAt: new Date(dto.publishedAt) }),
+      },
+    });
+    return { data: this.toNewsAdminRow(updated) };
+  }
+
+  @Delete('news/:id')
+  @Roles(UserRole.ADMIN)
+  async deleteNewsAdmin(@Param('id', ParseUuidPipe) id: string) {
+    await this.prisma.newsArticle.delete({ where: { id } });
+    return { message: 'Deleted' };
+  }
+
+  // ─── Campaigns (ADMIN only) ───────────────────────────────────────
+  @Get('campaigns')
+  @Roles(UserRole.ADMIN)
+  async listCampaignsAdmin() {
+    const rows = await this.prisma.campaign.findMany({
+      include: { banners: true },
+      orderBy: { startDate: 'desc' },
+    });
+    return {
+      data: rows.map((c) => ({
+        id: c.id,
+        title: c.title,
+        slug: c.slug,
+        description: c.description ?? '',
+        content: c.content ?? '',
+        imageUrl: c.imageUrl ?? undefined,
+        startDate: c.startDate.toISOString(),
+        endDate: c.endDate.toISOString(),
+        isActive: c.isActive,
+        metadata: c.metadata,
+        createdAt: c.createdAt.toISOString(),
+        updatedAt: c.updatedAt.toISOString(),
+        banners: (c.banners ?? []).map((b) => ({
+          id: b.id,
+          title: b.title ?? undefined,
+          imageUrl: b.imageUrl,
+          linkUrl: b.linkUrl ?? undefined,
+          position: b.position,
+          sortOrder: b.sortOrder,
+          isActive: b.isActive,
+          campaignId: b.campaignId ?? undefined,
+          startDate: b.startDate?.toISOString(),
+          endDate: b.endDate?.toISOString(),
+          createdAt: b.createdAt.toISOString(),
+        })),
+      })),
+    };
+  }
+
+  @Post('campaigns')
+  @Roles(UserRole.ADMIN)
+  async createCampaignAdmin(@Body() dto: CreateCampaignAdminDto) {
+    const dup = await this.prisma.campaign.findUnique({ where: { slug: dto.slug } });
+    if (dup) throw new ConflictException('Campaign slug already in use');
+    const c = await this.prisma.campaign.create({
+      data: {
+        title: dto.title,
+        slug: dto.slug,
+        description: dto.description ?? null,
+        content: dto.content ?? null,
+        imageUrl: dto.imageUrl ?? null,
+        startDate: new Date(dto.startDate),
+        endDate: new Date(dto.endDate),
+        isActive: dto.isActive ?? true,
+        metadata: {},
+      },
+    });
+    return { data: { id: c.id, slug: c.slug, title: c.title } };
+  }
+
+  @Put('campaigns/:id')
+  @Roles(UserRole.ADMIN)
+  async updateCampaignAdmin(
+    @Param('id', ParseUuidPipe) id: string,
+    @Body() dto: UpdateCampaignAdminDto,
+  ) {
+    if (dto.slug) {
+      const clash = await this.prisma.campaign.findFirst({
+        where: { slug: dto.slug, NOT: { id } },
+      });
+      if (clash) throw new ConflictException('Campaign slug already in use');
+    }
+    await this.prisma.campaign.update({
+      where: { id },
+      data: {
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.slug !== undefined && { slug: dto.slug }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.content !== undefined && { content: dto.content }),
+        ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
+        ...(dto.startDate !== undefined && { startDate: new Date(dto.startDate) }),
+        ...(dto.endDate !== undefined && { endDate: new Date(dto.endDate) }),
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+      },
+    });
+    return { message: 'Updated' };
+  }
+
+  @Delete('campaigns/:id')
+  @Roles(UserRole.ADMIN)
+  async deleteCampaignAdmin(@Param('id', ParseUuidPipe) id: string) {
+    await this.prisma.campaign.update({
+      where: { id },
+      data: { isActive: false },
+    });
+    return { message: 'Deactivated' };
+  }
+
+  // ─── Banners (ADMIN only) ─────────────────────────────────────────
+  @Get('banners')
+  @Roles(UserRole.ADMIN)
+  async listBannersAdmin() {
+    const rows = await this.prisma.banner.findMany({
+      orderBy: [{ position: 'asc' }, { sortOrder: 'asc' }],
+    });
+    return {
+      data: rows.map((b) => ({
+        id: b.id,
+        title: b.title ?? undefined,
+        imageUrl: b.imageUrl,
+        linkUrl: b.linkUrl ?? undefined,
+        position: b.position,
+        sortOrder: b.sortOrder,
+        isActive: b.isActive,
+        campaignId: b.campaignId ?? undefined,
+        startDate: b.startDate?.toISOString(),
+        endDate: b.endDate?.toISOString(),
+        createdAt: b.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  @Post('banners')
+  @Roles(UserRole.ADMIN)
+  async createBannerAdmin(@Body() dto: CreateBannerAdminDto) {
+    const b = await this.prisma.banner.create({
+      data: {
+        title: dto.title ?? null,
+        imageUrl: dto.imageUrl,
+        linkUrl: dto.linkUrl ?? null,
+        position: dto.position ?? 'home',
+        sortOrder: dto.sortOrder ?? 0,
+        isActive: dto.isActive ?? true,
+        campaignId: dto.campaignId ?? null,
+        startDate: dto.startDate ? new Date(dto.startDate) : null,
+        endDate: dto.endDate ? new Date(dto.endDate) : null,
+      },
+    });
+    return { data: { id: b.id } };
+  }
+
+  @Put('banners/:id')
+  @Roles(UserRole.ADMIN)
+  async updateBannerAdmin(
+    @Param('id', ParseUuidPipe) id: string,
+    @Body() dto: UpdateBannerAdminDto,
+  ) {
+    await this.prisma.banner.update({
+      where: { id },
+      data: {
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
+        ...(dto.linkUrl !== undefined && { linkUrl: dto.linkUrl }),
+        ...(dto.position !== undefined && { position: dto.position }),
+        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.campaignId !== undefined && {
+          campaignId: dto.campaignId === '' ? null : dto.campaignId,
+        }),
+        ...(dto.startDate !== undefined && {
+          startDate: dto.startDate ? new Date(dto.startDate) : null,
+        }),
+        ...(dto.endDate !== undefined && {
+          endDate: dto.endDate ? new Date(dto.endDate) : null,
+        }),
+      },
+    });
+    return { message: 'Updated' };
+  }
+
+  @Delete('banners/:id')
+  @Roles(UserRole.ADMIN)
+  async deleteBannerAdmin(@Param('id', ParseUuidPipe) id: string) {
+    await this.prisma.banner.delete({ where: { id } });
+    return { message: 'Deleted' };
   }
 }

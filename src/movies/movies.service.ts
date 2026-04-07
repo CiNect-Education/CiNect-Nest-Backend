@@ -4,11 +4,15 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PageMeta } from '../common/dto/page-meta.dto';
-import { MovieStatus, Prisma } from '@prisma/client';
+import { MovieStatus, Prisma, AgeRating } from '@prisma/client';
+import { ProvinceResolverService } from '../provinces/province-resolver.service';
 
 @Injectable()
 export class MoviesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly provinceResolver: ProvinceResolverService,
+  ) {}
 
   async findAll(params: {
     page?: number;
@@ -16,6 +20,12 @@ export class MoviesService {
     status?: MovieStatus;
     search?: string;
     genre?: string;
+    language?: string;
+    ageRating?: AgeRating;
+    durationMin?: number;
+    durationMax?: number;
+    format?: string;
+    sort?: string;
   }) {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(50, Math.max(1, params.limit ?? 20));
@@ -43,11 +53,49 @@ export class MoviesService {
             OR: [
               { id: params.genre },
               { slug: params.genre },
+              { name: { contains: params.genre, mode: 'insensitive' } },
             ],
           },
         },
       };
     }
+
+    if (params.language) {
+      where.language = { contains: params.language, mode: 'insensitive' };
+    }
+
+    if (params.ageRating) {
+      where.ageRating = params.ageRating;
+    }
+
+    if (params.durationMin !== undefined || params.durationMax !== undefined) {
+      where.duration = {
+        ...(params.durationMin !== undefined ? { gte: params.durationMin } : {}),
+        ...(params.durationMax !== undefined ? { lte: params.durationMax } : {}),
+      };
+    }
+
+    if (params.format) {
+      where.formats = { array_contains: [params.format] };
+    }
+
+    const sortKey = (params.sort || 'releaseDate:desc').toLowerCase();
+    const orderBy: Prisma.MovieOrderByWithRelationInput = (() => {
+      switch (sortKey) {
+        case 'releasedate:asc':
+          return { releaseDate: 'asc' };
+        case 'title:asc':
+          return { title: 'asc' };
+        case 'title:desc':
+          return { title: 'desc' };
+        case 'rating:asc':
+          return { rating: 'asc' };
+        case 'rating:desc':
+          return { rating: 'desc' };
+        default:
+          return { releaseDate: 'desc' };
+      }
+    })();
 
     const [rawItems, total] = await Promise.all([
       this.prisma.movie.findMany({
@@ -57,7 +105,7 @@ export class MoviesService {
         include: {
           movieGenres: { include: { genre: true } },
         },
-        orderBy: { releaseDate: 'desc' },
+        orderBy,
       }),
       this.prisma.movie.count({ where }),
     ]);
@@ -138,7 +186,33 @@ export class MoviesService {
     ]);
 
     const meta = new PageMeta(page, limit, total);
-    return { data: items, meta };
+    return { data: items.map((r) => this.reviewToResponse(r)), meta };
+  }
+
+  private reviewToResponse(
+    review: {
+      id: string;
+      userId: string;
+      movieId: string;
+      rating: number;
+      content: string;
+      createdAt: Date;
+      updatedAt: Date;
+      user?: { id: string; fullName: string; avatar: string | null } | null;
+    },
+  ) {
+    const u = review.user;
+    return {
+      id: review.id,
+      userId: review.userId,
+      movieId: review.movieId,
+      rating: review.rating,
+      content: review.content,
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
+      userName: u?.fullName?.trim() || 'User',
+      userAvatar: u?.avatar ?? undefined,
+    };
   }
 
   async createReview(movieId: string, userId: string, dto: CreateReviewDto) {
@@ -185,7 +259,7 @@ export class MoviesService {
       return r;
     });
 
-    return this.prisma.review.findUnique({
+    const created = await this.prisma.review.findUnique({
       where: { id: review.id },
       include: {
         user: {
@@ -193,15 +267,25 @@ export class MoviesService {
         },
       },
     });
+    if (!created) {
+      throw new NotFoundException('Review not found');
+    }
+    return this.reviewToResponse(created);
   }
 
-  async findShowtimesByMovie(movieId: string, date?: string) {
-    const where: any = { movieId, isActive: true };
+  async findShowtimesByMovie(movieId: string, date?: string, city?: string) {
+    const where: Prisma.ShowtimeWhereInput = { movieId, isActive: true };
     if (date) {
       const d = new Date(date);
-      const start = new Date(d.setHours(0, 0, 0, 0));
-      const end = new Date(new Date(date).setHours(23, 59, 59, 999));
+      const start = new Date(d);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
       where.startTime = { gte: start, lte: end };
+    }
+    const provinceCode = await this.provinceResolver.resolveToNewCode(city);
+    if (provinceCode) {
+      where.cinema = { provinceNew: { code: provinceCode } };
     }
     return this.prisma.showtime.findMany({
       where,

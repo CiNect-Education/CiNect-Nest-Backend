@@ -2,27 +2,62 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HoldStatus } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
+import { ProvinceResolverService } from '../provinces/province-resolver.service';
 
 @Injectable()
 export class ShowtimesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly provinceResolver: ProvinceResolverService,
+  ) {}
 
-  async findAll(filters: { movieId?: string; cinemaId?: string; date?: string }) {
+  async findAll(filters: {
+    movieId?: string;
+    cinemaId?: string;
+    city?: string;
+    date?: string;
+    format?: string;
+  }) {
     const where: {
       isActive?: boolean;
       movieId?: string;
       cinemaId?: string;
-      startTime?: { gte: Date; lte: Date };
+      cinema?: { provinceNew?: { code: string } };
+      startTime?: { gte: Date; lt: Date };
     } = { isActive: true };
 
     if (filters.movieId) where.movieId = filters.movieId;
-    if (filters.cinemaId) where.cinemaId = filters.cinemaId;
+    if (filters.cinemaId) {
+      where.cinemaId = filters.cinemaId;
+    } else {
+      const provinceCode = await this.provinceResolver.resolveToNewCode(filters.city);
+      if (provinceCode) {
+        where.cinema = { provinceNew: { code: provinceCode } };
+      }
+    }
+    const format = filters.format?.trim().toUpperCase();
+    if (format) {
+      (where as Record<string, unknown>).format = format.startsWith('_') ? format : `_${format}`;
+      if (format === 'IMAX' || format === 'DOLBY') {
+        (where as Record<string, unknown>).format = format;
+      }
+    }
 
     if (filters.date) {
-      const d = new Date(filters.date);
-      const start = new Date(d.setHours(0, 0, 0, 0));
-      const end = new Date(d.setHours(23, 59, 59, 999));
-      where.startTime = { gte: start, lte: end };
+      const parts = filters.date.split('-').map((x) => parseInt(x, 10));
+      if (parts.length === 3 && parts.every((n) => !Number.isNaN(n))) {
+        const [y, m, day] = parts;
+        const dayStart = new Date(y, m - 1, day, 0, 0, 0, 0);
+        const dayEndExclusive = new Date(y, m - 1, day + 1, 0, 0, 0, 0);
+        const now = new Date();
+        // Hide already-started showtimes when querying today's date.
+        const start = dayStart < now ? now : dayStart;
+        where.startTime = { gte: start, lt: dayEndExclusive };
+      }
+    } else {
+      const now = new Date();
+      const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      where.startTime = { gte: now, lt: next7Days };
     }
 
     const showtimes = await this.prisma.showtime.findMany({
@@ -110,14 +145,25 @@ export class ShowtimesService {
     const heldSet = new Set(heldSeatIds);
     const bookedSet = new Set(bookedSeatIds);
 
-    const seatMap = showtime.room.seats.map((seat) => ({
-      ...seat,
-      status: bookedSet.has(seat.id)
+    const seatMap = showtime.room.seats.map((seat) => {
+      const status = bookedSet.has(seat.id)
         ? 'BOOKED'
         : heldSet.has(seat.id)
           ? 'HELD'
-          : seat.status,
-    }));
+          : seat.status;
+      return {
+        id: seat.id,
+        roomId: seat.roomId,
+        row: seat.rowLabel,
+        rowLabel: seat.rowLabel,
+        number: seat.number,
+        type: seat.type,
+        status,
+        pairId: seat.pairId,
+        isAisle: seat.isAisle,
+        price: seat.price != null ? Number(seat.price) : null,
+      };
+    });
 
     return {
       showtime: {

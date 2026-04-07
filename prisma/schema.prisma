@@ -309,12 +309,43 @@ model MovieGenre {
   @@map("movie_genres")
 }
 
+/** 34 tỉnh/thành cấp một (sau sắp xếp 2025, tham chiếu Wikipedia / NQ 2025) */
+model ProvinceNew {
+  id        String   @id @default(uuid()) @map("id")
+  code      String   @unique @map("code")
+  nameVi    String   @map("name_vi")
+  nameEn    String   @map("name_en")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  legacyUnits ProvinceLegacy[]
+  cinemas     Cinema[]
+
+  @@map("provinces_new")
+}
+
+/** 63 đơn vị cũ (trước sáp nhập), map sang ProvinceNew */
+model ProvinceLegacy {
+  id            String      @id @default(uuid()) @map("id")
+  code          String      @unique @map("code")
+  nameVi        String      @map("name_vi")
+  nameEn        String      @map("name_en")
+  provinceNewId String      @map("province_new_id")
+  provinceNew   ProvinceNew @relation(fields: [provinceNewId], references: [id], onDelete: Restrict)
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@index([provinceNewId])
+  @@map("provinces_legacy")
+}
+
 model Cinema {
   id        String   @id @default(uuid()) @map("id")
   name      String   @map("name")
   slug      String   @unique @map("slug")
   address   String   @map("address")
   city      String   @map("city")
+  ward      String?  @map("ward")
   district  String?  @map("district")
   phone     String?  @map("phone")
   email     String?  @map("email")
@@ -326,12 +357,16 @@ model Cinema {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  provinceNewId String?      @map("province_new_id")
+  provinceNew   ProvinceNew? @relation(fields: [provinceNewId], references: [id], onDelete: SetNull)
+
   rooms        Room[]
   showtimes    Showtime[]
   snacks       Snack[]
   pricingRules PricingRule[]
 
   @@index([city])
+  @@index([provinceNewId])
   @@map("cinemas")
 }
 
@@ -639,6 +674,8 @@ model Membership {
   tierId        String    @map("tier_id")
   currentPoints Int       @default(0) @map("current_points")
   totalPoints   Int       @default(0) @map("total_points")
+  dailyCheckinStreak Int  @default(0) @map("daily_checkin_streak")
+  lastDailyCheckinAt DateTime? @map("last_daily_checkin_at")
   memberSince   DateTime  @default(now()) @map("member_since")
   expiresAt     DateTime? @map("expires_at")
   createdAt     DateTime  @default(now()) @map("created_at")
