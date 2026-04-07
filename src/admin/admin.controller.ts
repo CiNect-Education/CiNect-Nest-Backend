@@ -11,13 +11,14 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
-import { RoomFormat, UserRole } from '@prisma/client';
+import { NewsCategory, Prisma, RoomFormat, UserRole } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMovieDto } from '../movies/dto/create-movie.dto';
@@ -25,6 +26,14 @@ import { UpdateMovieDto } from '../movies/dto/update-movie.dto';
 import { CreateCinemaDto } from '../cinemas/dto/create-cinema.dto';
 import { UpdateCinemaDto } from '../cinemas/dto/update-cinema.dto';
 import { CreateRoomDto } from '../cinemas/dto/create-room.dto';
+import {
+  CreateNewsArticleAdminDto,
+  UpdateNewsArticleAdminDto,
+  CreateCampaignAdminDto,
+  UpdateCampaignAdminDto,
+  CreateBannerAdminDto,
+  UpdateBannerAdminDto,
+} from './dto/admin-content.dto';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -572,7 +581,7 @@ export class AdminController {
   @ApiQuery({ name: 'limit', required: false })
   async listRooms(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(500), ParseIntPipe) limit: number,
     @Query('cinemaId') cinemaId?: string,
   ) {
     const where: { cinemaId?: string } = {};
@@ -588,8 +597,12 @@ export class AdminController {
       }),
       this.prisma.room.count({ where }),
     ]);
+    const data = items.map((r) => ({
+      ...r,
+      cinemaName: r.cinema?.name ?? undefined,
+    }));
     return {
-      data: items,
+      data,
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
@@ -684,7 +697,7 @@ export class AdminController {
   @ApiQuery({ name: 'date', required: false })
   async getShowtimes(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(500), ParseIntPipe) limit: number,
     @Query('cinemaId') cinemaId?: string,
     @Query('date') date?: string,
   ) {
@@ -1289,5 +1302,301 @@ export class AdminController {
       where: { id },
       data: { permissions: permissions as object },
     });
+  }
+
+  // ─── News (ADMIN only) ─────────────────────────────────────────────
+  private normalizeJsonArray(v: Prisma.JsonValue | null | undefined): string[] | undefined {
+    if (v == null) return undefined;
+    if (Array.isArray(v)) return v.map((x) => String(x));
+    return undefined;
+  }
+
+  private toNewsAdminRow(article: {
+    id: string;
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string;
+    category: NewsCategory;
+    imageUrl: string | null;
+    author: string;
+    tags: Prisma.JsonValue;
+    relatedArticleIds: Prisma.JsonValue;
+    publishedAt: Date;
+    createdAt: Date;
+  }) {
+    return {
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      excerpt: article.excerpt,
+      content: article.content,
+      category: article.category,
+      imageUrl: article.imageUrl ?? undefined,
+      author: article.author,
+      tags: this.normalizeJsonArray(article.tags),
+      relatedArticleIds: this.normalizeJsonArray(article.relatedArticleIds),
+      publishedAt: article.publishedAt.toISOString(),
+      createdAt: article.createdAt.toISOString(),
+    };
+  }
+
+  @Get('news')
+  @Roles(UserRole.ADMIN)
+  async listNewsAdmin(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+  ) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.prisma.newsArticle.findMany({
+        skip,
+        take: limit,
+        orderBy: { publishedAt: 'desc' },
+      }),
+      this.prisma.newsArticle.count(),
+    ]);
+    return {
+      data: items.map((a) => this.toNewsAdminRow(a)),
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  @Post('news')
+  @Roles(UserRole.ADMIN)
+  async createNewsAdmin(@Body() dto: CreateNewsArticleAdminDto) {
+    const dup = await this.prisma.newsArticle.findUnique({ where: { slug: dto.slug } });
+    if (dup) throw new ConflictException('Slug already in use');
+    const created = await this.prisma.newsArticle.create({
+      data: {
+        title: dto.title,
+        slug: dto.slug,
+        excerpt: dto.excerpt,
+        content: dto.content,
+        category: dto.category,
+        imageUrl: dto.imageUrl ?? null,
+        author: dto.author,
+        tags: (dto.tags ?? []) as Prisma.InputJsonValue,
+        relatedArticleIds: (dto.relatedArticleIds ?? []) as Prisma.InputJsonValue,
+        publishedAt: dto.publishedAt ? new Date(dto.publishedAt) : new Date(),
+      },
+    });
+    return { data: this.toNewsAdminRow(created) };
+  }
+
+  @Put('news/:id')
+  @Roles(UserRole.ADMIN)
+  async updateNewsAdmin(
+    @Param('id', ParseUuidPipe) id: string,
+    @Body() dto: UpdateNewsArticleAdminDto,
+  ) {
+    if (dto.slug) {
+      const clash = await this.prisma.newsArticle.findFirst({
+        where: { slug: dto.slug, NOT: { id } },
+      });
+      if (clash) throw new ConflictException('Slug already in use');
+    }
+    const updated = await this.prisma.newsArticle.update({
+      where: { id },
+      data: {
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.slug !== undefined && { slug: dto.slug }),
+        ...(dto.excerpt !== undefined && { excerpt: dto.excerpt }),
+        ...(dto.content !== undefined && { content: dto.content }),
+        ...(dto.category !== undefined && { category: dto.category }),
+        ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
+        ...(dto.author !== undefined && { author: dto.author }),
+        ...(dto.tags !== undefined && { tags: dto.tags as Prisma.InputJsonValue }),
+        ...(dto.relatedArticleIds !== undefined && {
+          relatedArticleIds: dto.relatedArticleIds as Prisma.InputJsonValue,
+        }),
+        ...(dto.publishedAt !== undefined && { publishedAt: new Date(dto.publishedAt) }),
+      },
+    });
+    return { data: this.toNewsAdminRow(updated) };
+  }
+
+  @Delete('news/:id')
+  @Roles(UserRole.ADMIN)
+  async deleteNewsAdmin(@Param('id', ParseUuidPipe) id: string) {
+    await this.prisma.newsArticle.delete({ where: { id } });
+    return { message: 'Deleted' };
+  }
+
+  // ─── Campaigns (ADMIN only) ───────────────────────────────────────
+  @Get('campaigns')
+  @Roles(UserRole.ADMIN)
+  async listCampaignsAdmin() {
+    const rows = await this.prisma.campaign.findMany({
+      include: { banners: true },
+      orderBy: { startDate: 'desc' },
+    });
+    return {
+      data: rows.map((c) => ({
+        id: c.id,
+        title: c.title,
+        slug: c.slug,
+        description: c.description ?? '',
+        content: c.content ?? '',
+        imageUrl: c.imageUrl ?? undefined,
+        startDate: c.startDate.toISOString(),
+        endDate: c.endDate.toISOString(),
+        isActive: c.isActive,
+        metadata: c.metadata,
+        createdAt: c.createdAt.toISOString(),
+        updatedAt: c.updatedAt.toISOString(),
+        banners: (c.banners ?? []).map((b) => ({
+          id: b.id,
+          title: b.title ?? undefined,
+          imageUrl: b.imageUrl,
+          linkUrl: b.linkUrl ?? undefined,
+          position: b.position,
+          sortOrder: b.sortOrder,
+          isActive: b.isActive,
+          campaignId: b.campaignId ?? undefined,
+          startDate: b.startDate?.toISOString(),
+          endDate: b.endDate?.toISOString(),
+          createdAt: b.createdAt.toISOString(),
+        })),
+      })),
+    };
+  }
+
+  @Post('campaigns')
+  @Roles(UserRole.ADMIN)
+  async createCampaignAdmin(@Body() dto: CreateCampaignAdminDto) {
+    const dup = await this.prisma.campaign.findUnique({ where: { slug: dto.slug } });
+    if (dup) throw new ConflictException('Campaign slug already in use');
+    const c = await this.prisma.campaign.create({
+      data: {
+        title: dto.title,
+        slug: dto.slug,
+        description: dto.description ?? null,
+        content: dto.content ?? null,
+        imageUrl: dto.imageUrl ?? null,
+        startDate: new Date(dto.startDate),
+        endDate: new Date(dto.endDate),
+        isActive: dto.isActive ?? true,
+        metadata: {},
+      },
+    });
+    return { data: { id: c.id, slug: c.slug, title: c.title } };
+  }
+
+  @Put('campaigns/:id')
+  @Roles(UserRole.ADMIN)
+  async updateCampaignAdmin(
+    @Param('id', ParseUuidPipe) id: string,
+    @Body() dto: UpdateCampaignAdminDto,
+  ) {
+    if (dto.slug) {
+      const clash = await this.prisma.campaign.findFirst({
+        where: { slug: dto.slug, NOT: { id } },
+      });
+      if (clash) throw new ConflictException('Campaign slug already in use');
+    }
+    await this.prisma.campaign.update({
+      where: { id },
+      data: {
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.slug !== undefined && { slug: dto.slug }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.content !== undefined && { content: dto.content }),
+        ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
+        ...(dto.startDate !== undefined && { startDate: new Date(dto.startDate) }),
+        ...(dto.endDate !== undefined && { endDate: new Date(dto.endDate) }),
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+      },
+    });
+    return { message: 'Updated' };
+  }
+
+  @Delete('campaigns/:id')
+  @Roles(UserRole.ADMIN)
+  async deleteCampaignAdmin(@Param('id', ParseUuidPipe) id: string) {
+    await this.prisma.campaign.update({
+      where: { id },
+      data: { isActive: false },
+    });
+    return { message: 'Deactivated' };
+  }
+
+  // ─── Banners (ADMIN only) ─────────────────────────────────────────
+  @Get('banners')
+  @Roles(UserRole.ADMIN)
+  async listBannersAdmin() {
+    const rows = await this.prisma.banner.findMany({
+      orderBy: [{ position: 'asc' }, { sortOrder: 'asc' }],
+    });
+    return {
+      data: rows.map((b) => ({
+        id: b.id,
+        title: b.title ?? undefined,
+        imageUrl: b.imageUrl,
+        linkUrl: b.linkUrl ?? undefined,
+        position: b.position,
+        sortOrder: b.sortOrder,
+        isActive: b.isActive,
+        campaignId: b.campaignId ?? undefined,
+        startDate: b.startDate?.toISOString(),
+        endDate: b.endDate?.toISOString(),
+        createdAt: b.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  @Post('banners')
+  @Roles(UserRole.ADMIN)
+  async createBannerAdmin(@Body() dto: CreateBannerAdminDto) {
+    const b = await this.prisma.banner.create({
+      data: {
+        title: dto.title ?? null,
+        imageUrl: dto.imageUrl,
+        linkUrl: dto.linkUrl ?? null,
+        position: dto.position ?? 'home',
+        sortOrder: dto.sortOrder ?? 0,
+        isActive: dto.isActive ?? true,
+        campaignId: dto.campaignId ?? null,
+        startDate: dto.startDate ? new Date(dto.startDate) : null,
+        endDate: dto.endDate ? new Date(dto.endDate) : null,
+      },
+    });
+    return { data: { id: b.id } };
+  }
+
+  @Put('banners/:id')
+  @Roles(UserRole.ADMIN)
+  async updateBannerAdmin(
+    @Param('id', ParseUuidPipe) id: string,
+    @Body() dto: UpdateBannerAdminDto,
+  ) {
+    await this.prisma.banner.update({
+      where: { id },
+      data: {
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
+        ...(dto.linkUrl !== undefined && { linkUrl: dto.linkUrl }),
+        ...(dto.position !== undefined && { position: dto.position }),
+        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.campaignId !== undefined && {
+          campaignId: dto.campaignId === '' ? null : dto.campaignId,
+        }),
+        ...(dto.startDate !== undefined && {
+          startDate: dto.startDate ? new Date(dto.startDate) : null,
+        }),
+        ...(dto.endDate !== undefined && {
+          endDate: dto.endDate ? new Date(dto.endDate) : null,
+        }),
+      },
+    });
+    return { message: 'Updated' };
+  }
+
+  @Delete('banners/:id')
+  @Roles(UserRole.ADMIN)
+  async deleteBannerAdmin(@Param('id', ParseUuidPipe) id: string) {
+    await this.prisma.banner.delete({ where: { id } });
+    return { message: 'Deleted' };
   }
 }
