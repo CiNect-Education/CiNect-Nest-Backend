@@ -12,6 +12,7 @@ import {
   DefaultValuePipe,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
