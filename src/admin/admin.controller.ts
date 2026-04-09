@@ -12,6 +12,7 @@ import {
   DefaultValuePipe,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
@@ -55,6 +56,20 @@ export class AdminController {
   private toDateKey(d: Date): string {
     // Use ISO date (UTC) for stable keys.
     return d.toISOString().slice(0, 10);
+  }
+
+  private isUuid(value: unknown): boolean {
+    if (typeof value !== 'string') return false;
+    const v = value.trim();
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+  }
+
+  /** Accepts standard UUID or 32 hex digits with stray spaces (common copy/paste from docs). */
+  private normalizeUuidInput(value: unknown): string | null {
+    if (typeof value !== 'string') return null;
+    const hex = value.replace(/[^0-9a-f]/gi, '');
+    if (hex.length !== 32) return null;
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`.toLowerCase();
   }
 
   private parseRoomFormat(input?: string): RoomFormat {
@@ -541,7 +556,7 @@ export class AdminController {
       data: {
         cinemaId,
         name: dto.name,
-        format: dto.format ?? 'STANDARD2D',
+        format: this.parseRoomFormat(dto.format as string | undefined),
         totalSeats: dto.totalSeats ?? 0,
         rows: dto.rows ?? 0,
         columns: dto.columns ?? 0,
@@ -672,7 +687,9 @@ export class AdminController {
       where: { id },
       data: {
         ...(dto.name && { name: dto.name }),
-        ...(dto.format && { format: dto.format }),
+        ...(dto.format !== undefined && {
+          format: this.parseRoomFormat(dto.format as string),
+        }),
         ...(dto.totalSeats !== undefined && { totalSeats: dto.totalSeats }),
         ...(dto.rows !== undefined && { rows: dto.rows }),
         ...(dto.columns !== undefined && { columns: dto.columns }),
@@ -734,7 +751,26 @@ export class AdminController {
   }
 
   @Post('showtimes')
-  createShowtime(@Body() dto: any) {
+  async createShowtime(@Body() dto: any) {
+    const movieId = this.normalizeUuidInput(dto.movieId);
+    const cinemaId = this.normalizeUuidInput(dto.cinemaId);
+    const roomId = this.normalizeUuidInput(dto.roomId);
+    if (!movieId) {
+      throw new BadRequestException(
+        'movieId must be a valid UUID (32 hex digits; hyphens optional)',
+      );
+    }
+    if (!cinemaId) {
+      throw new BadRequestException(
+        'cinemaId must be a valid UUID (32 hex digits; fix spaces or missing characters)',
+      );
+    }
+    if (!roomId) {
+      throw new BadRequestException(
+        'roomId must be a valid UUID (32 hex digits; must belong to cinema)',
+      );
+    }
+
     const start = new Date(dto.startTime);
     if (Number.isNaN(start.getTime())) {
       throw new BadRequestException('Invalid startTime');
@@ -742,21 +778,55 @@ export class AdminController {
     if (start.getTime() < Date.now() - 30_000) {
       throw new BadRequestException('Showtime startTime must be in the future');
     }
-    return this.prisma.showtime.create({
-      data: {
-        movieId: dto.movieId,
-        roomId: dto.roomId,
-        cinemaId: dto.cinemaId,
-        startTime: start,
-        endTime: dto.endTime ? new Date(dto.endTime) : start,
-        basePrice: dto.basePrice,
-        format: dto.format ?? 'STANDARD2D',
-        language: dto.language,
-        subtitles: dto.subtitles,
-        isActive: dto.isActive ?? true,
-        memberExclusive: dto.memberExclusive ?? false,
-      },
-    });
+    const end = dto.endTime ? new Date(dto.endTime) : start;
+    if (dto.endTime && Number.isNaN(end.getTime())) {
+      throw new BadRequestException(
+        'Invalid endTime; use ISO 8601 like 2026-06-01T12:30:00.000Z (hyphens, not spaces in the date)',
+      );
+    }
+
+    const [movie, cinema, room] = await Promise.all([
+      this.prisma.movie.findUnique({ where: { id: movieId } }),
+      this.prisma.cinema.findUnique({ where: { id: cinemaId } }),
+      this.prisma.room.findUnique({ where: { id: roomId } }),
+    ]);
+    if (!movie) {
+      throw new BadRequestException('Movie not found');
+    }
+    if (!cinema) {
+      throw new BadRequestException('Cinema not found');
+    }
+    if (!room) {
+      throw new BadRequestException('Room not found');
+    }
+    if (room.cinemaId !== cinemaId) {
+      throw new BadRequestException('Room does not belong to cinema');
+    }
+
+    try {
+      return await this.prisma.showtime.create({
+        data: {
+          movieId,
+          roomId,
+          cinemaId,
+          startTime: start,
+          endTime: end,
+          basePrice: dto.basePrice,
+          format: this.parseRoomFormat(dto.format),
+          language: dto.language,
+          subtitles: dto.subtitles,
+          isActive: dto.isActive ?? true,
+          memberExclusive: dto.memberExclusive ?? false,
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2003') {
+        throw new BadRequestException(
+          'Invalid movie, cinema, or room id (reference does not exist)',
+        );
+      }
+      throw e;
+    }
   }
 
   @Put('showtimes/:id')
@@ -776,7 +846,9 @@ export class AdminController {
         ...(dto.startTime && { startTime: new Date(dto.startTime) }),
         ...(dto.endTime && { endTime: new Date(dto.endTime) }),
         ...(dto.basePrice !== undefined && { basePrice: dto.basePrice }),
-        ...(dto.format && { format: dto.format }),
+        ...(dto.format !== undefined && {
+          format: this.parseRoomFormat(dto.format),
+        }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
         ...(dto.memberExclusive !== undefined && { memberExclusive: dto.memberExclusive }),
       },
