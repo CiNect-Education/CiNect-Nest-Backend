@@ -167,10 +167,25 @@ async function main() {
     update: {},
     create: { name: UserRole.ADMIN, permissions: ['*'] as object },
   });
+  // Must match admin UI permission keys (dot-separated), e.g. movies.read
+  const staffDefaultPermissions = [
+    'movies.read',
+    'movies.write',
+    'cinemas.read',
+    'rooms.read',
+    'showtimes.read',
+    'showtimes.write',
+    'bookings.read',
+    'bookings.write',
+    'promotions.read',
+    'pricing.read',
+    'reports.read',
+    'analytics.read',
+  ];
   const staffRole = await prisma.role.upsert({
     where: { name: UserRole.STAFF },
     update: {},
-    create: { name: UserRole.STAFF, permissions: ['movies:read', 'bookings:read', 'showtimes:manage'] as object },
+    create: { name: UserRole.STAFF, permissions: staffDefaultPermissions as object },
   });
   const userRole = await prisma.role.upsert({
     where: { name: UserRole.USER },
