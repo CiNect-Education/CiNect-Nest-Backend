@@ -11,11 +11,25 @@ export class CinemasService {
     private readonly provinceResolver: ProvinceResolverService,
   ) {}
 
-  async findAll(city?: string) {
+  async findAll(city?: string, search?: string) {
     const provinceCode = await this.provinceResolver.resolveToNewCode(city);
     const where: Prisma.CinemaWhereInput = { isActive: true };
     if (provinceCode) {
-      where.OR = [{ provinceNew: { code: provinceCode } }];
+      where.provinceNew = { code: provinceCode };
+    }
+
+    const normalizedSearch = search?.trim();
+    if (normalizedSearch) {
+      where.AND = [
+        {
+          OR: [
+            { name: { contains: normalizedSearch, mode: 'insensitive' } },
+            { slug: { contains: normalizedSearch, mode: 'insensitive' } },
+            { address: { contains: normalizedSearch, mode: 'insensitive' } },
+            { district: { contains: normalizedSearch, mode: 'insensitive' } },
+          ],
+        },
+      ];
     }
     const cinemas = await this.prisma.cinema.findMany({
       where,
