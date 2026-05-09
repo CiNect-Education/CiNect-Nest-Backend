@@ -11,8 +11,10 @@ export class CinemasController {
   constructor(private readonly cinemasService: CinemasService) {}
 
   @Get()
-  findAll(@Query('city') city?: string) {
-    return this.cinemasService.findAll(city);
+  @ApiQuery({ name: 'city', required: false })
+  @ApiQuery({ name: 'search', required: false })
+  findAll(@Query('city') city?: string, @Query('search') search?: string) {
+    return this.cinemasService.findAll(city, search);
   }
 
   @Get(':slug')
