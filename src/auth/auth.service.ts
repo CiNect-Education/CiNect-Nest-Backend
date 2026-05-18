@@ -291,11 +291,18 @@ export class AuthService {
   async findOrCreateOAuthUser(profile: {
     provider: string;
     providerId: string;
-    email: string;
-    fullName: string;
-    avatar?: string;
+    email?: string | null;
+    fullName?: string | null;
+    avatar?: string | null;
   }) {
-    const { provider, providerId, email, fullName, avatar } = profile;
+    if (!profile?.provider || !profile?.providerId) {
+      throw new BadRequestException('Invalid OAuth profile');
+    }
+
+    const { provider, providerId } = profile;
+    const email = profile.email?.trim() || null;
+    const fullName = profile.fullName?.trim() || email?.split('@')[0] || 'CiNect User';
+    const avatar = profile.avatar ?? undefined;
 
     // 1. Check if user exists by provider + providerId
     let user = await this.prisma.user.findFirst({
@@ -319,7 +326,7 @@ export class AuthService {
     if (!user) {
       // 3. Create new user (no password, emailVerified=true)
       const userRole = await this.prisma.role.findFirst({
-        where: { name: 'USER' },
+        where: { name: UserRole.USER },
       });
       const bronzeTier = await this.prisma.membershipTier.findFirst({
         where: { name: 'Bronze' },

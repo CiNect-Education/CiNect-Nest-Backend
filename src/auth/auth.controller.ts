@@ -15,6 +15,10 @@ import { FacebookAuthGuard } from '../common/guards/facebook-auth.guard';
 import { GithubAuthGuard } from '../common/guards/github-auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import {
+  oauthCallbackSuccessUrl,
+  oauthLoginErrorUrl,
+} from './oauth-redirect.util';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -26,6 +30,23 @@ export class AuthController {
 
   private get frontendUrl(): string {
     return this.config.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+  }
+
+  private get defaultLocale(): string {
+    return this.config.get<string>('DEFAULT_LOCALE') ?? 'vi';
+  }
+
+  private redirectOAuthSuccess(
+    res: Response,
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    return res.redirect(
+      oauthCallbackSuccessUrl(this.frontendUrl, tokens, this.defaultLocale),
+    );
+  }
+
+  private redirectOAuthFailure(res: Response, code = 'oauth_failed') {
+    return res.redirect(oauthLoginErrorUrl(this.frontendUrl, code, this.defaultLocale));
   }
 
   @Public()
@@ -94,12 +115,18 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleCallback(@Req() req: any, @Res() res: Response) {
-    const result = await this.authService.findOrCreateOAuthUser(req.user);
-    const params = new URLSearchParams({
-      token: result.accessToken,
-      refreshToken: result.refreshToken,
-    });
-    return res.redirect(`${this.frontendUrl}/callback?${params.toString()}`);
+    try {
+      if (!req.user) {
+        return this.redirectOAuthFailure(res, 'google_auth_failed');
+      }
+      const result = await this.authService.findOrCreateOAuthUser(req.user);
+      return this.redirectOAuthSuccess(res, {
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      });
+    } catch {
+      return this.redirectOAuthFailure(res, 'google_auth_failed');
+    }
   }
 
   // ========================
@@ -117,12 +144,18 @@ export class AuthController {
   @Get('facebook/callback')
   @UseGuards(FacebookAuthGuard)
   async facebookCallback(@Req() req: any, @Res() res: Response) {
-    const result = await this.authService.findOrCreateOAuthUser(req.user);
-    const params = new URLSearchParams({
-      token: result.accessToken,
-      refreshToken: result.refreshToken,
-    });
-    return res.redirect(`${this.frontendUrl}/callback?${params.toString()}`);
+    try {
+      if (!req.user) {
+        return this.redirectOAuthFailure(res, 'facebook_auth_failed');
+      }
+      const result = await this.authService.findOrCreateOAuthUser(req.user);
+      return this.redirectOAuthSuccess(res, {
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      });
+    } catch {
+      return this.redirectOAuthFailure(res, 'facebook_auth_failed');
+    }
   }
 
   // ========================
@@ -140,11 +173,17 @@ export class AuthController {
   @Get('github/callback')
   @UseGuards(GithubAuthGuard)
   async githubCallback(@Req() req: any, @Res() res: Response) {
-    const result = await this.authService.findOrCreateOAuthUser(req.user);
-    const params = new URLSearchParams({
-      token: result.accessToken,
-      refreshToken: result.refreshToken,
-    });
-    return res.redirect(`${this.frontendUrl}/callback?${params.toString()}`);
+    try {
+      if (!req.user) {
+        return this.redirectOAuthFailure(res, 'github_auth_failed');
+      }
+      const result = await this.authService.findOrCreateOAuthUser(req.user);
+      return this.redirectOAuthSuccess(res, {
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      });
+    } catch {
+      return this.redirectOAuthFailure(res, 'github_auth_failed');
+    }
   }
 }

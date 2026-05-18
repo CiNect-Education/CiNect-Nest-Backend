@@ -28,6 +28,8 @@ export class MoviesController {
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'status', enum: MovieStatus, required: false })
+  @ApiQuery({ name: 'nowShowing', required: false, type: Boolean })
+  @ApiQuery({ name: 'comingSoon', required: false, type: Boolean })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'genre', required: false })
   @ApiQuery({ name: 'language', required: false })
@@ -40,6 +42,8 @@ export class MoviesController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('status') status?: MovieStatus,
+    @Query('nowShowing') nowShowing?: string,
+    @Query('comingSoon') comingSoon?: string,
     @Query('search') search?: string,
     @Query('genre') genre?: string,
     @Query('language') language?: string,
@@ -53,6 +57,8 @@ export class MoviesController {
       page,
       limit,
       status,
+      nowShowing: nowShowing === 'true' || nowShowing === '1',
+      comingSoon: comingSoon === 'true' || comingSoon === '1',
       search,
       genre,
       language,

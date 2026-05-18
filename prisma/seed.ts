@@ -4,8 +4,55 @@ import { PROVINCES_NEW } from './data/provinces-new';
 import { PROVINCES_LEGACY } from './data/provinces-legacy';
 import { REAL_CINEMAS } from './data/real-cinemas.seed';
 import moviesCatalogJson from './data/movies-catalog.omdb.json';
+import movieWikiImages from './data/movie-wiki-images.json';
+import moviePosterOverrides from './data/movie-poster-overrides.json';
+import cinemaImagesBySlug from './data/cinema-images.json';
+import { resolveListingStatus } from '../src/movies/movie-status.util';
+import { normalizeImageUrl } from './lib/normalize-image-url';
+import {
+  SEED_SNACK_IMAGES,
+  SEED_PROMOTION_IMAGES,
+  SEED_NEWS_IMAGES,
+  SEED_GIFT_CARD_IMAGES,
+  SEED_CAMPAIGN_IMAGES,
+} from './data/seed-media';
 
 const prisma = new PrismaClient();
+
+type WikiImageEntry = { posterUrl: string; bannerUrl?: string };
+const movieWikiByKey = {
+  ...(movieWikiImages as Record<string, WikiImageEntry>),
+  ...(moviePosterOverrides as Record<string, WikiImageEntry>),
+};
+const cinemaImages = cinemaImagesBySlug as Record<string, string>;
+
+function cleanImageUrl(url: string | null | undefined): string | undefined {
+  if (!url?.trim()) return undefined;
+  try {
+    const u = new URL(url.trim());
+    u.search = '';
+    return u.toString();
+  } catch {
+    return url.split('?')[0] || undefined;
+  }
+}
+
+function resolveMovieImages(row: { imdbId?: string; slug: string; posterUrl?: string; bannerUrl?: string }) {
+  const wiki = (row.imdbId && movieWikiByKey[row.imdbId]) || movieWikiByKey[row.slug];
+  const posterUrl =
+    cleanImageUrl(wiki?.posterUrl) ?? normalizeImageUrl(row.posterUrl) ?? '';
+  const bannerUrl =
+    cleanImageUrl(wiki?.bannerUrl) ??
+    cleanImageUrl(wiki?.posterUrl) ??
+    normalizeImageUrl(row.bannerUrl);
+  return { posterUrl, bannerUrl };
+}
+
+function resolveCinemaImageUrl(slug: string): string {
+  const mapped = cinemaImages[slug];
+  if (mapped?.trim()) return mapped.trim();
+  return CINEMA_IMAGE_POOL[stableHash(slug) % CINEMA_IMAGE_POOL.length];
+}
 
 const CINEMA_IMAGE_POOL = [
   "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1600&q=80",
@@ -294,15 +341,17 @@ async function main() {
   type CatalogRow = (typeof moviesCatalogJson)[number] & { genreSlugs: string[]; imdbId?: string };
   const moviesData = (moviesCatalogJson as CatalogRow[]).map((row) => {
     const { imdbId: _imdb, genreSlugs, ...rest } = row;
+    const images = resolveMovieImages(row);
+    const releaseDate = new Date(row.releaseDate);
     return {
       ...rest,
-      releaseDate: new Date(row.releaseDate),
-      status: row.status as MovieStatus,
+      releaseDate,
+      status: resolveListingStatus(releaseDate, row.status as MovieStatus),
       ageRating: row.ageRating as AgeRating,
       castMembers: row.castMembers as object,
       formats: row.formats as object,
-      posterUrl: row.posterUrl ?? '',
-      bannerUrl: row.bannerUrl ?? undefined,
+      posterUrl: images.posterUrl,
+      bannerUrl: images.bannerUrl,
       trailerUrl: row.trailerUrl ?? undefined,
       subtitles: row.subtitles ?? undefined,
       genreSlugs,
@@ -385,7 +434,7 @@ async function main() {
   for (const c of REAL_CINEMAS) {
     const provinceNewId = provinceIdByCode[c.provinceCode];
     if (!provinceNewId) throw new Error(`Unknown provinceCode ${c.provinceCode} for cinema ${c.slug}`);
-    const imageUrl = await resolveCinemaImageReal(c.slug, c.name, c.address, c.city);
+    const imageUrl = resolveCinemaImageUrl(c.slug);
     const fullAddress = toFullAddress(c.address, c.ward, c.district, c.city);
     const cinema = await prisma.cinema.upsert({
       where: { slug: c.slug },
@@ -677,7 +726,7 @@ async function main() {
       usageLimit: 1000,
       startDate: new Date('2026-01-01'),
       endDate: new Date('2026-06-30'),
-      imageUrl: 'https://placehold.co/600x300/0984e3/ffffff?text=Student+20%25+Off',
+      imageUrl: SEED_PROMOTION_IMAGES.STUDENT20,
       conditions: 'Valid student ID required. Weekdays only.',
       status: PromotionStatus.ACTIVE,
       isTrending: true,
@@ -693,7 +742,7 @@ async function main() {
       usageLimit: 500,
       startDate: new Date('2026-02-01'),
       endDate: new Date('2026-03-31'),
-      imageUrl: 'https://placehold.co/600x300/e17055/ffffff?text=Combo+Deal',
+      imageUrl: SEED_PROMOTION_IMAGES.COMBO2026,
       conditions: 'Minimum 2 tickets per transaction.',
       status: PromotionStatus.ACTIVE,
       isTrending: true,
@@ -709,7 +758,7 @@ async function main() {
       usageLimit: 200,
       startDate: new Date('2026-02-01'),
       endDate: new Date('2026-02-28'),
-      imageUrl: 'https://placehold.co/600x300/e84393/ffffff?text=Valentine+30%25+Off',
+      imageUrl: SEED_PROMOTION_IMAGES.LOVE2026,
       conditions: 'Couple seats only. Limited availability.',
       status: PromotionStatus.ACTIVE,
       isTrending: true,
@@ -725,7 +774,7 @@ async function main() {
       usageLimit: 300,
       startDate: new Date('2026-01-01'),
       endDate: new Date('2026-12-31'),
-      imageUrl: 'https://placehold.co/600x300/00b894/ffffff?text=Family+Pack',
+      imageUrl: SEED_PROMOTION_IMAGES.FAMILY15,
       conditions: 'Minimum 4 tickets. Weekends only.',
       status: PromotionStatus.ACTIVE,
       isTrending: false,
@@ -735,7 +784,21 @@ async function main() {
   for (const p of promotionsData) {
     await prisma.promotion.upsert({
       where: { code: p.code! },
-      update: {},
+      update: {
+        title: p.title,
+        description: p.description,
+        imageUrl: p.imageUrl,
+        discountType: p.discountType,
+        discountValue: p.discountValue,
+        minPurchase: p.minPurchase,
+        maxDiscount: p.maxDiscount,
+        usageLimit: p.usageLimit,
+        startDate: p.startDate,
+        endDate: p.endDate,
+        conditions: p.conditions,
+        status: p.status,
+        isTrending: p.isTrending,
+      },
       create: p,
     });
   }
@@ -749,7 +812,7 @@ async function main() {
       excerpt: 'Phim MCU đầu tiên nhãn R ghi nhận suất chiếu đông khán giả tại các cụm rạp lớn.',
       content: 'Deadpool & Wolverine (Shawn Levy) đánh dấu sự trở lại của Wade Wilson bên cạnh Wolverine, với doanh thu toàn cầu vượt một tỷ USD. Tại Việt Nam, các suất tối và cuối tuần tại hệ thống rạp quốc tế thường kín chỗ ở định dạng IMAX và 2D phụ đề.',
       category: NewsCategory.GENERAL,
-      imageUrl: 'https://placehold.co/800x400/1a1a2e/e94560?text=Deadpool+Wolverine',
+      imageUrl: SEED_NEWS_IMAGES['deadpool-wolverine-box-office-vn'],
       author: 'CiNect Editorial',
       tags: ['box office', 'marvel', 'deadpool'] as object,
     },
@@ -759,7 +822,7 @@ async function main() {
       excerpt: 'Màn hình lớn và âm thanh đa kênh cho các bom tấn năm 2024–2025.',
       content: 'Chúng tôi mở rộng lịch chiếu các phim bom tấn như Dune: Part Two, Godzilla x Kong và các tác phẩm hoạt hình Pixar trên hệ thống IMAX. Thành viên ưu tiên đặt vé sớm qua ứng dụng CiNect.',
       category: NewsCategory.GENERAL,
-      imageUrl: 'https://placehold.co/800x400/0984e3/ffffff?text=IMAX+Launch',
+      imageUrl: SEED_NEWS_IMAGES['cinect-imax-landmark-81'],
       author: 'CiNect PR Team',
       tags: ['IMAX', 'landmark 81', 'premium'] as object,
     },
@@ -769,7 +832,7 @@ async function main() {
       excerpt: 'Riley bước vào tuổi dậy thì; loạt cảm xúc mới lên màn ảnh.',
       content: 'Inside Out 2 mở rộng thế giới nội tâm với Anxiety và các cảm xúc mới, phù hợp khán gia đại chúng. Phần hoạt hình và nhịp hài đặc trưng Pixar được giữ vững. Đánh giá của chúng tôi: phim gia đình đáng xem trên màn rộng.',
       category: NewsCategory.REVIEWS,
-      imageUrl: 'https://placehold.co/800x400/6c5ce7/ffeaa7?text=Inside+Out+2',
+      imageUrl: SEED_NEWS_IMAGES['review-inside-out-2'],
       author: 'Movie Reviewer',
       tags: ['review', 'pixar', 'animation'] as object,
     },
@@ -779,7 +842,7 @@ async function main() {
       excerpt: 'Phần tiếp theo của loạt phim Avatar, kỳ vọng định dạng 3D/IMAX.',
       content: 'James Cameron tiếp tục mở rộng vũ trụ Pandora. Khán giả có thể theo dõi lịch chiếu và đặt vé sớm trên CiNect khi phim mở bán chính thức.',
       category: NewsCategory.TRAILERS,
-      imageUrl: 'https://placehold.co/800x400/d63031/dfe6e9?text=Avatar+Preview',
+      imageUrl: SEED_NEWS_IMAGES['avatar-fire-and-ash-preview'],
       author: 'CiNect Editorial',
       tags: ['avatar', 'preview', 'sci-fi'] as object,
     },
@@ -789,7 +852,7 @@ async function main() {
       excerpt: 'Tips and tricks for choosing the perfect seats for your next movie experience.',
       content: 'Finding the perfect seat can make or break your movie experience. For IMAX: sit in the center, about 2/3 back. For standard screens: the center rows offer the best viewing angle. VIP seats offer extra legroom and service. Couple seats are perfect for date nights with added privacy. Pro tip: Book early through the CiNect app to get the best selection, and use the seat map to find your ideal spot.',
       category: NewsCategory.GUIDES,
-      imageUrl: 'https://placehold.co/800x400/00b894/ffffff?text=Seat+Guide',
+      imageUrl: SEED_NEWS_IMAGES['guide-best-seats-cinect'],
       author: 'CiNect Team',
       tags: ['guide', 'tips', 'seats'] as object,
     },
@@ -798,7 +861,15 @@ async function main() {
   for (const n of newsData) {
     await prisma.newsArticle.upsert({
       where: { slug: n.slug },
-      update: {},
+      update: {
+        title: n.title,
+        excerpt: n.excerpt,
+        content: n.content,
+        category: n.category,
+        imageUrl: n.imageUrl,
+        author: n.author,
+        tags: n.tags,
+      },
       create: n,
     });
   }
@@ -806,14 +877,14 @@ async function main() {
   // ============ SNACKS ============
   console.log('Creating snacks...');
   const snacksData = [
-    { name: 'Popcorn (L)', description: 'Large butter popcorn', price: 55000, imageUrl: 'https://placehold.co/200x200/f9ca24/2d3436?text=Popcorn+L' },
-    { name: 'Popcorn (M)', description: 'Medium butter popcorn', price: 40000, imageUrl: 'https://placehold.co/200x200/f9ca24/2d3436?text=Popcorn+M' },
-    { name: 'Coca-Cola (L)', description: 'Large Coca-Cola', price: 35000, imageUrl: 'https://placehold.co/200x200/e74c3c/ffffff?text=Coca+Cola' },
-    { name: 'Combo Couple', description: '2 Popcorn L + 2 Coca-Cola L', price: 150000, imageUrl: 'https://placehold.co/200x200/e84393/ffffff?text=Combo+Couple' },
-    { name: 'Combo Family', description: '2 Popcorn L + 4 Drinks', price: 220000, imageUrl: 'https://placehold.co/200x200/00b894/ffffff?text=Combo+Family' },
-    { name: 'Nachos', description: 'Nachos with cheese sauce', price: 60000, imageUrl: 'https://placehold.co/200x200/fdcb6e/2d3436?text=Nachos' },
-    { name: 'Hot Dog', description: 'Classic hot dog', price: 45000, imageUrl: 'https://placehold.co/200x200/e17055/ffffff?text=Hot+Dog' },
-    { name: 'Water Bottle', description: 'Mineral water 500ml', price: 15000, imageUrl: 'https://placehold.co/200x200/74b9ff/2d3436?text=Water' },
+    { name: 'Popcorn (L)', description: 'Large butter popcorn', price: 55000, imageUrl: SEED_SNACK_IMAGES['Popcorn (L)'] },
+    { name: 'Popcorn (M)', description: 'Medium butter popcorn', price: 40000, imageUrl: SEED_SNACK_IMAGES['Popcorn (M)'] },
+    { name: 'Coca-Cola (L)', description: 'Large Coca-Cola', price: 35000, imageUrl: SEED_SNACK_IMAGES['Coca-Cola (L)'] },
+    { name: 'Combo Couple', description: '2 Popcorn L + 2 Coca-Cola L', price: 150000, imageUrl: SEED_SNACK_IMAGES['Combo Couple'] },
+    { name: 'Combo Family', description: '2 Popcorn L + 4 Drinks', price: 220000, imageUrl: SEED_SNACK_IMAGES['Combo Family'] },
+    { name: 'Nachos', description: 'Nachos with cheese sauce', price: 60000, imageUrl: SEED_SNACK_IMAGES.Nachos },
+    { name: 'Hot Dog', description: 'Classic hot dog', price: 45000, imageUrl: SEED_SNACK_IMAGES['Hot Dog'] },
+    { name: 'Water Bottle', description: 'Mineral water 500ml', price: 15000, imageUrl: SEED_SNACK_IMAGES['Water Bottle'] },
   ];
 
   for (const cinemaSlug of Object.keys(cinemaIds)) {
@@ -821,7 +892,16 @@ async function main() {
       const existing = await prisma.snack.findFirst({
         where: { cinemaId: cinemaIds[cinemaSlug], name: s.name },
       });
-      if (!existing) {
+      if (existing) {
+        await prisma.snack.update({
+          where: { id: existing.id },
+          data: {
+            description: s.description,
+            price: s.price,
+            imageUrl: s.imageUrl,
+          },
+        });
+      } else {
         await prisma.snack.create({
           data: { ...s, cinemaId: cinemaIds[cinemaSlug] },
         });
@@ -832,14 +912,25 @@ async function main() {
   // ============ GIFT CARDS ============
   console.log('Creating gift cards...');
   const giftCardsData = [
-    { title: 'Movie Night Gift Card', description: 'Perfect gift for movie lovers. Covers 1 standard ticket.', value: 100000, price: 90000, status: GiftCardStatus.AVAILABLE, imageUrl: 'https://placehold.co/400x250/6c5ce7/ffffff?text=100K+Gift+Card' },
-    { title: 'Premium Experience Gift Card', description: 'Enjoy a premium movie experience with VIP seats and snacks.', value: 300000, price: 270000, status: GiftCardStatus.AVAILABLE, imageUrl: 'https://placehold.co/400x250/0984e3/ffffff?text=300K+Gift+Card' },
-    { title: 'Ultimate Cinema Package', description: 'The ultimate gift - covers 2 VIP tickets, combo snacks, and drinks.', value: 500000, price: 450000, status: GiftCardStatus.AVAILABLE, imageUrl: 'https://placehold.co/400x250/e17055/ffffff?text=500K+Gift+Card' },
+    { title: 'Movie Night Gift Card', description: 'Perfect gift for movie lovers. Covers 1 standard ticket.', value: 100000, price: 90000, status: GiftCardStatus.AVAILABLE, imageUrl: SEED_GIFT_CARD_IMAGES['Movie Night Gift Card'] },
+    { title: 'Premium Experience Gift Card', description: 'Enjoy a premium movie experience with VIP seats and snacks.', value: 300000, price: 270000, status: GiftCardStatus.AVAILABLE, imageUrl: SEED_GIFT_CARD_IMAGES['Premium Experience Gift Card'] },
+    { title: 'Ultimate Cinema Package', description: 'The ultimate gift - covers 2 VIP tickets, combo snacks, and drinks.', value: 500000, price: 450000, status: GiftCardStatus.AVAILABLE, imageUrl: SEED_GIFT_CARD_IMAGES['Ultimate Cinema Package'] },
   ];
 
   for (const gc of giftCardsData) {
     const existing = await prisma.giftCard.findFirst({ where: { title: gc.title } });
-    if (!existing) {
+    if (existing) {
+      await prisma.giftCard.update({
+        where: { id: existing.id },
+        data: {
+          description: gc.description,
+          value: gc.value,
+          price: gc.price,
+          status: gc.status,
+          imageUrl: gc.imageUrl,
+        },
+      });
+    } else {
       await prisma.giftCard.create({ data: gc });
     }
   }
@@ -872,7 +963,7 @@ async function main() {
       slug: 'lunar-new-year-2026',
       description: 'Celebrate Tet with special movie screenings, lucky draw prizes, and exclusive combos!',
       content: 'This Lunar New Year, CiNect brings you a festival of cinema. Enjoy special Tet-themed screenings, exclusive snack combos, and a chance to win gold coins in our lucky draw. All CiNect members earn double points on all purchases during the festival period.',
-      imageUrl: 'https://placehold.co/1200x500/e74c3c/f1c40f?text=Tet+2026',
+      imageUrl: SEED_CAMPAIGN_IMAGES['lunar-new-year-2026'],
       startDate: new Date('2026-01-25'),
       endDate: new Date('2026-02-15'),
       isActive: true,
@@ -882,7 +973,7 @@ async function main() {
       slug: 'summer-blockbusters-2026',
       description: 'The biggest movies of the year are coming this summer. Get ready!',
       content: 'Summer 2026 promises an incredible lineup of blockbusters. From superhero epics to animated adventures, there is something for everyone. Pre-book your tickets and save up to 25% with our early bird offers.',
-      imageUrl: 'https://placehold.co/1200x500/0984e3/ffffff?text=Summer+2026',
+      imageUrl: SEED_CAMPAIGN_IMAGES['summer-blockbusters-2026'],
       startDate: new Date('2026-05-01'),
       endDate: new Date('2026-08-31'),
       isActive: true,
@@ -892,9 +983,64 @@ async function main() {
   for (const c of campaignsData) {
     await prisma.campaign.upsert({
       where: { slug: c.slug },
-      update: {},
+      update: {
+        title: c.title,
+        description: c.description,
+        content: c.content,
+        imageUrl: c.imageUrl,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        isActive: c.isActive,
+      },
       create: c,
     });
+  }
+
+  // ============ HOME BANNERS (movie banners from catalog) ============
+  console.log('Creating home banners...');
+  const bannerMovies = [
+    { slug: 'deadpool-wolverine', title: 'Deadpool & Wolverine' },
+    { slug: 'inside-out-2', title: 'Inside Out 2' },
+    { slug: 'dune-part-two', title: 'Dune: Part Two' },
+  ];
+  const homeBanners = bannerMovies.map((b, i) => {
+    const row = (moviesCatalogJson as Array<{ slug: string; bannerUrl?: string; posterUrl?: string }>).find(
+      (m) => m.slug === b.slug,
+    );
+    const images = row ? resolveMovieImages(row) : { posterUrl: '', bannerUrl: undefined };
+    return {
+      title: b.title,
+      imageUrl: images.bannerUrl || images.posterUrl || CINEMA_IMAGE_POOL[i % CINEMA_IMAGE_POOL.length],
+      linkUrl: `/movies/${b.slug}`,
+      sortOrder: i + 1,
+    };
+  });
+  for (const b of homeBanners) {
+    const existing = await prisma.banner.findFirst({
+      where: { position: 'home', title: b.title },
+    });
+    if (existing) {
+      await prisma.banner.update({
+        where: { id: existing.id },
+        data: {
+          imageUrl: b.imageUrl,
+          linkUrl: b.linkUrl,
+          sortOrder: b.sortOrder,
+          isActive: true,
+        },
+      });
+    } else {
+      await prisma.banner.create({
+        data: {
+          title: b.title,
+          imageUrl: b.imageUrl,
+          linkUrl: b.linkUrl,
+          position: 'home',
+          sortOrder: b.sortOrder,
+          isActive: true,
+        },
+      });
+    }
   }
 
   console.log('✅ Seed completed successfully!');

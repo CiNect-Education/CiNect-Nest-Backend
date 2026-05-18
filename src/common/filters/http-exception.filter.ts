@@ -8,6 +8,10 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiResponse } from '../dto/api-response.dto';
+import {
+  isOAuthCallbackPath,
+  oauthLoginErrorUrl,
+} from '../../auth/oauth-redirect.util';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -52,6 +56,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
         `${request.method} ${request.url} ${status} - ${JSON.stringify(errorResponse)}`,
         exception instanceof Error ? exception.stack : undefined,
       );
+    }
+
+    // OAuth callbacks: never show raw JSON — send user back to login with an error code.
+    if (isOAuthCallbackPath(request.url)) {
+      const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+      const locale = process.env.DEFAULT_LOCALE ?? 'vi';
+      const oauthError =
+        request.url.includes('/google/') ? 'google_auth_failed' : 'oauth_failed';
+      response.redirect(oauthLoginErrorUrl(frontendUrl, oauthError, locale));
+      return;
     }
 
     response.status(status).json(body);

@@ -6,7 +6,6 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { PageMeta } from '../common/dto/page-meta.dto';
 import { MovieStatus, Prisma, AgeRating } from '@prisma/client';
 import { ProvinceResolverService } from '../provinces/province-resolver.service';
-
 @Injectable()
 export class MoviesService {
   constructor(
@@ -18,6 +17,8 @@ export class MoviesService {
     page?: number;
     limit?: number;
     status?: MovieStatus;
+    nowShowing?: boolean;
+    comingSoon?: boolean;
     search?: string;
     genre?: string;
     language?: string;
@@ -35,7 +36,11 @@ export class MoviesService {
       isDeleted: false,
     };
 
-    if (params.status) {
+    if (params.nowShowing) {
+      where.status = MovieStatus.NOW_SHOWING;
+    } else if (params.comingSoon) {
+      where.status = MovieStatus.COMING_SOON;
+    } else if (params.status) {
       where.status = params.status;
     }
 
@@ -79,7 +84,10 @@ export class MoviesService {
       where.formats = { array_contains: [params.format] };
     }
 
-    const sortKey = (params.sort || 'releaseDate:desc').toLowerCase();
+    const sortKey = (params.sort || '').toLowerCase();
+    const defaultSort = params.comingSoon
+      ? { releaseDate: 'asc' as const }
+      : { releaseDate: 'desc' as const };
     const orderBy: Prisma.MovieOrderByWithRelationInput = (() => {
       switch (sortKey) {
         case 'releasedate:asc':
@@ -92,8 +100,10 @@ export class MoviesService {
           return { rating: 'asc' };
         case 'rating:desc':
           return { rating: 'desc' };
-        default:
+        case 'releasedate:desc':
           return { releaseDate: 'desc' };
+        default:
+          return defaultSort;
       }
     })();
 
