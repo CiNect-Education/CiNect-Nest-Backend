@@ -113,7 +113,20 @@ export class CinemasService {
     const showtimes = await this.prisma.showtime.findMany({
       where,
       include: {
-        movie: { select: { id: true, title: true, slug: true, posterUrl: true, duration: true } },
+        movie: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            posterUrl: true,
+            duration: true,
+            ageRating: true,
+            language: true,
+            subtitles: true,
+            status: true,
+            movieGenres: { include: { genre: { select: { name: true } } } },
+          },
+        },
         room: { select: { id: true, name: true, format: true } },
         cinema: { select: { id: true, name: true } },
       },
@@ -126,6 +139,13 @@ export class CinemasService {
       format: mapRoomFormat(format),
       movieTitle: movie?.title ?? null,
       moviePosterUrl: movie?.posterUrl ?? null,
+      movieSlug: movie?.slug ?? null,
+      movieDuration: movie?.duration ?? null,
+      movieAgeRating: movie?.ageRating ?? null,
+      movieLanguage: movie?.language ?? null,
+      movieSubtitles: movie?.subtitles ?? null,
+      movieGenres:
+        movie?.movieGenres?.map((mg) => mg.genre?.name).filter(Boolean) ?? [],
       cinemaName: cin?.name ?? null,
       roomName: room?.name ?? null,
       availableSeats: null,
