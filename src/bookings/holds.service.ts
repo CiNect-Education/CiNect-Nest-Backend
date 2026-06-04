@@ -3,7 +3,10 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
+import { TicketProductCode } from '@prisma/client';
+import { TicketProductsService } from './ticket-products.service';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebsocketGateway } from '../websocket/websocket.gateway';
@@ -12,6 +15,7 @@ import { HoldStatus } from '@prisma/client';
 
 const holdCheckoutInclude = {
   holdSeats: { include: { seat: true } },
+  holdTicketLines: { include: { product: true } },
   showtime: {
     include: {
       movie: { select: { title: true } },
@@ -27,13 +31,19 @@ export class HoldsService {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly ws: WebsocketGateway,
+    private readonly ticketProducts: TicketProductsService,
   ) {}
 
   getTtlMinutes(): number {
     return parseInt(this.config.get('HOLD_TTL_MINUTES') ?? '10', 10);
   }
 
-  async create(showtimeId: string, userId: string, seatIds: string[]) {
+  async create(
+    showtimeId: string,
+    userId: string,
+    seatIds: string[],
+    ticketLines?: { productCode: TicketProductCode; quantity: number }[],
+  ) {
     const showtime = await this.prisma.showtime.findFirst({
       where: { id: showtimeId, isActive: true },
       include: { room: { include: { seats: true } } },
@@ -42,10 +52,37 @@ export class HoldsService {
       throw new NotFoundException('Showtime not found');
     }
 
-    const roomSeatIds = new Set(showtime.room.seats.map((s) => s.id));
+    const seatById = new Map(showtime.room.seats.map((s) => [s.id, s]));
     for (const sid of seatIds) {
-      if (!roomSeatIds.has(sid)) {
+      if (!seatById.has(sid)) {
         throw new ConflictException(`Seat ${sid} does not belong to this showtime's room`);
+      }
+    }
+
+    if (ticketLines?.length) {
+      const productMap = await this.ticketProducts.getProductMap();
+      const required = this.ticketProducts.requiredSeatCount(ticketLines, productMap);
+      if (required !== seatIds.length) {
+        throw new BadRequestException(
+          `Selected ${seatIds.length} seat(s) but ticket types require ${required} seat(s)`,
+        );
+      }
+      for (const code of ticketLines.map((l) => l.productCode)) {
+        if (!productMap.has(code)) {
+          throw new BadRequestException(`Unknown ticket product: ${code}`);
+        }
+      }
+    }
+
+    const selectedSeats = seatIds.map((id) => seatById.get(id)!);
+    const selectedIds = new Set(seatIds);
+    for (const seat of selectedSeats) {
+      if (seat.type === 'COUPLE' && seat.pairId) {
+        if (!selectedIds.has(seat.pairId)) {
+          throw new BadRequestException(
+            'Couple seats must be selected together (ĐÔI)',
+          );
+        }
       }
     }
 
@@ -104,6 +141,11 @@ export class HoldsService {
       throw new ConflictException('One or more seats are already held or booked');
     }
 
+    const pricedTicketLines = await this.resolveTicketLinePrices(
+      showtimeId,
+      ticketLines,
+    );
+
     const hold = await this.prisma.$transaction(async (tx) => {
       const h = await tx.hold.create({
         data: {
@@ -122,6 +164,16 @@ export class HoldsService {
             seatId,
           })),
         });
+        if (pricedTicketLines.length > 0) {
+          await tx.holdTicketLine.createMany({
+            data: pricedTicketLines.map((line) => ({
+              holdId: h.id,
+              productCode: line.productCode,
+              quantity: line.quantity,
+              unitPrice: line.unitPrice,
+            })),
+          });
+        }
       } catch {
         // Fallback: surface a clean conflict instead of a 500 in case of race conditions.
         throw new ConflictException('One or more seats are already held or booked');
@@ -152,6 +204,22 @@ export class HoldsService {
     return this.mapHoldCheckout(hold);
   }
 
+  private async resolveTicketLinePrices(
+    showtimeId: string,
+    ticketLines?: { productCode: TicketProductCode; quantity: number }[],
+  ) {
+    if (!ticketLines?.length) return [];
+    const catalog = await this.ticketProducts.listForShowtime(showtimeId);
+    const priceByCode = new Map(
+      catalog.map((p) => [p.code as TicketProductCode, p.unitPrice]),
+    );
+    return ticketLines.map((line) => ({
+      productCode: line.productCode,
+      quantity: line.quantity,
+      unitPrice: priceByCode.get(line.productCode) ?? 0,
+    }));
+  }
+
   /** Checkout / booking UI: nested seats + showtime summary (matches Spring HoldResponse). */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma result with holdCheckoutInclude
   private mapHoldCheckout(hold: any) {
@@ -172,6 +240,27 @@ export class HoldsService {
         type: hs.seat.type,
         price: hs.seat.price != null ? Number(hs.seat.price) : basePrice,
       })),
+      ticketLines: (hold.holdTicketLines ?? []).map(
+        (line: {
+          productCode: string;
+          quantity: number;
+          unitPrice: unknown;
+          product?: {
+            labelVi: string;
+            labelEn: string;
+            subLabelVi: string | null;
+            subLabelEn: string | null;
+          };
+        }) => ({
+          productCode: line.productCode,
+          quantity: line.quantity,
+          unitPrice: Number(line.unitPrice),
+          labelVi: line.product?.labelVi,
+          labelEn: line.product?.labelEn,
+          subLabelVi: line.product?.subLabelVi,
+          subLabelEn: line.product?.subLabelEn,
+        }),
+      ),
       showtime: st
         ? {
             movieTitle: st.movie?.title ?? undefined,

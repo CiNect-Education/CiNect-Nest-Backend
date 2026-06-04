@@ -15,7 +15,7 @@ export class HoldsController {
 
   @Post()
   create(@Body() dto: CreateHoldDto, @CurrentUser('id') userId: string) {
-    return this.holdsService.create(dto.showtimeId, userId, dto.seatIds);
+    return this.holdsService.create(dto.showtimeId, userId, dto.seatIds, dto.ticketLines);
   }
 
   @Get(':id')

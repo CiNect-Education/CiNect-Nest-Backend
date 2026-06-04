@@ -1,0 +1,32 @@
+[
+  {
+    "title": "CiNect — Trải nghiệm điện ảnh",
+    "imageFile": "cinect-banner-hero.png",
+    "linkUrl": "/showtimes",
+    "sortOrder": 1
+  },
+  {
+    "title": "Đặt vé nhanh",
+    "imageFile": "cinect-banner-booking.png",
+    "linkUrl": "/showtimes",
+    "sortOrder": 2
+  },
+  {
+    "title": "Phim đang chiếu",
+    "imageFile": "cinect-banner-movies.png",
+    "linkUrl": "/movies?status=NOW_SHOWING",
+    "sortOrder": 3
+  },
+  {
+    "title": "Ưu đãi & khuyến mãi",
+    "imageFile": "cinect-banner-promo.png",
+    "linkUrl": "/promotions",
+    "sortOrder": 4
+  },
+  {
+    "title": "Rạp hiện đại",
+    "imageFile": "cinect-banner-premium.png",
+    "linkUrl": "/cinemas",
+    "sortOrder": 5
+  }
+]

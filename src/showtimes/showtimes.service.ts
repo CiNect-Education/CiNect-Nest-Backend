@@ -157,6 +157,7 @@ export class ShowtimesService {
         row: seat.rowLabel,
         rowLabel: seat.rowLabel,
         number: seat.number,
+        gridCol: seat.gridCol,
         type: seat.type,
         status,
         pairId: seat.pairId,
@@ -164,6 +165,10 @@ export class ShowtimesService {
         price: seat.price != null ? Number(seat.price) : null,
       };
     });
+
+    const layoutTemplate = showtime.room.layoutTemplate ?? 'GRID';
+    const aisleAfterCol =
+      layoutTemplate === 'CINESTAR_STANDARD' ? 6 : null;
 
     return {
       showtime: {
@@ -177,6 +182,8 @@ export class ShowtimesService {
         id: showtime.room.id,
         name: showtime.room.name,
         format: showtime.room.format,
+        layoutTemplate,
+        aisleAfterCol,
       },
       seats: seatMap,
     };

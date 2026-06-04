@@ -1,5 +1,27 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, ArrayMinSize, IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsArray,
+  ArrayMinSize,
+  IsUUID,
+  IsOptional,
+  ValidateNested,
+  IsInt,
+  Min,
+  IsEnum,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { TicketProductCode } from '@prisma/client';
+
+export class HoldTicketLineDto {
+  @ApiProperty({ enum: TicketProductCode })
+  @IsEnum(TicketProductCode)
+  productCode: TicketProductCode;
+
+  @ApiProperty({ minimum: 1 })
+  @IsInt()
+  @Min(1)
+  quantity: number;
+}
 
 export class CreateHoldDto {
   @ApiProperty()
@@ -11,4 +33,11 @@ export class CreateHoldDto {
   @ArrayMinSize(1)
   @IsUUID('all', { each: true })
   seatIds: string[];
+
+  @ApiPropertyOptional({ type: [HoldTicketLineDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => HoldTicketLineDto)
+  ticketLines?: HoldTicketLineDto[];
 }

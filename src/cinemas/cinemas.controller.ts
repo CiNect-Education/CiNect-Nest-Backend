@@ -35,4 +35,9 @@ export class CinemasController {
   ) {
     return this.cinemasService.findShowtimes(id, date, movieId);
   }
+
+  @Get(':id/ticket-prices')
+  findTicketPrices(@Param('id', ParseUuidPipe) id: string) {
+    return this.cinemasService.findTicketPrices(id);
+  }
 }

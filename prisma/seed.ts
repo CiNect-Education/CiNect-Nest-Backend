@@ -16,6 +16,7 @@ import {
   SEED_GIFT_CARD_IMAGES,
   SEED_CAMPAIGN_IMAGES,
 } from './data/seed-media';
+import { ALL_DEFAULT_TICKET_PRICE_TIERS } from './data/ticket-price-tiers.default';
 
 const prisma = new PrismaClient();
 
@@ -953,6 +954,48 @@ async function main() {
     if (!existing) {
       await prisma.pricingRule.create({ data: pr });
     }
+  }
+
+  // ============ TICKET PRICE TIERS (cinema detail bảng giá vé) ============
+  console.log('Creating ticket price tiers...');
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS ticket_price_tiers (
+      id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      cinema_id TEXT REFERENCES cinemas(id) ON DELETE CASCADE,
+      format room_format NOT NULL,
+      category_key VARCHAR(64) NOT NULL,
+      slot_primary VARCHAR(255) NOT NULL,
+      slot_secondary VARCHAR(255),
+      subtitle VARCHAR(255),
+      adult_price DECIMAL(12, 2) NOT NULL,
+      concession_price DECIMAL(12, 2) NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS ticket_price_tiers_cinema_format_idx
+      ON ticket_price_tiers (cinema_id, format, is_active)
+  `);
+
+  const tierCount = await prisma.ticketPriceTier.count({ where: { cinemaId: null } });
+  if (tierCount === 0) {
+    await prisma.ticketPriceTier.createMany({
+      data: ALL_DEFAULT_TICKET_PRICE_TIERS.map((t) => ({
+        cinemaId: null,
+        format: t.format,
+        categoryKey: t.categoryKey,
+        slotPrimary: t.slotPrimary,
+        slotSecondary: t.slotSecondary ?? null,
+        subtitle: t.subtitle ?? null,
+        adultPrice: t.adultPrice,
+        concessionPrice: t.concessionPrice,
+        sortOrder: t.sortOrder,
+        isActive: true,
+      })),
+    });
   }
 
   // ============ CAMPAIGNS ============

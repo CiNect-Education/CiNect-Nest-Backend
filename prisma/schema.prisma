@@ -65,6 +65,14 @@ enum SeatStatus {
   @@map("seat_status")
 }
 
+enum TicketProductCode {
+  ADULT_SINGLE
+  CONCESSION_SINGLE
+  ADULT_DOUBLE
+
+  @@map("ticket_product_code")
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -360,10 +368,11 @@ model Cinema {
   provinceNewId String?      @map("province_new_id")
   provinceNew   ProvinceNew? @relation(fields: [provinceNewId], references: [id], onDelete: SetNull)
 
-  rooms        Room[]
-  showtimes    Showtime[]
-  snacks       Snack[]
-  pricingRules PricingRule[]
+  rooms             Room[]
+  showtimes         Showtime[]
+  snacks            Snack[]
+  pricingRules      PricingRule[]
+  ticketPriceTiers  TicketPriceTier[]
 
   @@index([city])
   @@index([provinceNewId])
@@ -376,9 +385,10 @@ model Room {
   name       String     @map("name")
   format     RoomFormat @default(STANDARD2D) @map("format")
   totalSeats Int        @default(0) @map("total_seats")
-  rows       Int        @default(0) @map("rows")
-  columns    Int        @default(0) @map("columns")
-  isActive   Boolean    @default(true) @map("is_active")
+  rows            Int     @default(0) @map("rows")
+  columns         Int     @default(0) @map("columns")
+  layoutTemplate  String  @default("GRID") @map("layout_template")
+  isActive        Boolean @default(true) @map("is_active")
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
 
@@ -398,9 +408,10 @@ model Seat {
   number   Int        @map("number")
   type     SeatType   @default(STANDARD) @map("type")
   status   SeatStatus @default(AVAILABLE) @map("status")
-  pairId   String?    @map("pair_id")
-  isAisle  Boolean    @default(false) @map("is_aisle")
-  price    Decimal?   @map("price") @db.Decimal(12, 2)
+  pairId   String?  @map("pair_id")
+  gridCol  Int?     @map("grid_col")
+  isAisle  Boolean  @default(false) @map("is_aisle")
+  price    Decimal? @map("price") @db.Decimal(12, 2)
 
   room         Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
   pair         Seat?         @relation("SeatPair", fields: [pairId], references: [id])
@@ -455,13 +466,44 @@ model Hold {
 
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   showtime  Showtime   @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
-  holdSeats HoldSeat[]
-  bookings  Booking[]
+  holdSeats      HoldSeat[]
+  holdTicketLines HoldTicketLine[]
+  bookings       Booking[]
 
   @@index([userId])
   @@index([showtimeId])
   @@index([expiresAt])
   @@map("holds")
+}
+
+model TicketProduct {
+  id           String            @id @default(uuid()) @map("id")
+  code         TicketProductCode @unique @map("code")
+  labelVi      String            @map("label_vi")
+  labelEn      String            @map("label_en")
+  subLabelVi   String?           @map("sub_label_vi")
+  subLabelEn   String?           @map("sub_label_en")
+  seatsPerUnit Int               @default(1) @map("seats_per_unit")
+  defaultPrice Decimal           @map("default_price") @db.Decimal(12, 2)
+  sortOrder    Int               @default(0) @map("sort_order")
+  isActive     Boolean           @default(true) @map("is_active")
+
+  holdTicketLines HoldTicketLine[]
+
+  @@map("ticket_products")
+}
+
+model HoldTicketLine {
+  holdId      String            @map("hold_id")
+  productCode TicketProductCode @map("product_code")
+  quantity    Int               @map("quantity")
+  unitPrice   Decimal           @map("unit_price") @db.Decimal(12, 2)
+
+  hold    Hold          @relation(fields: [holdId], references: [id], onDelete: Cascade)
+  product TicketProduct @relation(fields: [productCode], references: [code])
+
+  @@id([holdId, productCode])
+  @@map("hold_ticket_lines")
 }
 
 model HoldSeat {
@@ -600,6 +642,28 @@ model PricingRule {
 
   @@index([isActive])
   @@map("pricing_rules")
+}
+
+/** Display tiers for cinema detail "Bảng giá vé" (Cinestar-style table). */
+model TicketPriceTier {
+  id              String     @id @default(uuid()) @map("id")
+  cinemaId        String?    @map("cinema_id")
+  format          RoomFormat @map("format")
+  categoryKey     String     @map("category_key")
+  slotPrimary     String     @map("slot_primary")
+  slotSecondary   String?    @map("slot_secondary")
+  subtitle        String?    @map("subtitle")
+  adultPrice      Decimal    @map("adult_price") @db.Decimal(12, 2)
+  concessionPrice Decimal    @map("concession_price") @db.Decimal(12, 2)
+  sortOrder       Int        @default(0) @map("sort_order")
+  isActive        Boolean    @default(true) @map("is_active")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  cinema Cinema? @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+
+  @@index([cinemaId, format, isActive])
+  @@map("ticket_price_tiers")
 }
 
 model Promotion {

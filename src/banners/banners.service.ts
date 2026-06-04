@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { normalizeImageUrl } from '../../prisma/lib/normalize-image-url';
 
 @Injectable()
 export class BannersService {
@@ -26,9 +27,13 @@ export class BannersService {
     if (position) {
       where.position = position;
     }
-    return this.prisma.banner.findMany({
+    const rows = await this.prisma.banner.findMany({
       where,
       orderBy: { sortOrder: 'asc' },
     });
+    return rows.map((b) => ({
+      ...b,
+      imageUrl: normalizeImageUrl(b.imageUrl) ?? b.imageUrl,
+    }));
   }
 }
