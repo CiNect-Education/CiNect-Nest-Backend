@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ShowtimesService } from './showtimes.service';
+import { TicketProductsService } from '../bookings/ticket-products.service';
 import { Public } from '../common/decorators/public.decorator';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
 
@@ -8,7 +9,10 @@ import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
 @Controller('showtimes')
 @Public()
 export class ShowtimesController {
-  constructor(private readonly showtimesService: ShowtimesService) {}
+  constructor(
+    private readonly showtimesService: ShowtimesService,
+    private readonly ticketProductsService: TicketProductsService,
+  ) {}
 
   @Get()
   @ApiQuery({ name: 'movieId', required: false })
@@ -48,5 +52,10 @@ export class ShowtimesController {
   @Get(':id/seats')
   findSeats(@Param('id', ParseUuidPipe) id: string) {
     return this.showtimesService.findSeats(id);
+  }
+
+  @Get(':id/ticket-products')
+  findTicketProducts(@Param('id', ParseUuidPipe) id: string) {
+    return this.ticketProductsService.listForShowtime(id);
   }
 }

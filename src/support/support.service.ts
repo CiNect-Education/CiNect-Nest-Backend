@@ -1,11 +1,121 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import * as https from 'node:https';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContactDto } from './dto/contact.dto';
 import { ChatbotRequestDto } from './dto/chatbot.dto';
 
 @Injectable()
 export class SupportService {
+  private readonly logger = new Logger(SupportService.name);
+
   constructor(private readonly prisma: PrismaService) {}
+
+  /** REST Responses API does not always include top-level `output_text`; parse from `output`. */
+  private extractReplyText(data: unknown): string {
+    if (data == null || typeof data !== 'object') return '';
+    const o = data as Record<string, unknown>;
+    if (typeof o.output_text === 'string' && o.output_text.trim()) {
+      return o.output_text.trim();
+    }
+    const output = o.output;
+    if (!Array.isArray(output)) return '';
+    const parts: string[] = [];
+    for (const item of output) {
+      if (item == null || typeof item !== 'object') continue;
+      const row = item as Record<string, unknown>;
+      if (row.type !== 'message' || !Array.isArray(row.content)) continue;
+      for (const block of row.content) {
+        if (block == null || typeof block !== 'object') continue;
+        const b = block as Record<string, unknown>;
+        if (b.type === 'output_text' && typeof b.text === 'string' && b.text.trim()) {
+          parts.push(b.text.trim());
+        }
+      }
+    }
+    return parts.join('\n\n');
+  }
+
+  /** Local dev on Windows may hit UNABLE_TO_VERIFY_LEAF_SIGNATURE (antivirus / proxy SSL). */
+  private callOpenAi(body: Record<string, unknown>): Promise<Response> {
+    const payload = JSON.stringify(body);
+    const allowInsecureTls =
+      process.env.OPENAI_INSECURE_TLS === 'true' &&
+      process.env.NODE_ENV !== 'production';
+
+    if (allowInsecureTls) {
+      this.logger.warn(
+        'OPENAI_INSECURE_TLS=true — TLS verification disabled for OpenAI (dev only)',
+      );
+      return new Promise((resolve, reject) => {
+        const req = https.request(
+          {
+            hostname: 'api.openai.com',
+            path: '/v1/responses',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${(process.env.OPENAI_API_KEY ?? '').trim()}`,
+              'Content-Length': Buffer.byteLength(payload),
+            },
+            rejectUnauthorized: false,
+          },
+          (res) => {
+            const chunks: Buffer[] = [];
+            res.on('data', (c) => chunks.push(c));
+            res.on('end', () => {
+              const text = Buffer.concat(chunks).toString('utf8');
+              resolve(
+                new Response(text, {
+                  status: res.statusCode ?? 500,
+                  headers: { 'Content-Type': 'application/json' },
+                }),
+              );
+            });
+          },
+        );
+        req.on('error', reject);
+        req.write(payload);
+        req.end();
+      });
+    }
+
+    return fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${(process.env.OPENAI_API_KEY ?? '').trim()}`,
+      },
+      body: payload,
+    });
+  }
+
+  private chatbotErrorReply(
+    locale: 'vi' | 'en',
+    reason: 'tls' | 'quota' | 'auth' | 'generic',
+  ): string {
+    if (locale === 'en') {
+      switch (reason) {
+        case 'tls':
+          return 'Chatbot cannot reach OpenAI (SSL certificate issue on this machine). Set OPENAI_INSECURE_TLS=true in backend .env for local dev only, or fix antivirus/proxy SSL inspection.';
+        case 'quota':
+          return 'OpenAI quota exceeded. Add billing or credits at platform.openai.com, then try again.';
+        case 'auth':
+          return 'Invalid OpenAI API key. Update OPENAI_API_KEY in backend .env.';
+        default:
+          return 'Chatbot is temporarily unavailable. Please try again.';
+      }
+    }
+    switch (reason) {
+      case 'tls':
+        return 'Chatbot không kết nối được OpenAI (lỗi chứng chỉ SSL trên máy này). Dev: thêm OPENAI_INSECURE_TLS=true vào .env backend (chỉ local), hoặc tắt quét SSL của antivirus/proxy.';
+      case 'quota':
+        return 'Tài khoản OpenAI đã hết quota. Vui lòng nạp credit / bật billing tại platform.openai.com rồi thử lại.';
+      case 'auth':
+        return 'API key OpenAI không hợp lệ. Kiểm tra OPENAI_API_KEY trong file .env backend.';
+      default:
+        return 'Chatbot đang tạm thời không khả dụng. Vui lòng thử lại.';
+    }
+  }
 
   async contact(dto: ContactDto, userId?: string) {
     const ticket = await this.prisma.supportTicket.create({
@@ -59,44 +169,65 @@ export class SupportService {
     const userPrompt = `${dto.message}\n\n=== DATABASE CONTEXT ===\n${JSON.stringify(context)}`;
 
     try {
-      const res = await fetch('https://api.openai.com/v1/responses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${key}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4.1-mini',
-          input: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          max_output_tokens: 700,
-        }),
+      const res = await this.callOpenAi({
+        model: process.env.OPENAI_CHATBOT_MODEL?.trim() || 'gpt-4o-mini',
+        input: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        max_output_tokens: 700,
       });
 
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(`Chatbot upstream error: ${res.status} ${text}`);
+        this.logger.warn(`OpenAI chatbot HTTP ${res.status}: ${text.slice(0, 400)}`);
+        let code = '';
+        try {
+          const parsed = JSON.parse(text) as {
+            error?: { code?: string };
+          };
+          code = parsed.error?.code ?? '';
+        } catch {
+          /* ignore */
+        }
+        if (res.status === 429 || code === 'insufficient_quota') {
+          return { reply: this.chatbotErrorReply(locale, 'quota') };
+        }
+        if (res.status === 401) {
+          return { reply: this.chatbotErrorReply(locale, 'auth') };
+        }
+        throw new Error(`Chatbot upstream error: ${res.status}`);
       }
 
-      const data = (await res.json()) as { output_text?: string };
-      const reply = data.output_text?.trim();
+      const data = await res.json();
+      const reply = this.extractReplyText(data);
+      if (!reply) {
+        this.logger.warn('OpenAI chatbot returned empty text output');
+      }
       return {
         reply:
-          reply && reply.length > 0
+          reply.length > 0
             ? reply
             : locale === 'en'
               ? 'No answer generated. Please try again.'
               : 'Chưa tạo được phản hồi. Vui lòng thử lại.',
       };
-    } catch {
-      return {
-        reply:
-          locale === 'en'
-            ? 'Chatbot is temporarily unavailable. Please try again.'
-            : 'Chatbot đang tạm thời không khả dụng. Vui lòng thử lại.',
-      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const cause =
+        err instanceof Error && err.cause instanceof Error
+          ? err.cause.message
+          : '';
+      this.logger.warn(`Chatbot failed: ${msg}${cause ? ` (${cause})` : ''}`);
+
+      const tlsHint =
+        msg.includes('fetch failed') ||
+        cause.includes('UNABLE_TO_VERIFY_LEAF_SIGNATURE') ||
+        cause.includes('certificate');
+      if (tlsHint) {
+        return { reply: this.chatbotErrorReply(locale, 'tls') };
+      }
+      return { reply: this.chatbotErrorReply(locale, 'generic') };
     }
   }
 
