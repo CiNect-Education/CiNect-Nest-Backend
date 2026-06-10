@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -38,7 +39,6 @@ import {
 } from './dto/admin-content.dto';
 import { ProvincesSyncService } from '../provinces/provinces-sync.service';
 import { CommunityService } from '../community/community.service';
-import { generateReferralCode } from '../community/community.utils';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -929,7 +929,6 @@ export class AdminController {
         phone: body.phone,
         city: body.city,
         isActive: body.isActive ?? true,
-        referralCode: generateReferralCode(),
       },
     });
     if (body.role) {
@@ -1703,6 +1702,66 @@ export class AdminController {
     return this.communityService.approvePhoto(id);
   }
 
+  @Get('community/stats')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  communityStats() {
+    return this.communityService.adminCommunityStats();
+  }
+
+  @Post('community/reviews/:id/reject')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  rejectReview(@Param('id', ParseUuidPipe) id: string) {
+    return this.communityService.rejectReview(id);
+  }
+
+  @Post('community/posts/:id/reject')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  rejectPost(@Param('id', ParseUuidPipe) id: string) {
+    return this.communityService.rejectPost(id);
+  }
+
+  @Post('community/photos/:id/reject')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  rejectPhoto(@Param('id', ParseUuidPipe) id: string) {
+    return this.communityService.rejectPhoto(id);
+  }
+
+  @Get('refunds')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  async listRefunds(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.prisma.bookingRefund.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { id: true, fullName: true, email: true } },
+          booking: {
+            select: {
+              id: true,
+              status: true,
+              showtime: {
+                select: {
+                  startTime: true,
+                  movie: { select: { title: true } },
+                  cinema: { select: { name: true } },
+                },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.bookingRefund.count(),
+    ]);
+    return { data: items, meta: { page, limit, total } };
+  }
+
   @Get('support/tickets')
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiQuery({ name: 'page', required: false })
@@ -1721,5 +1780,17 @@ export class AdminController {
       this.prisma.supportTicket.count(),
     ]);
     return { data: items, meta: { page, limit, total } };
+  }
+
+  @Patch('support/tickets/:id')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  async updateSupportTicket(
+    @Param('id', ParseUuidPipe) id: string,
+    @Body() body: { isResolved?: boolean },
+  ) {
+    return this.prisma.supportTicket.update({
+      where: { id },
+      data: { isResolved: body.isResolved ?? true },
+    });
   }
 }

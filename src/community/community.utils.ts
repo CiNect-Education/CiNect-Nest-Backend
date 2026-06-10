@@ -13,10 +13,6 @@ const PROFANITY = [
   'đéo',
 ];
 
-export function generateReferralCode(): string {
-  return `CIN${randomBytes(4).toString('hex').toUpperCase()}`;
-}
-
 export function generateInviteToken(): string {
   return randomBytes(16).toString('hex');
 }

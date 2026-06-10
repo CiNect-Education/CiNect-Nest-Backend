@@ -15,16 +15,11 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { PageMeta } from '../common/dto/page-meta.dto';
 import { NotificationsService } from '../notifications/notifications.service';
-import {
-  containsProfanity,
-  generateInviteToken,
-  generateReferralCode,
-} from './community.utils';
+import { containsProfanity, generateInviteToken } from './community.utils';
 import { CreateCommunityPostDto } from './dto/create-community-post.dto';
 import { CreateCinemaPhotoDto } from './dto/create-cinema-photo.dto';
 import { VotePollDto } from './dto/vote-poll.dto';
 
-const REFERRAL_POINTS = 50;
 const REVIEW_CHALLENGE_POINTS = 30;
 const REVIEW_CHALLENGE_TARGET = 3;
 
@@ -76,17 +71,6 @@ export class CommunityService {
         movie: r.movie,
       })),
       isOwnProfile: viewerId === userId,
-    };
-  }
-
-  async getReferralInfo(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
-    const count = await this.prisma.referral.count({ where: { referrerId: userId } });
-    return {
-      referralCode: user.referralCode,
-      referralsCount: count,
-      pointsPerReferral: REFERRAL_POINTS,
     };
   }
 
@@ -420,58 +404,42 @@ export class CommunityService {
     return { message: 'Photo approved' };
   }
 
-  async applyReferralOnRegister(referredUserId: string, referralCode?: string) {
-    if (!referralCode?.trim()) return;
-    const referrer = await this.prisma.user.findUnique({
-      where: { referralCode: referralCode.trim().toUpperCase() },
-    });
-    if (!referrer || referrer.id === referredUserId) return;
-
-    const existing = await this.prisma.referral.findUnique({
-      where: { referredId: referredUserId },
-    });
-    if (existing) return;
-
-    await this.prisma.user.update({
-      where: { id: referredUserId },
-      data: { referredById: referrer.id },
-    });
-
-    const membership = await this.prisma.membership.findUnique({
-      where: { userId: referrer.id },
-    });
-    if (membership) {
-      const newPoints = membership.currentPoints + REFERRAL_POINTS;
-      const newTotal = membership.totalPoints + REFERRAL_POINTS;
-      await this.prisma.$transaction([
-        this.prisma.membership.update({
-          where: { id: membership.id },
-          data: { currentPoints: newPoints, totalPoints: newTotal },
-        }),
-        this.prisma.pointsHistory.create({
-          data: {
-            userId: referrer.id,
-            type: 'EARNED',
-            points: REFERRAL_POINTS,
-            balance: newPoints,
-            description: 'Referral bonus',
-          },
-        }),
-        this.prisma.referral.create({
-          data: {
-            referrerId: referrer.id,
-            referredId: referredUserId,
-            pointsAwarded: REFERRAL_POINTS,
-          },
-        }),
-      ]);
-      await this.notifications.create(referrer.id, {
-        type: NotificationType.MEMBERSHIP,
-        title: 'Referral bonus',
-        message: `You earned ${REFERRAL_POINTS} points from a new member signup.`,
-        link: '/account/profile',
-      });
+  async rejectReview(id: string) {
+    const review = await this.prisma.review.findUnique({ where: { id } });
+    if (!review) {
+      throw new NotFoundException('Review not found');
     }
+    await this.prisma.review.delete({ where: { id } });
+    await this.recalcMovieRating(review.movieId);
+    return { message: 'Review rejected' };
+  }
+
+  async rejectPost(id: string) {
+    const post = await this.prisma.communityPost.findUnique({ where: { id } });
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+    await this.prisma.communityPost.delete({ where: { id } });
+    return { message: 'Post rejected' };
+  }
+
+  async rejectPhoto(id: string) {
+    const photo = await this.prisma.cinemaPhoto.findUnique({ where: { id } });
+    if (!photo) {
+      throw new NotFoundException('Photo not found');
+    }
+    await this.prisma.cinemaPhoto.delete({ where: { id } });
+    return { message: 'Photo rejected' };
+  }
+
+  async adminCommunityStats() {
+    const [pendingReviews, openTickets, totalRefunds, verifiedReviews] = await Promise.all([
+      this.prisma.review.count({ where: { isApproved: false } }),
+      this.prisma.supportTicket.count({ where: { isResolved: false } }),
+      this.prisma.bookingRefund.count(),
+      this.prisma.review.count({ where: { isApproved: true, isVerified: true } }),
+    ]);
+    return { pendingReviews, openTickets, totalRefunds, verifiedReviews };
   }
 
   async checkReviewChallenge(userId: string) {
@@ -721,7 +689,4 @@ export class CommunityService {
     };
   }
 
-  static referralCodeForNewUser(): string {
-    return generateReferralCode();
-  }
 }

@@ -272,7 +272,6 @@ async function main() {
       isActive: true,
       emailVerified: true,
       city: 'Ho Chi Minh',
-      referralCode: 'CINADMIN01',
     },
   });
   await prisma.userRoleJoin.upsert({
@@ -292,7 +291,6 @@ async function main() {
       isActive: true,
       emailVerified: true,
       city: 'Ho Chi Minh',
-      referralCode: 'CINDEMO01',
     },
   });
   await prisma.userRoleJoin.upsert({

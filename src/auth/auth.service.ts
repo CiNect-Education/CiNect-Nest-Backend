@@ -20,7 +20,6 @@ import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { AVATAR_UPLOAD_DIR } from '../uploads/avatar-upload.config';
 import { EmailService } from '../email/email.service';
-import { CommunityService } from '../community/community.service';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
@@ -30,7 +29,6 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     private readonly emailService: EmailService,
-    private readonly community: CommunityService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -69,7 +67,6 @@ export class AuthService {
           fullName: dto.fullName,
           phone: dto.phone,
           city: dto.city,
-          referralCode: CommunityService.referralCodeForNewUser(),
         },
       });
 
@@ -86,8 +83,6 @@ export class AuthService {
 
       return u;
     });
-
-    await this.community.applyReferralOnRegister(user.id, dto.referralCode);
 
     const tokens = await this.generateTokens(user.id, user.email);
     return {
@@ -421,7 +416,6 @@ export class AuthService {
             providerId,
             emailVerified: true,
             isActive: true,
-            referralCode: CommunityService.referralCodeForNewUser(),
           },
         });
 

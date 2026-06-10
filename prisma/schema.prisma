@@ -246,8 +246,6 @@ model User {
   refreshToken  String?   @map("refresh_token")
   resetToken    String?   @map("reset_token")
   resetTokenExp DateTime? @map("reset_token_exp")
-  referralCode  String    @unique @map("referral_code")
-  referredById  String?   @map("referred_by_id")
   profilePublic Boolean   @default(true) @map("profile_public")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
@@ -270,15 +268,10 @@ model User {
   communityPollVotes CommunityPollVote[]
   cinemaPhotos      CinemaPhoto[]
   groupInvitesHosted BookingGroupInvite[] @relation("GroupInviteHost")
-  referredBy        User?               @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
-  referrals         User[]              @relation("UserReferrals")
-  referralsMade     Referral[]          @relation("Referrer")
-  referralReceived  Referral?           @relation("Referred")
 
   @@unique([provider, providerId])
   @@index([email])
   @@index([city])
-  @@index([referralCode])
   @@map("users")
 }
 
@@ -982,20 +975,6 @@ model CinemaPhoto {
 
   @@index([isApproved, createdAt])
   @@map("cinema_photos")
-}
-
-model Referral {
-  id            String   @id @default(uuid()) @map("id")
-  referrerId    String   @map("referrer_id")
-  referredId    String   @unique @map("referred_id")
-  pointsAwarded Int      @default(0) @map("points_awarded")
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  referrer User @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
-  referred User @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
-
-  @@index([referrerId])
-  @@map("referrals")
 }
 
 model PostShowPrompt {

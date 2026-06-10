@@ -114,12 +114,6 @@ export class CommunityController {
     return this.communityService.removeWatchlist(userId, movieId);
   }
 
-  @Get('referral')
-  @ApiBearerAuth()
-  referral(@CurrentUser('id') userId: string) {
-    return this.communityService.getReferralInfo(userId);
-  }
-
   @Public()
   @Get('join/:token')
   groupInvite(@Param('token') token: string) {
