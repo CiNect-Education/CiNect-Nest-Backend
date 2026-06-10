@@ -68,4 +68,11 @@ export class RegisterDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsOptional()
   city?: string;
+
+  @ApiProperty({ required: false, example: 'CINDEMO01' })
+  @IsString()
+  @MaxLength(20)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
+  @IsOptional()
+  referralCode?: string;
 }

@@ -63,7 +63,19 @@ export class ShowtimesService {
     const showtimes = await this.prisma.showtime.findMany({
       where,
       include: {
-        movie: { select: { id: true, title: true, slug: true, posterUrl: true, duration: true } },
+        movie: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            posterUrl: true,
+            duration: true,
+            ageRating: true,
+            language: true,
+            subtitles: true,
+            movieGenres: { select: { genre: { select: { name: true } } } },
+          },
+        },
         room: { select: { id: true, name: true, format: true } },
         cinema: { select: { id: true, name: true, slug: true, address: true, city: true } },
       },
@@ -77,8 +89,17 @@ export class ShowtimesService {
       format: mapRoomFormat(format),
       movieTitle: movie?.title ?? null,
       moviePosterUrl: movie?.posterUrl ?? null,
+      movieSlug: movie?.slug ?? null,
+      movieDuration: movie?.duration ?? null,
+      movieAgeRating: movie?.ageRating ?? null,
+      movieLanguage: movie?.language ?? null,
+      movieSubtitles: movie?.subtitles ?? null,
+      movieGenres: movie?.movieGenres?.map((mg) => mg.genre.name) ?? [],
       cinemaName: cinema?.name ?? null,
+      cinemaSlug: cinema?.slug ?? null,
+      cinemaAddress: cinema?.address ?? null,
       roomName: room?.name ?? null,
+      roomFormat: room?.format ? mapRoomFormat(room.format) : null,
       availableSeats: null,
       totalSeats: null,
     }));
@@ -114,6 +135,9 @@ export class ShowtimesService {
   }
 
   async findSeats(showtimeId: string) {
+    const now = new Date();
+    await this.cleanupStaleHoldSeats(showtimeId, now);
+
     const showtime = await this.prisma.showtime.findFirst({
       where: { id: showtimeId, isActive: true },
       include: { room: { include: { seats: true } } },
@@ -128,7 +152,7 @@ export class ShowtimesService {
       this.prisma.holdSeat.findMany({
         where: {
           showtimeId,
-          hold: { status: HoldStatus.ACTIVE, expiresAt: { gt: new Date() } },
+          hold: { status: HoldStatus.ACTIVE, expiresAt: { gt: now } },
         },
         select: { seatId: true },
       }).then((r) => r.map((x) => x.seatId)),
@@ -187,5 +211,31 @@ export class ShowtimesService {
       },
       seats: seatMap,
     };
+  }
+
+  /** Remove expired / inactive hold rows so seat availability matches the grid. */
+  private async cleanupStaleHoldSeats(showtimeId: string, now: Date) {
+    const stale = await this.prisma.hold.findMany({
+      where: {
+        showtimeId,
+        holdSeats: { some: {} },
+        OR: [{ status: { not: HoldStatus.ACTIVE } }, { expiresAt: { lte: now } }],
+      },
+      select: { id: true, status: true, expiresAt: true },
+    });
+    if (stale.length === 0) return;
+
+    const staleHoldIds = stale.map((h) => h.id);
+    await this.prisma.$transaction([
+      this.prisma.hold.updateMany({
+        where: {
+          id: { in: staleHoldIds },
+          status: HoldStatus.ACTIVE,
+          expiresAt: { lte: now },
+        },
+        data: { status: HoldStatus.EXPIRED },
+      }),
+      this.prisma.holdSeat.deleteMany({ where: { holdId: { in: staleHoldIds } } }),
+    ]);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -6,11 +6,15 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { PageMeta } from '../common/dto/page-meta.dto';
 import { MovieStatus, Prisma, AgeRating } from '@prisma/client';
 import { ProvinceResolverService } from '../provinces/province-resolver.service';
+import { CommunityService } from '../community/community.service';
+import { containsProfanity } from '../community/community.utils';
+
 @Injectable()
 export class MoviesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly provinceResolver: ProvinceResolverService,
+    private readonly community: CommunityService,
   ) {}
 
   async findAll(params: {
@@ -182,7 +186,7 @@ export class MoviesService {
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([
       this.prisma.review.findMany({
-        where: { movieId },
+        where: { movieId, isApproved: true },
         skip,
         take: limit,
         include: {
@@ -192,7 +196,7 @@ export class MoviesService {
         },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.review.count({ where: { movieId } }),
+      this.prisma.review.count({ where: { movieId, isApproved: true } }),
     ]);
 
     const meta = new PageMeta(page, limit, total);
@@ -206,6 +210,8 @@ export class MoviesService {
       movieId: string;
       rating: number;
       content: string;
+      isVerified?: boolean;
+      helpfulCount?: number;
       createdAt: Date;
       updatedAt: Date;
       user?: { id: string; fullName: string; avatar: string | null } | null;
@@ -218,6 +224,8 @@ export class MoviesService {
       movieId: review.movieId,
       rating: review.rating,
       content: review.content,
+      isVerified: review.isVerified ?? false,
+      helpfulCount: review.helpfulCount ?? 0,
       createdAt: review.createdAt,
       updatedAt: review.updatedAt,
       userName: u?.fullName?.trim() || 'User',
@@ -242,32 +250,30 @@ export class MoviesService {
       throw new ConflictException('You have already reviewed this movie');
     }
 
-    const review = await this.prisma.$transaction(async (tx) => {
-      const r = await tx.review.create({
-        data: {
-          movieId,
-          userId,
-          rating: dto.rating,
-          content: dto.content,
-        },
-      });
+    const isVerified = await this.community.userHasVerifiedTicket(userId, movieId);
+    if (!isVerified) {
+      const hasBooking = await this.community.userHasConfirmedBooking(userId, movieId);
+      throw new ForbiddenException(
+        hasBooking
+          ? 'You can review after watching the movie'
+          : 'Only ticket holders who watched this movie can review',
+      );
+    }
+    const isApproved = !containsProfanity(dto.content);
 
-      const agg = await tx.review.aggregate({
-        where: { movieId },
-        _avg: { rating: true },
-        _count: true,
-      });
-
-      await tx.movie.update({
-        where: { id: movieId },
-        data: {
-          rating: agg._avg.rating ?? 0,
-          ratingCount: agg._count,
-        },
-      });
-
-      return r;
+    const review = await this.prisma.review.create({
+      data: {
+        movieId,
+        userId,
+        rating: dto.rating,
+        content: dto.content,
+        isVerified,
+        isApproved,
+      },
     });
+
+    await this.community.recalcMovieRating(movieId);
+    await this.community.checkReviewChallenge(userId);
 
     const created = await this.prisma.review.findUnique({
       where: { id: review.id },
@@ -281,6 +287,33 @@ export class MoviesService {
       throw new NotFoundException('Review not found');
     }
     return this.reviewToResponse(created);
+  }
+
+  async getReviewEligibility(movieId: string, userId: string) {
+    const movie = await this.prisma.movie.findUnique({
+      where: { id: movieId, isDeleted: false },
+    });
+    if (!movie) {
+      throw new NotFoundException('Movie not found');
+    }
+
+    const existing = await this.prisma.review.findUnique({
+      where: { userId_movieId: { userId, movieId } },
+    });
+    if (existing) {
+      return { canReview: false, reason: 'ALREADY_REVIEWED' as const };
+    }
+
+    const canReview = await this.community.userHasVerifiedTicket(userId, movieId);
+    if (canReview) {
+      return { canReview: true, reason: null };
+    }
+
+    const hasBooking = await this.community.userHasConfirmedBooking(userId, movieId);
+    return {
+      canReview: false,
+      reason: hasBooking ? ('NOT_WATCHED_YET' as const) : ('NO_TICKET' as const),
+    };
   }
 
   async findShowtimesByMovie(movieId: string, date?: string, city?: string) {

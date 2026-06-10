@@ -34,6 +34,13 @@ export class HoldsService {
     private readonly ticketProducts: TicketProductsService,
   ) {}
 
+  private throwSeatConflict(seatIds: string[]): never {
+    throw new ConflictException({
+      message: 'One or more seats are already held or booked',
+      seatIds: [...new Set(seatIds)],
+    });
+  }
+
   getTtlMinutes(): number {
     return parseInt(this.config.get('HOLD_TTL_MINUTES') ?? '10', 10);
   }
@@ -138,7 +145,10 @@ export class HoldsService {
     ]);
 
     if (heldSeats.length > 0 || bookedSeats.length > 0) {
-      throw new ConflictException('One or more seats are already held or booked');
+      this.throwSeatConflict([
+        ...heldSeats.map((h) => h.seatId),
+        ...bookedSeats.map((b) => b.seatId),
+      ]);
     }
 
     const pricedTicketLines = await this.resolveTicketLinePrices(
@@ -175,8 +185,28 @@ export class HoldsService {
           });
         }
       } catch {
-        // Fallback: surface a clean conflict instead of a 500 in case of race conditions.
-        throw new ConflictException('One or more seats are already held or booked');
+        const [heldAfterRace, bookedAfterRace] = await Promise.all([
+          this.prisma.holdSeat.findMany({
+            where: {
+              showtimeId,
+              seatId: { in: seatIds },
+              hold: { status: HoldStatus.ACTIVE, expiresAt: { gt: now } },
+            },
+            select: { seatId: true },
+          }),
+          this.prisma.bookingItem.findMany({
+            where: {
+              showtimeId,
+              seatId: { in: seatIds },
+              booking: { status: { not: 'CANCELLED' } },
+            },
+            select: { seatId: true },
+          }),
+        ]);
+        this.throwSeatConflict([
+          ...heldAfterRace.map((h) => h.seatId),
+          ...bookedAfterRace.map((b) => b.seatId),
+        ]);
       }
 
       return h;

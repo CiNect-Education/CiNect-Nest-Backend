@@ -29,6 +29,8 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "db:purge-demo": "node scripts/delete-demo-data.mjs",
     "db:sync-home-banners": "node scripts/sync-home-banners.mjs",
+    "db:sync-provinces": "ts-node scripts/sync-provinces.ts",
+    "db:build-province-snapshot": "ts-node scripts/build-open-api-v1-snapshot.ts",
     "db:sync-trailers": "node scripts/sync-movie-trailers.mjs",
     "media:build-movie-images": "node prisma/scripts/build-movie-wiki-images.mjs"
   },

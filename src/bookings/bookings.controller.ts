@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { RequestRefundDto } from './dto/request-refund.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -37,6 +38,34 @@ export class BookingsController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
     return this.bookingsService.findAll(userId, page, limit);
+  }
+
+  @Get('refunds')
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  findRefunds(
+    @CurrentUser('id') userId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.bookingsService.findRefunds(userId, page, limit);
+  }
+
+  @Get(':id/refund-eligibility')
+  getRefundEligibility(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.bookingsService.getRefundEligibility(id, userId);
+  }
+
+  @Post(':id/refund')
+  requestRefund(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: RequestRefundDto,
+  ) {
+    return this.bookingsService.requestRefund(id, userId, dto);
   }
 
   @Get(':id')

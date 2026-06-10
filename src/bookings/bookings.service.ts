@@ -13,10 +13,20 @@ import { PageMeta } from '../common/dto/page-meta.dto';
 import {
   BookingStatus,
   HoldStatus,
+  NotificationType,
   PaymentStatus,
+  RefundMethod,
 } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { bookingApiInclude, mapBookingToApi } from './booking-api.mapper';
+import {
+  evaluateRefundPolicy,
+  generateStoreCreditCode,
+  type RefundEligibility,
+} from './booking-refund.policy';
+import { RequestRefundDto } from './dto/request-refund.dto';
+import { formatRefundReason } from './dto/refund-reason.enum';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class BookingsService {
@@ -25,6 +35,7 @@ export class BookingsService {
     private readonly pricing: PricingService,
     private readonly config: ConfigService,
     private readonly wsGateway: WebsocketGateway,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async create(userId: string, dto: CreateBookingDto) {
@@ -270,6 +281,11 @@ export class BookingsService {
       return b;
     });
 
+    this.wsGateway.emitSeatBooked(
+      hold.showtimeId,
+      hold.holdSeats.map((hs) => hs.seatId),
+    );
+
     const created = await this.prisma.booking.findUniqueOrThrow({
       where: { id: booking.id },
       include: bookingApiInclude,
@@ -362,6 +378,19 @@ export class BookingsService {
       });
     }
 
+    const showtime = await this.prisma.showtime.findUnique({
+      where: { id: booking.showtimeId },
+      include: { movie: true },
+    });
+    if (showtime?.movie) {
+      await this.notifications.create(userId, {
+        type: NotificationType.BOOKING,
+        title: 'Booking confirmed',
+        message: `Your tickets for "${showtime.movie.title}" are ready.`,
+        link: `/tickets/${id}`,
+      });
+    }
+
     return this.findOne(id, userId);
   }
 
@@ -377,6 +406,15 @@ export class BookingsService {
       booking.status !== BookingStatus.CONFIRMED
     ) {
       throw new BadRequestException('Booking cannot be cancelled');
+    }
+
+    const paid = await this.prisma.payment.findFirst({
+      where: { bookingId: id, status: PaymentStatus.PAID },
+    });
+    if (paid) {
+      throw new BadRequestException(
+        'Paid bookings must be refunded instead of cancelled',
+      );
     }
 
     // Get seat IDs before cancelling for WebSocket notification
@@ -551,5 +589,357 @@ export class BookingsService {
     });
 
     return this.findOne(bookingId, userId);
+  }
+
+  private getRefundConfig() {
+    return {
+      deadlineHours: parseInt(
+        this.config.get('REFUND_DEADLINE_HOURS') ?? '2',
+        10,
+      ),
+      monthlyLimit: parseInt(
+        this.config.get('REFUND_MONTHLY_LIMIT') ?? '10',
+        10,
+      ),
+    };
+  }
+
+  private async countMonthlyRefunds(userId: string): Promise<number> {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    return this.prisma.bookingRefund.count({
+      where: {
+        userId,
+        createdAt: { gte: monthStart },
+      },
+    });
+  }
+
+  private async loadBookingForRefund(bookingId: string) {
+    return this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        payments: true,
+        bookingRefund: true,
+        showtime: { select: { startTime: true } },
+      },
+    });
+  }
+
+  async getRefundEligibility(
+    bookingId: string,
+    userId: string,
+  ): Promise<RefundEligibility> {
+    const booking = await this.loadBookingForRefund(bookingId);
+    if (!booking) {
+      const { deadlineHours } = this.getRefundConfig();
+      return evaluateRefundPolicy(null, userId, {
+        deadlineHours,
+        monthlyLimit: 0,
+        monthlyCount: 0,
+      });
+    }
+
+    const { deadlineHours, monthlyLimit } = this.getRefundConfig();
+    const monthlyCount = await this.countMonthlyRefunds(userId);
+
+    return evaluateRefundPolicy(booking, userId, {
+      deadlineHours,
+      monthlyLimit,
+      monthlyCount,
+    });
+  }
+
+  async findRefunds(userId: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.prisma.bookingRefund.findMany({
+        where: { userId },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          booking: {
+            include: {
+              showtime: { include: { movie: true, cinema: true, room: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.bookingRefund.count({ where: { userId } }),
+    ]);
+
+    const data = items.map((refund) => ({
+      id: refund.id,
+      bookingId: refund.bookingId,
+      amount: Number(refund.amount),
+      refundMethod: refund.refundMethod,
+      storeCreditCode: refund.storeCreditCode ?? undefined,
+      pointsRestored: refund.pointsRestored,
+      giftCardRestored: refund.giftCardRestored ?? undefined,
+      reason: refund.reason ?? undefined,
+      createdAt: refund.createdAt.toISOString(),
+      movieTitle: refund.booking.showtime.movie.title,
+      cinemaName: refund.booking.showtime.cinema.name,
+      showtime: refund.booking.showtime.startTime.toISOString(),
+    }));
+
+    const meta = new PageMeta(page, limit, total);
+    return { data, meta };
+  }
+
+  async requestRefund(bookingId: string, userId: string, dto: RequestRefundDto) {
+    const booking = await this.loadBookingForRefund(bookingId);
+    const { deadlineHours, monthlyLimit } = this.getRefundConfig();
+    const monthlyCount = await this.countMonthlyRefunds(userId);
+
+    const eligibility = evaluateRefundPolicy(booking, userId, {
+      deadlineHours,
+      monthlyLimit,
+      monthlyCount,
+    });
+
+    if (!eligibility.eligible) {
+      throw new BadRequestException({
+        message: `Refund not allowed: ${eligibility.reasonCode}`,
+        ...eligibility,
+      });
+    }
+
+    const method = dto.method ?? RefundMethod.STORE_CREDIT;
+    return this.executeRefund(booking!, {
+      userId,
+      method,
+      reason: formatRefundReason(dto.reasonCode, dto.reasonDetail),
+    });
+  }
+
+  async adminRefund(bookingId: string, reason?: string) {
+    const booking = await this.loadBookingForRefund(bookingId);
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    const { deadlineHours, monthlyLimit } = this.getRefundConfig();
+    const monthlyCount = await this.countMonthlyRefunds(booking.userId);
+
+    const eligibility = evaluateRefundPolicy(booking, booking.userId, {
+      deadlineHours,
+      monthlyLimit,
+      monthlyCount,
+      bypassDeadline: true,
+      bypassMonthlyLimit: true,
+      bypassOwner: true,
+    });
+
+    if (!eligibility.eligible) {
+      throw new BadRequestException({
+        message: `Refund not allowed: ${eligibility.reasonCode}`,
+        ...eligibility,
+      });
+    }
+
+    return this.executeRefund(booking, {
+      userId: booking.userId,
+      method: RefundMethod.ORIGINAL_PAYMENT,
+      reason: reason ?? 'Admin refund',
+      initiatedByAdmin: true,
+    });
+  }
+
+  private async executeRefund(
+    booking: NonNullable<Awaited<ReturnType<typeof this.loadBookingForRefund>>>,
+    options: {
+      userId: string;
+      method: RefundMethod;
+      reason?: string;
+      initiatedByAdmin?: boolean;
+    },
+  ) {
+    const paidPayment = booking.payments.find((p) => p.status === PaymentStatus.PAID);
+    if (!paidPayment) {
+      throw new BadRequestException('No paid payment to refund');
+    }
+
+    const refundAmount = paidPayment.amount.toNumber();
+    const bookingItems = await this.prisma.bookingItem.findMany({
+      where: { bookingId: booking.id },
+      select: { seatId: true },
+    });
+
+    const pointsPerBooking = parseInt(
+      this.config.get('POINTS_PER_BOOKING') ?? '10',
+      10,
+    );
+
+    let storeCreditCode: string | null = null;
+
+    const refundRecord = await this.prisma.$transaction(async (tx) => {
+      await tx.booking.update({
+        where: { id: booking.id },
+        data: { status: BookingStatus.CANCELLED },
+      });
+
+      for (const payment of booking.payments) {
+        if (payment.status === PaymentStatus.PAID) {
+          await tx.payment.update({
+            where: { id: payment.id },
+            data: { status: PaymentStatus.REFUNDED },
+          });
+        }
+      }
+
+      const spentEntries = await tx.pointsHistory.findMany({
+        where: { bookingId: booking.id, type: 'SPENT' },
+      });
+      const pointsToRestore = spentEntries.reduce((sum, e) => sum + e.points, 0);
+
+      if (pointsToRestore > 0) {
+        const membership = await tx.membership.findUnique({
+          where: { userId: options.userId },
+        });
+        if (membership) {
+          const newBalance = membership.currentPoints + pointsToRestore;
+          await tx.membership.update({
+            where: { id: membership.id },
+            data: { currentPoints: newBalance },
+          });
+          await tx.pointsHistory.create({
+            data: {
+              userId: options.userId,
+              type: 'ADJUSTED',
+              points: pointsToRestore,
+              balance: newBalance,
+              description: 'Points restored from ticket refund',
+              bookingId: booking.id,
+            },
+          });
+        }
+      } else if (booking.pointsUsed > 0) {
+        const membership = await tx.membership.findUnique({
+          where: { userId: options.userId },
+        });
+        if (membership) {
+          const newBalance = membership.currentPoints + booking.pointsUsed;
+          await tx.membership.update({
+            where: { id: membership.id },
+            data: { currentPoints: newBalance },
+          });
+          await tx.pointsHistory.create({
+            data: {
+              userId: options.userId,
+              type: 'ADJUSTED',
+              points: booking.pointsUsed,
+              balance: newBalance,
+              description: 'Points restored from ticket refund',
+              bookingId: booking.id,
+            },
+          });
+        }
+      }
+
+      const earnedEntries = await tx.pointsHistory.findMany({
+        where: { bookingId: booking.id, type: 'EARNED' },
+      });
+      const pointsToClawBack = earnedEntries.reduce((sum, e) => sum + e.points, 0) || pointsPerBooking;
+
+      if (pointsToClawBack > 0) {
+        const membership = await tx.membership.findUnique({
+          where: { userId: options.userId },
+        });
+        if (membership) {
+          const newBalance = Math.max(0, membership.currentPoints - pointsToClawBack);
+          const newTotal = Math.max(0, membership.totalPoints - pointsToClawBack);
+          await tx.membership.update({
+            where: { id: membership.id },
+            data: { currentPoints: newBalance, totalPoints: newTotal },
+          });
+          await tx.pointsHistory.create({
+            data: {
+              userId: options.userId,
+              type: 'ADJUSTED',
+              points: -pointsToClawBack,
+              balance: newBalance,
+              description: 'Points reversed due to ticket refund',
+              bookingId: booking.id,
+            },
+          });
+        }
+      }
+
+      let giftCardRestored: string | null = null;
+      if (booking.giftCardCode) {
+        const giftCard = await tx.giftCard.findFirst({
+          where: { code: booking.giftCardCode },
+        });
+        if (giftCard && giftCard.status === 'REDEEMED') {
+          await tx.giftCard.update({
+            where: { id: giftCard.id },
+            data: { status: 'AVAILABLE' },
+          });
+          giftCardRestored = booking.giftCardCode;
+        }
+      }
+
+      if (options.method === RefundMethod.STORE_CREDIT && refundAmount > 0) {
+        storeCreditCode = generateStoreCreditCode();
+        const expiresAt = new Date();
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+        await tx.giftCard.create({
+          data: {
+            title: 'CiNect Store Credit',
+            description: `Refund credit for booking ${booking.id.slice(0, 8)}`,
+            value: refundAmount,
+            price: refundAmount,
+            code: storeCreditCode,
+            status: 'AVAILABLE',
+            expiresAt,
+          },
+        });
+      }
+
+      const restoredPoints =
+        pointsToRestore > 0 ? pointsToRestore : booking.pointsUsed;
+
+      return tx.bookingRefund.create({
+        data: {
+          bookingId: booking.id,
+          userId: options.userId,
+          amount: refundAmount,
+          refundMethod: options.method,
+          storeCreditCode,
+          pointsRestored: restoredPoints,
+          giftCardRestored,
+          reason: options.reason,
+        },
+      });
+    });
+
+    const releasedSeatIds = bookingItems.map((bi) => bi.seatId);
+    if (releasedSeatIds.length > 0) {
+      this.wsGateway.emitSeatReleased(booking.showtimeId, releasedSeatIds);
+    }
+
+    await this.notifications.create(options.userId, {
+      type: NotificationType.REFUND,
+      title: 'Refund processed',
+      message: `Your refund of ${refundAmount.toLocaleString('vi-VN')} VND has been processed.`,
+      link: '/account/orders',
+    });
+
+    return {
+      message: 'Booking refunded successfully',
+      refund: {
+        id: refundRecord.id,
+        bookingId: refundRecord.bookingId,
+        amount: Number(refundRecord.amount),
+        refundMethod: refundRecord.refundMethod,
+        storeCreditCode: refundRecord.storeCreditCode ?? undefined,
+        pointsRestored: refundRecord.pointsRestored,
+        giftCardRestored: refundRecord.giftCardRestored ?? undefined,
+        createdAt: refundRecord.createdAt.toISOString(),
+      },
+    };
   }
 }

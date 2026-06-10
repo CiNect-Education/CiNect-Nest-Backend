@@ -88,6 +88,16 @@ export class MoviesController {
     return this.moviesService.findShowtimesByMovie(id, date, city);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/review-eligibility')
+  reviewEligibility(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.moviesService.getReviewEligibility(id, userId);
+  }
+
   @Public()
   @Get(':id/reviews')
   findReviews(

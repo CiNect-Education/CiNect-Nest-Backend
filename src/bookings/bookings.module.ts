@@ -6,9 +6,10 @@ import { HoldsService } from './holds.service';
 import { TicketProductsService } from './ticket-products.service';
 import { PricingService } from '../common/services/pricing.service';
 import { WebsocketModule } from '../websocket/websocket.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [WebsocketModule],
+  imports: [WebsocketModule, NotificationsModule],
   controllers: [BookingsController, HoldsController],
   providers: [BookingsService, HoldsService, TicketProductsService, PricingService],
   exports: [BookingsService, HoldsService, TicketProductsService],

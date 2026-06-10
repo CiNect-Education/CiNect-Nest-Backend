@@ -139,8 +139,19 @@ enum NotificationType {
   PROMOTION
   SYSTEM
   MEMBERSHIP
+  COMMUNITY
+  REVIEW
+  WATCHLIST
+  REFUND
 
   @@map("notification_type")
+}
+
+enum CommunityPostType {
+  DISCUSSION
+  POLL
+
+  @@map("community_post_type")
 }
 
 enum GiftCardStatus {
@@ -150,6 +161,13 @@ enum GiftCardStatus {
   EXPIRED
 
   @@map("gift_card_status")
+}
+
+enum RefundMethod {
+  STORE_CREDIT
+  ORIGINAL_PAYMENT
+
+  @@map("refund_method")
 }
 
 enum CouponStatus {
@@ -228,6 +246,9 @@ model User {
   refreshToken  String?   @map("refresh_token")
   resetToken    String?   @map("reset_token")
   resetTokenExp DateTime? @map("reset_token_exp")
+  referralCode  String    @unique @map("referral_code")
+  referredById  String?   @map("referred_by_id")
+  profilePublic Boolean   @default(true) @map("profile_public")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -237,15 +258,27 @@ model User {
   bookings          Booking[]
   holds             Hold[]
   reviews           Review[]
+  reviewReactions   ReviewReaction[]
   notifications     Notification[]
   supportTickets    SupportTicket[]
   auditLogs         AuditLog[]
   couponAssignments Coupon[]
   giftRedemptions   GiftTransaction[] @relation("GiftRedemptions")
+  bookingRefunds    BookingRefund[]
+  watchlistItems    WatchlistItem[]
+  communityPosts    CommunityPost[]
+  communityPollVotes CommunityPollVote[]
+  cinemaPhotos      CinemaPhoto[]
+  groupInvitesHosted BookingGroupInvite[] @relation("GroupInviteHost")
+  referredBy        User?               @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals         User[]              @relation("UserReferrals")
+  referralsMade     Referral[]          @relation("Referrer")
+  referralReceived  Referral?           @relation("Referred")
 
   @@unique([provider, providerId])
   @@index([email])
   @@index([city])
+  @@index([referralCode])
   @@map("users")
 }
 
@@ -299,6 +332,9 @@ model Movie {
   movieGenres MovieGenre[]
   showtimes   Showtime[]
   reviews     Review[]
+  watchlistItems WatchlistItem[]
+  communityPosts CommunityPost[]
+  cinemaPhotos   CinemaPhoto[]
 
   @@index([status])
   @@index([slug])
@@ -544,11 +580,34 @@ model Booking {
   bookingSnacks BookingSnack[]
   payments      Payment[]
   pointsHistory PointsHistory[]
+  bookingRefund BookingRefund?
+  groupInvite   BookingGroupInvite?
+  cinemaPhotos  CinemaPhoto[]
 
   @@index([userId])
   @@index([showtimeId])
   @@index([status])
   @@map("bookings")
+}
+
+model BookingRefund {
+  id               String       @id @default(uuid()) @map("id")
+  bookingId        String       @unique @map("booking_id")
+  userId           String       @map("user_id")
+  amount           Decimal      @map("amount") @db.Decimal(12, 2)
+  refundMethod     RefundMethod @map("refund_method")
+  storeCreditCode  String?      @map("store_credit_code")
+  pointsRestored   Int          @default(0) @map("points_restored")
+  giftCardRestored String?      @map("gift_card_restored")
+  reason           String?      @map("reason")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("booking_refunds")
 }
 
 model BookingItem {
@@ -806,20 +865,148 @@ model GiftTransaction {
 }
 
 model Review {
+  id           String   @id @default(uuid()) @map("id")
+  userId       String   @map("user_id")
+  movieId      String   @map("movie_id")
+  rating       Int      @map("rating")
+  content      String   @map("content")
+  isVerified   Boolean  @default(false) @map("is_verified")
+  isApproved   Boolean  @default(true) @map("is_approved")
+  helpfulCount Int      @default(0) @map("helpful_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie            @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  reactions ReviewReaction[]
+
+  @@unique([userId, movieId])
+  @@index([movieId])
+  @@index([isApproved, createdAt])
+  @@map("reviews")
+}
+
+model ReviewReaction {
   id        String   @id @default(uuid()) @map("id")
+  reviewId  String   @map("review_id")
   userId    String   @map("user_id")
-  movieId   String   @map("movie_id")
-  rating    Int      @map("rating")
-  content   String   @map("content")
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([userId])
+  @@map("review_reactions")
+}
+
+model WatchlistItem {
+  id                  String   @id @default(uuid()) @map("id")
+  userId              String   @map("user_id")
+  movieId             String   @map("movie_id")
+  notifyWhenAvailable Boolean  @default(true) @map("notify_when_available")
+  createdAt           DateTime @default(now()) @map("created_at")
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@unique([userId, movieId])
   @@index([movieId])
-  @@map("reviews")
+  @@map("watchlist_items")
+}
+
+model BookingGroupInvite {
+  id         String   @id @default(uuid()) @map("id")
+  bookingId  String   @unique @map("booking_id")
+  hostUserId String   @map("host_user_id")
+  token      String   @unique @map("token")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  host    User    @relation("GroupInviteHost", fields: [hostUserId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("booking_group_invites")
+}
+
+model CommunityPost {
+  id          String             @id @default(uuid()) @map("id")
+  userId      String             @map("user_id")
+  movieId     String?            @map("movie_id")
+  content     String             @map("content")
+  hashtags    Json               @default("[]") @map("hashtags")
+  type        CommunityPostType  @default(DISCUSSION) @map("type")
+  pollOptions Json?              @map("poll_options")
+  isApproved  Boolean            @default(true) @map("is_approved")
+  likeCount   Int                @default(0) @map("like_count")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  user  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie?              @relation(fields: [movieId], references: [id], onDelete: SetNull)
+  votes CommunityPollVote[]
+
+  @@index([isApproved, createdAt])
+  @@index([movieId])
+  @@map("community_posts")
+}
+
+model CommunityPollVote {
+  id        String   @id @default(uuid()) @map("id")
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  optionId  String   @map("option_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("community_poll_votes")
+}
+
+model CinemaPhoto {
+  id         String   @id @default(uuid()) @map("id")
+  userId     String   @map("user_id")
+  bookingId  String?  @map("booking_id")
+  movieId    String?  @map("movie_id")
+  imageUrl   String   @map("image_url")
+  caption    String?  @map("caption")
+  isApproved Boolean  @default(true) @map("is_approved")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  movie   Movie?   @relation(fields: [movieId], references: [id], onDelete: SetNull)
+
+  @@index([isApproved, createdAt])
+  @@map("cinema_photos")
+}
+
+model Referral {
+  id            String   @id @default(uuid()) @map("id")
+  referrerId    String   @map("referrer_id")
+  referredId    String   @unique @map("referred_id")
+  pointsAwarded Int      @default(0) @map("points_awarded")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  referrer User @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred User @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId])
+  @@map("referrals")
+}
+
+model PostShowPrompt {
+  id        String   @id @default(uuid()) @map("id")
+  bookingId String   @unique @map("booking_id")
+  userId    String   @map("user_id")
+  movieId   String   @map("movie_id")
+  sentAt    DateTime @default(now()) @map("sent_at")
+
+  @@index([userId])
+  @@map("post_show_prompts")
 }
 
 model NewsArticle {

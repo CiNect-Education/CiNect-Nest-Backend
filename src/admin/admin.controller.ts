@@ -22,6 +22,7 @@ import { ParseUuidPipe } from '../common/pipes/parse-uuid.pipe';
 import { NewsCategory, Prisma, RoomFormat, UserRole } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
 import { PrismaService } from '../prisma/prisma.service';
+import { BookingsService } from '../bookings/bookings.service';
 import { CreateMovieDto } from '../movies/dto/create-movie.dto';
 import { UpdateMovieDto } from '../movies/dto/update-movie.dto';
 import { CreateCinemaDto } from '../cinemas/dto/create-cinema.dto';
@@ -35,6 +36,9 @@ import {
   CreateBannerAdminDto,
   UpdateBannerAdminDto,
 } from './dto/admin-content.dto';
+import { ProvincesSyncService } from '../provinces/provinces-sync.service';
+import { CommunityService } from '../community/community.service';
+import { generateReferralCode } from '../community/community.utils';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -45,6 +49,9 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly prisma: PrismaService,
+    private readonly provincesSyncService: ProvincesSyncService,
+    private readonly bookingsService: BookingsService,
+    private readonly communityService: CommunityService,
   ) {}
 
   private parseRangeDays(range?: string): number {
@@ -922,6 +929,7 @@ export class AdminController {
         phone: body.phone,
         city: body.city,
         isActive: body.isActive ?? true,
+        referralCode: generateReferralCode(),
       },
     });
     if (body.role) {
@@ -1090,35 +1098,12 @@ export class AdminController {
   async cancelBooking(@Param('id', ParseUuidPipe) id: string) {
     const booking = await this.prisma.booking.findUnique({ where: { id } });
     if (!booking) throw new NotFoundException('Booking not found');
-    return this.prisma.booking.update({
-      where: { id },
-      data: { status: 'CANCELLED' },
-    });
+    return this.bookingsService.cancel(id, booking.userId);
   }
 
   @Post('bookings/:id/refund')
   async refundBooking(@Param('id', ParseUuidPipe) id: string) {
-    const booking = await this.prisma.booking.findUnique({
-      where: { id },
-      include: { payments: true },
-    });
-    if (!booking) throw new NotFoundException('Booking not found');
-
-    await this.prisma.$transaction(async (tx) => {
-      await tx.booking.update({
-        where: { id },
-        data: { status: 'CANCELLED' },
-      });
-      for (const payment of booking.payments) {
-        if (payment.status === 'PAID') {
-          await tx.payment.update({
-            where: { id: payment.id },
-            data: { status: 'REFUNDED' },
-          });
-        }
-      }
-    });
-    return { message: 'Booking refunded' };
+    return this.bookingsService.adminRefund(id, 'Admin refund');
   }
 
   @Get('reports/sales')
@@ -1686,5 +1671,55 @@ export class AdminController {
   async deleteBannerAdmin(@Param('id', ParseUuidPipe) id: string) {
     await this.prisma.banner.delete({ where: { id } });
     return { message: 'Deleted' };
+  }
+
+  @Post('provinces/sync')
+  @Roles(UserRole.ADMIN)
+  syncProvinces() {
+    return this.provincesSyncService.syncWithLog();
+  }
+
+  @Get('community/pending')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  pendingCommunityContent() {
+    return this.communityService.adminPendingContent();
+  }
+
+  @Post('community/reviews/:id/approve')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  approveReview(@Param('id', ParseUuidPipe) id: string) {
+    return this.communityService.approveReview(id);
+  }
+
+  @Post('community/posts/:id/approve')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  approvePost(@Param('id', ParseUuidPipe) id: string) {
+    return this.communityService.approvePost(id);
+  }
+
+  @Post('community/photos/:id/approve')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  approvePhoto(@Param('id', ParseUuidPipe) id: string) {
+    return this.communityService.approvePhoto(id);
+  }
+
+  @Get('support/tickets')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  async listSupportTickets(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.prisma.supportTicket.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.supportTicket.count(),
+    ]);
+    return { data: items, meta: { page, limit, total } };
   }
 }
