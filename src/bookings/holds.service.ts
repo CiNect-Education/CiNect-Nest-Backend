@@ -12,6 +12,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { WebsocketGateway } from '../websocket/websocket.gateway';
 import { mapRoomFormat } from '../common/helpers/format.helper';
 import { HoldStatus } from '@prisma/client';
+import { getBookingSessionMinutes } from './booking-session.config';
+import { PricingService } from '../common/services/pricing.service';
+import {
+  groupSeatsForDisplay,
+  validateTicketSeatCompatibility,
+} from './booking-pricing.logic';
 
 const holdCheckoutInclude = {
   holdSeats: { include: { seat: true } },
@@ -32,10 +38,18 @@ export class HoldsService {
     private readonly config: ConfigService,
     private readonly ws: WebsocketGateway,
     private readonly ticketProducts: TicketProductsService,
+    private readonly pricing: PricingService,
   ) {}
 
+  private throwSeatConflict(seatIds: string[]): never {
+    throw new ConflictException({
+      message: 'One or more seats are already held or booked',
+      seatIds: [...new Set(seatIds)],
+    });
+  }
+
   getTtlMinutes(): number {
-    return parseInt(this.config.get('HOLD_TTL_MINUTES') ?? '10', 10);
+    return getBookingSessionMinutes(this.config);
   }
 
   async create(
@@ -72,6 +86,18 @@ export class HoldsService {
           throw new BadRequestException(`Unknown ticket product: ${code}`);
         }
       }
+
+      const hasCoupleSeats = this.ticketProducts.roomHasCoupleSeats(
+        showtime.room.seats,
+      );
+      const requestsDoubleTicket = ticketLines.some(
+        (line) => line.productCode === TicketProductCode.ADULT_DOUBLE,
+      );
+      if (requestsDoubleTicket && !hasCoupleSeats) {
+        throw new BadRequestException(
+          'Double tickets are not available in this auditorium',
+        );
+      }
     }
 
     const selectedSeats = seatIds.map((id) => seatById.get(id)!);
@@ -83,6 +109,26 @@ export class HoldsService {
             'Couple seats must be selected together (ĐÔI)',
           );
         }
+      }
+    }
+
+    const pricedTicketLines = await this.resolveTicketLinePrices(
+      showtimeId,
+      ticketLines,
+    );
+    if (pricedTicketLines.length > 0) {
+      const compat = validateTicketSeatCompatibility(
+        pricedTicketLines,
+        selectedSeats.map((s) => ({
+          id: s.id,
+          rowLabel: s.rowLabel,
+          number: s.number,
+          type: s.type,
+          pairId: s.pairId,
+        })),
+      );
+      if (compat) {
+        throw new BadRequestException(compat);
       }
     }
 
@@ -138,13 +184,11 @@ export class HoldsService {
     ]);
 
     if (heldSeats.length > 0 || bookedSeats.length > 0) {
-      throw new ConflictException('One or more seats are already held or booked');
+      this.throwSeatConflict([
+        ...heldSeats.map((h) => h.seatId),
+        ...bookedSeats.map((b) => b.seatId),
+      ]);
     }
-
-    const pricedTicketLines = await this.resolveTicketLinePrices(
-      showtimeId,
-      ticketLines,
-    );
 
     const hold = await this.prisma.$transaction(async (tx) => {
       const h = await tx.hold.create({
@@ -175,8 +219,28 @@ export class HoldsService {
           });
         }
       } catch {
-        // Fallback: surface a clean conflict instead of a 500 in case of race conditions.
-        throw new ConflictException('One or more seats are already held or booked');
+        const [heldAfterRace, bookedAfterRace] = await Promise.all([
+          this.prisma.holdSeat.findMany({
+            where: {
+              showtimeId,
+              seatId: { in: seatIds },
+              hold: { status: HoldStatus.ACTIVE, expiresAt: { gt: now } },
+            },
+            select: { seatId: true },
+          }),
+          this.prisma.bookingItem.findMany({
+            where: {
+              showtimeId,
+              seatId: { in: seatIds },
+              booking: { status: { not: 'CANCELLED' } },
+            },
+            select: { seatId: true },
+          }),
+        ]);
+        this.throwSeatConflict([
+          ...heldAfterRace.map((h) => h.seatId),
+          ...bookedAfterRace.map((b) => b.seatId),
+        ]);
       }
 
       return h;
@@ -187,7 +251,7 @@ export class HoldsService {
       include: holdCheckoutInclude,
     });
     this.ws.emitSeatHeld(showtimeId, seatIds);
-    return this.mapHoldCheckout(result!);
+    return await this.mapHoldCheckout(result!, result!.showtime);
   }
 
   async findOne(holdId: string, userId: string) {
@@ -201,7 +265,7 @@ export class HoldsService {
     if (hold.userId !== userId) {
       throw new ForbiddenException('You can only view your own holds');
     }
-    return this.mapHoldCheckout(hold);
+    return await this.mapHoldCheckout(hold, hold.showtime);
   }
 
   private async resolveTicketLinePrices(
@@ -220,11 +284,55 @@ export class HoldsService {
     }));
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma hold + showtime
+  private async seatPriceMap(hold: any, st: any): Promise<Map<string, number>> {
+    const map = new Map<string, number>();
+    if (!st) return map;
+    for (const hs of hold.holdSeats) {
+      const price = await this.pricing.getSeatPrice({
+        showtimeId: hold.showtimeId,
+        seatId: hs.seat.id,
+        cinemaId: st.cinemaId,
+        format: st.format,
+        seatType: hs.seat.type,
+        startTime: st.startTime,
+      });
+      map.set(hs.seat.id, price);
+    }
+    return map;
+  }
+
   /** Checkout / booking UI: nested seats + showtime summary (matches Spring HoldResponse). */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma result with holdCheckoutInclude
-  private mapHoldCheckout(hold: any) {
-    const st = hold.showtime;
+  private async mapHoldCheckout(hold: any, st: any) {
     const basePrice = st ? Number(st.basePrice) : 0;
+    const priceBySeat = await this.seatPriceMap(hold, st);
+    const seatRows = hold.holdSeats.map(
+      (hs: { seat: { id: string; rowLabel: string; number: number; type: string; pairId?: string | null } }) => ({
+        id: hs.seat.id,
+        rowLabel: hs.seat.rowLabel,
+        number: hs.seat.number,
+        type: hs.seat.type,
+        pairId: hs.seat.pairId,
+        price: priceBySeat.get(hs.seat.id) ?? basePrice,
+      }),
+    );
+    const seatGroups = groupSeatsForDisplay(
+      seatRows.map((s: { id: string; rowLabel: string; number: number; type: string; pairId?: string | null }) => ({
+        id: s.id,
+        rowLabel: s.rowLabel,
+        number: s.number,
+        type: s.type,
+        pairId: s.pairId,
+      })),
+    ).map((g) => ({
+      kind: g.kind,
+      label: g.label,
+      seatType: g.seatType,
+      seatIds: g.seatIds,
+      price: g.seatIds.reduce((sum, id) => sum + (priceBySeat.get(id) ?? basePrice), 0),
+    }));
+
     return {
       holdId: hold.id,
       id: hold.id,
@@ -233,12 +341,13 @@ export class HoldsService {
       status: hold.status,
       expiresAt: hold.expiresAt.toISOString(),
       createdAt: hold.createdAt.toISOString(),
-      seats: hold.holdSeats.map((hs: { seat: { id: string; rowLabel: string; number: number; type: string; price: unknown } }) => ({
-        id: hs.seat.id,
-        row: hs.seat.rowLabel,
-        number: hs.seat.number,
-        type: hs.seat.type,
-        price: hs.seat.price != null ? Number(hs.seat.price) : basePrice,
+      seatGroups,
+      seats: seatRows.map((s: { id: string; rowLabel: string; number: number; type: string; price: number }) => ({
+        id: s.id,
+        row: s.rowLabel,
+        number: s.number,
+        type: s.type,
+        price: s.price,
       })),
       ticketLines: (hold.holdTicketLines ?? []).map(
         (line: {
@@ -271,6 +380,10 @@ export class HoldsService {
             cinemaId: st.cinemaId,
           }
         : undefined,
+      ticketsTotal: seatRows.reduce(
+        (sum: number, s: { price: number }) => sum + s.price,
+        0,
+      ),
     };
   }
 

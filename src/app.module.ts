@@ -29,6 +29,7 @@ import { PricingModule } from './pricing/pricing.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { BannersModule } from './banners/banners.module';
 import { ProvincesModule } from './provinces/provinces.module';
+import { CommunityModule } from './community/community.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PrismaService } from './prisma/prisma.service';
@@ -78,6 +79,7 @@ import { PrismaService } from './prisma/prisma.service';
     CampaignsModule,
     BannersModule,
     ProvincesModule,
+    CommunityModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

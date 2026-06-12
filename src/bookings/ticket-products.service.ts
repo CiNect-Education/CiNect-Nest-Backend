@@ -1,15 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { TicketProductCode } from '@prisma/client';
+import { SeatType, TicketProductCode } from '@prisma/client';
 
 @Injectable()
 export class TicketProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  roomHasCoupleSeats(seats: { type: SeatType }[]): boolean {
+    return seats.some((seat) => seat.type === SeatType.COUPLE);
+  }
+
   async listForShowtime(showtimeId: string) {
     const showtime = await this.prisma.showtime.findFirst({
       where: { id: showtimeId, isActive: true },
-      select: { basePrice: true, format: true },
+      select: {
+        basePrice: true,
+        format: true,
+        room: { select: { seats: { select: { type: true } } } },
+      },
     });
     if (!showtime) return [];
 
@@ -18,8 +26,13 @@ export class TicketProductsService {
       orderBy: { sortOrder: 'asc' },
     });
 
+    const hasCoupleSeats = this.roomHasCoupleSeats(showtime.room.seats);
+    const eligibleProducts = hasCoupleSeats
+      ? products
+      : products.filter((p) => p.code !== TicketProductCode.ADULT_DOUBLE);
+
     const base = Number(showtime.basePrice);
-    return products.map((p) => {
+    return eligibleProducts.map((p) => {
       const defaultPrice = Number(p.defaultPrice);
       const unitPrice =
         defaultPrice > 0

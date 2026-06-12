@@ -3,12 +3,16 @@ import * as https from 'node:https';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContactDto } from './dto/contact.dto';
 import { ChatbotRequestDto } from './dto/chatbot.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class SupportService {
   private readonly logger = new Logger(SupportService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   /** REST Responses API does not always include top-level `output_text`; parse from `output`. */
   private extractReplyText(data: unknown): string {
@@ -128,6 +132,13 @@ export class SupportService {
         message: dto.message,
         bookingId: dto.bookingId ?? null,
       },
+    });
+    await this.emailService.sendContactNotification({
+      name: dto.name,
+      email: dto.email,
+      subject: dto.subject,
+      message: dto.message,
+      ticketId: ticket.id,
     });
     return {
       message: 'Support ticket created',

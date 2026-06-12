@@ -16,6 +16,10 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { unlink } from 'fs/promises';
+import { join } from 'path';
+import { AVATAR_UPLOAD_DIR } from '../uploads/avatar-upload.config';
+import { EmailService } from '../email/email.service';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
@@ -24,6 +28,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -202,7 +207,13 @@ export class AuthService {
       },
     });
 
-    // In production, send email with reset link
+    await this.emailService.sendPasswordResetEmail({
+      to: user.email,
+      token,
+      userName: user.fullName,
+      expiresMinutes: 60,
+    });
+
     return { message: 'If the email exists, a reset link will be sent' };
   }
 
@@ -265,10 +276,16 @@ export class AuthService {
       data.fullName = normalizedFullName;
     }
     if (normalizedPhone !== undefined) data.phone = normalizedPhone;
-    if (normalizedAvatar !== undefined) data.avatar = normalizedAvatar;
+    if (normalizedAvatar !== undefined) {
+      if (normalizedAvatar !== user.avatar) {
+        await this.tryDeleteManagedAvatar(user.avatar);
+      }
+      data.avatar = normalizedAvatar;
+    }
     if (parsedDob !== undefined) data.dateOfBirth = parsedDob;
     if (normalizedGender !== undefined) data.gender = normalizedGender;
     if (normalizedCity !== undefined) data.city = normalizedCity;
+    if (dto.profilePublic !== undefined) data.profilePublic = dto.profilePublic;
 
     const updated = await this.prisma.user.update({
       where: { id: userId },
@@ -278,6 +295,63 @@ export class AuthService {
 
     const roles = updated.userRoles.map((ur) => ur.role.name);
     return this.sanitizeUser(updated, roles);
+  }
+
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!file?.filename) {
+      throw new BadRequestException('No image uploaded');
+    }
+
+    const url = this.buildAvatarPublicUrl(file.filename);
+    return { url };
+  }
+
+  private get publicApiUrl(): string {
+    const configured = this.config.get<string>('PUBLIC_API_URL')?.trim();
+    if (configured) {
+      return configured.replace(/\/$/, '');
+    }
+    const port = this.config.get<string>('PORT') ?? '3001';
+    return `http://localhost:${port}`;
+  }
+
+  private buildAvatarPublicUrl(filename: string): string {
+    return `${this.publicApiUrl}/uploads/avatars/${filename}`;
+  }
+
+  private isManagedAvatarUrl(url: string | null | undefined): boolean {
+    if (!url) return false;
+    try {
+      return new URL(url).pathname.includes('/uploads/avatars/');
+    } catch {
+      return false;
+    }
+  }
+
+  private managedAvatarFilename(url: string): string | null {
+    try {
+      const segments = new URL(url).pathname.split('/').filter(Boolean);
+      const idx = segments.lastIndexOf('avatars');
+      if (idx === -1 || idx >= segments.length - 1) return null;
+      return segments[idx + 1] ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async tryDeleteManagedAvatar(url: string | null | undefined): Promise<void> {
+    if (!this.isManagedAvatarUrl(url)) return;
+    const filename = this.managedAvatarFilename(url!);
+    if (!filename) return;
+    try {
+      await unlink(join(AVATAR_UPLOAD_DIR, filename));
+    } catch {
+      // Ignore missing files
+    }
   }
 
   async logout(userId: string) {

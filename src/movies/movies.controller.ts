@@ -88,14 +88,26 @@ export class MoviesController {
     return this.moviesService.findShowtimesByMovie(id, date, city);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/review-eligibility')
+  reviewEligibility(
+    @Param('id', ParseUuidPipe) id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.moviesService.getReviewEligibility(id, userId);
+  }
+
   @Public()
   @Get(':id/reviews')
   findReviews(
     @Param('id', ParseUuidPipe) id: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('sort') sort?: 'newest' | 'helpful' | 'rating',
   ) {
-    return this.moviesService.findReviews(id, page, limit);
+    const resolvedSort = sort === 'helpful' || sort === 'rating' ? sort : 'newest';
+    return this.moviesService.findReviews(id, page, limit, resolvedSort);
   }
 
   @ApiBearerAuth()

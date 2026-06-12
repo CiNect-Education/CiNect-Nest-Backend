@@ -34,6 +34,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const errorResponse =
       typeof message === 'object' && message !== null && 'message' in message
+        ? (message as { message: string | string[]; seatIds?: string[] })
+        : null;
+
+    const errorText = errorResponse
+      ? Array.isArray(errorResponse.message)
+        ? errorResponse.message.join(', ')
+        : errorResponse.message
+      : typeof message === 'object' && message !== null && 'message' in message
         ? (message as { message: string | string[] }).message
         : String(message);
 
@@ -42,18 +50,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? (message as { error: string }).error
         : undefined;
 
+    const errorBody =
+      errorResponse && Array.isArray(errorResponse.seatIds)
+        ? { message: errorText, seatIds: errorResponse.seatIds }
+        : typeof errorText === 'string'
+          ? errorText
+          : { message: errorText, ...(errorDetail && { detail: errorDetail }) };
+
     const body = new ApiResponse({
       data: null,
-      error:
-        typeof errorResponse === 'string'
-          ? errorResponse
-          : { message: errorResponse, ...(errorDetail && { detail: errorDetail }) },
+      error: errorBody,
       timestamp: new Date().toISOString(),
     });
 
     if (status >= 500) {
       this.logger.error(
-        `${request.method} ${request.url} ${status} - ${JSON.stringify(errorResponse)}`,
+        `${request.method} ${request.url} ${status} - ${JSON.stringify(errorBody)}`,
         exception instanceof Error ? exception.stack : undefined,
       );
     }

@@ -339,9 +339,14 @@ async function main() {
     where: { slug: { in: obsoleteDemoSlugs } },
     data: { isDeleted: true },
   });
-  type CatalogRow = (typeof moviesCatalogJson)[number] & { genreSlugs: string[]; imdbId?: string };
+  type CatalogRow = (typeof moviesCatalogJson)[number] & {
+    genreSlugs: string[];
+    imdbId?: string;
+    imdbRating?: number;
+    metacriticScore?: number;
+  };
   const moviesData = (moviesCatalogJson as CatalogRow[]).map((row) => {
-    const { imdbId: _imdb, genreSlugs, ...rest } = row;
+    const { genreSlugs, ...rest } = row;
     const images = resolveMovieImages(row);
     const releaseDate = new Date(row.releaseDate);
     return {
@@ -377,6 +382,9 @@ async function main() {
         castMembers: movieData.castMembers,
         language: movieData.language,
         subtitles: movieData.subtitles,
+        imdbId: movieData.imdbId ?? null,
+        imdbRating: movieData.imdbRating ?? null,
+        metacriticScore: movieData.metacriticScore ?? null,
         rating: movieData.rating,
         ratingCount: movieData.ratingCount,
         ageRating: movieData.ageRating,
@@ -943,6 +951,8 @@ async function main() {
     { name: 'Standard 2D - Weekend', seatType: SeatType.STANDARD, format: RoomFormat.STANDARD2D, dayType: 'WEEKEND' as const, price: 100000 },
     { name: 'VIP 2D - Weekday', seatType: SeatType.VIP, format: RoomFormat.STANDARD2D, dayType: 'WEEKDAY' as const, price: 120000 },
     { name: 'VIP 2D - Weekend', seatType: SeatType.VIP, format: RoomFormat.STANDARD2D, dayType: 'WEEKEND' as const, price: 150000 },
+    { name: 'Couple 2D - Weekday', seatType: SeatType.COUPLE, format: RoomFormat.STANDARD2D, dayType: 'WEEKDAY' as const, price: 80000 },
+    { name: 'Couple 2D - Weekend', seatType: SeatType.COUPLE, format: RoomFormat.STANDARD2D, dayType: 'WEEKEND' as const, price: 90000 },
     { name: 'IMAX - Weekday', seatType: SeatType.STANDARD, format: RoomFormat.IMAX, dayType: 'WEEKDAY' as const, price: 150000 },
     { name: 'IMAX - Weekend', seatType: SeatType.STANDARD, format: RoomFormat.IMAX, dayType: 'WEEKEND' as const, price: 180000 },
     { name: '4DX - Weekday', seatType: SeatType.STANDARD, format: RoomFormat.FOURDX, dayType: 'WEEKDAY' as const, price: 170000 },

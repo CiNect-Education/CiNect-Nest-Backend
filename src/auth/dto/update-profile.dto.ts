@@ -7,6 +7,7 @@ import {
   IsUrl,
   IsIn,
   IsDateString,
+  IsBoolean,
 } from 'class-validator';
 
 export const FULL_NAME_REGEX = /^[\p{L}\s'.-]+$/u;
@@ -56,4 +57,8 @@ export class UpdateProfileDto {
   @MaxLength(80, { message: 'City must not exceed 80 characters' })
   @Matches(CITY_REGEX, { message: 'City contains invalid characters' })
   city?: string;
+
+  @IsOptional()
+  @IsBoolean({ message: 'profilePublic must be a boolean' })
+  profilePublic?: boolean;
 }

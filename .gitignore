@@ -39,3 +39,7 @@ prisma/migrations/**/migration_lock.toml
 # Misc
 *.pem
 .cache/
+
+# Runtime uploaded files (keep src/uploads/ source config tracked)
+/uploads/*
+!/uploads/.gitkeep

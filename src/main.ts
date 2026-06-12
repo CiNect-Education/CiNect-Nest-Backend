@@ -1,20 +1,56 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { ensureAvatarUploadDir } from './uploads/avatar-upload.config';
+import { ensureReviewUploadDir } from './uploads/review-upload.config';
+import { resolveUploadsRoot } from './uploads/uploads-root';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  ensureAvatarUploadDir();
+  ensureReviewUploadDir();
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useStaticAssets(resolveUploadsRoot(), {
+    prefix: '/uploads/',
+  });
 
   const corsOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
     : ['http://localhost:3000', 'http://127.0.0.1:3000'];
 
+  const isDev = process.env.NODE_ENV !== 'production';
+
   app.enableCors({
-    origin: corsOrigins,
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (corsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      if (isDev) {
+        try {
+          const { hostname, protocol } = new URL(origin);
+          if (
+            (hostname === 'localhost' || hostname === '127.0.0.1') &&
+            (protocol === 'http:' || protocol === 'https:')
+          ) {
+            callback(null, true);
+            return;
+          }
+        } catch {
+          // fall through
+        }
+      }
+      callback(new Error(`Origin ${origin} not allowed by CORS`), false);
+    },
     credentials: true,
   });
 
