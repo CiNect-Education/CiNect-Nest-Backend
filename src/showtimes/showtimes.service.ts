@@ -58,8 +58,11 @@ export class ShowtimesService {
       }
     } else {
       const now = new Date();
-      const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      where.startTime = { gte: now, lt: next7Days };
+      // Code quan trọng: Nếu lọc theo bộ phim cụ thể (movieId) thì mở rộng tìm kiếm lên 30 ngày 
+      // để tìm ngày gần nhất có lịch chiếu. Ngược lại, giữ nguyên 7 ngày để tránh tải nhiều dữ liệu.
+      const searchDays = filters.movieId ? 30 : 7;
+      const nextDays = new Date(now.getTime() + searchDays * 24 * 60 * 60 * 1000);
+      where.startTime = { gte: now, lt: nextDays };
     }
 
     const showtimes = await this.prisma.showtime.findMany({
