@@ -27,6 +27,7 @@ import {
 import { RequestRefundDto } from './dto/request-refund.dto';
 import { formatRefundReason } from './dto/refund-reason.enum';
 import { NotificationsService } from '../notifications/notifications.service';
+import type { Booking } from '@prisma/client';
 
 @Injectable()
 export class BookingsService {
@@ -37,6 +38,15 @@ export class BookingsService {
     private readonly wsGateway: WebsocketGateway,
     private readonly notifications: NotificationsService,
   ) {}
+
+  private assertPayableBooking(booking: Pick<Booking, 'status' | 'expiresAt'>) {
+    if (booking.status !== BookingStatus.PENDING) {
+      throw new BadRequestException('Booking is not pending payment');
+    }
+    if (booking.expiresAt && booking.expiresAt < new Date()) {
+      throw new BadRequestException('Booking session has expired');
+    }
+  }
 
   async create(userId: string, dto: CreateBookingDto) {
     const hold = await this.prisma.hold.findUnique({
@@ -213,8 +223,6 @@ export class BookingsService {
         Number(totalAmount) - Number(discountAmount),
       );
 
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
       const b = await tx.booking.create({
         data: {
           userId,
@@ -227,7 +235,7 @@ export class BookingsService {
           promotionCode,
           pointsUsed,
           giftCardCode,
-          expiresAt,
+          expiresAt: hold.expiresAt,
         },
       });
 
@@ -450,6 +458,7 @@ export class BookingsService {
     if (!booking) {
       throw new NotFoundException('Booking not found or not pending');
     }
+    this.assertPayableBooking(booking);
 
     const promotion = await this.prisma.promotion.findFirst({
       where: {
@@ -504,6 +513,7 @@ export class BookingsService {
     if (!booking) {
       throw new NotFoundException('Booking not found or not pending');
     }
+    this.assertPayableBooking(booking);
 
     const membership = await this.prisma.membership.findUnique({
       where: { userId },
@@ -554,6 +564,7 @@ export class BookingsService {
     if (!booking) {
       throw new NotFoundException('Booking not found or not pending');
     }
+    this.assertPayableBooking(booking);
 
     const giftCard = await this.prisma.giftCard.findFirst({
       where: { code, status: 'AVAILABLE' },

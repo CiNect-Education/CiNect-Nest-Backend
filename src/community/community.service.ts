@@ -5,19 +5,25 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   BookingStatus,
   CommunityPostType,
+  CommunityTargetType,
   NotificationType,
   PaymentStatus,
+  Prisma,
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PageMeta } from '../common/dto/page-meta.dto';
+import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { containsProfanity, generateInviteToken } from './community.utils';
 import { CreateCommunityPostDto } from './dto/create-community-post.dto';
 import { CreateCinemaPhotoDto } from './dto/create-cinema-photo.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { CreateReportDto } from './dto/create-report.dto';
 import { VotePollDto } from './dto/vote-poll.dto';
 
 const REVIEW_CHALLENGE_POINTS = 30;
@@ -28,7 +34,18 @@ export class CommunityService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly email: EmailService,
+    private readonly config: ConfigService,
   ) {}
+
+  private get publicApiUrl(): string {
+    const port = this.config.get<string>('PORT') ?? '3001';
+    return this.config.get<string>('PUBLIC_API_URL') ?? `http://localhost:${port}`;
+  }
+
+  reviewImagePublicUrl(filename: string): string {
+    return `${this.publicApiUrl}/uploads/reviews/${filename}`;
+  }
 
   async getPublicProfile(userId: string, viewerId?: string) {
     const user = await this.prisma.user.findUnique({
@@ -124,18 +141,60 @@ export class CommunityService {
     return { message: 'Removed from watchlist' };
   }
 
-  async findGlobalReviews(page = 1, limit = 20, verifiedOnly = true) {
+  async getPublicStats() {
+    const [verifiedReviews, posts, photos, reviewerRows] = await Promise.all([
+      this.prisma.review.count({ where: { isApproved: true, isVerified: true } }),
+      this.prisma.communityPost.count({ where: { isApproved: true } }),
+      this.prisma.cinemaPhoto.count({ where: { isApproved: true } }),
+      this.prisma.review.findMany({
+        where: { isApproved: true },
+        distinct: ['userId'],
+        select: { userId: true },
+      }),
+    ]);
+    return {
+      verifiedReviews,
+      posts,
+      photos,
+      activeReviewers: reviewerRows.length,
+    };
+  }
+
+  async findGlobalReviews(
+    page = 1,
+    limit = 20,
+    opts: {
+      verifiedOnly?: boolean;
+      movieId?: string;
+      cinemaId?: string;
+      sort?: 'newest' | 'helpful' | 'rating';
+    } = {},
+  ) {
     const skip = (page - 1) * limit;
-    const where = { isApproved: true, ...(verifiedOnly ? { isVerified: true } : {}) };
+    const where: Prisma.ReviewWhereInput = {
+      isApproved: true,
+      ...(opts.verifiedOnly ? { isVerified: true } : {}),
+      ...(opts.movieId ? { movieId: opts.movieId } : {}),
+      ...(opts.cinemaId ? { cinemaId: opts.cinemaId } : {}),
+    };
+    const sort = opts.sort ?? 'newest';
+    const orderBy: Prisma.ReviewOrderByWithRelationInput[] =
+      sort === 'helpful'
+        ? [{ helpfulCount: 'desc' }, { createdAt: 'desc' }]
+        : sort === 'rating'
+          ? [{ rating: 'desc' }, { createdAt: 'desc' }]
+          : [{ createdAt: 'desc' }];
+
     const [items, total] = await Promise.all([
       this.prisma.review.findMany({
         where,
         skip,
         take: limit,
-        orderBy: [{ helpfulCount: 'desc' }, { createdAt: 'desc' }],
+        orderBy,
         include: {
           user: { select: { id: true, fullName: true, avatar: true } },
           movie: { select: { id: true, title: true, slug: true, posterUrl: true } },
+          cinema: { select: { id: true, name: true, slug: true } },
         },
       }),
       this.prisma.review.count({ where }),
@@ -144,6 +203,20 @@ export class CommunityService {
       data: items.map((r) => this.reviewRow(r)),
       meta: new PageMeta(page, limit, total),
     };
+  }
+
+  async resolveReviewCinemaId(userId: string, movieId: string): Promise<string | null> {
+    const booking = await this.prisma.booking.findFirst({
+      where: {
+        userId,
+        status: BookingStatus.CONFIRMED,
+        showtime: { movieId },
+        payments: { some: { status: PaymentStatus.PAID } },
+      },
+      orderBy: { showtime: { startTime: 'desc' } },
+      include: { showtime: { select: { cinemaId: true } } },
+    });
+    return booking?.showtime.cinemaId ?? null;
   }
 
   async toggleReviewReaction(reviewId: string, userId: string) {
@@ -249,9 +322,20 @@ export class CommunityService {
     };
   }
 
-  async listPosts(page = 1, limit = 20, movieId?: string) {
+  async listPosts(page = 1, limit = 20, movieId?: string, hashtag?: string) {
     const skip = (page - 1) * limit;
-    const where = { isApproved: true, ...(movieId ? { movieId } : {}) };
+    const where: Prisma.CommunityPostWhereInput = {
+      isApproved: true,
+      ...(movieId ? { movieId } : {}),
+      ...(hashtag
+        ? {
+            OR: [
+              { content: { contains: `#${hashtag}`, mode: 'insensitive' } },
+              { hashtags: { string_contains: hashtag } },
+            ],
+          }
+        : {}),
+    };
     const [items, total] = await Promise.all([
       this.prisma.communityPost.findMany({
         where,
@@ -287,6 +371,7 @@ export class CommunityService {
         hashtags: dto.hashtags ?? [],
         type: dto.type ?? CommunityPostType.DISCUSSION,
         pollOptions,
+        hasSpoiler: dto.hasSpoiler ?? false,
         isApproved,
       },
       include: {
@@ -571,13 +656,132 @@ export class CommunityService {
       await this.prisma.postShowPrompt.create({
         data: { bookingId: b.id, userId: b.userId, movieId: movie.id },
       });
+      const reviewLink = `/movies/${movie.slug}#community`;
       await this.notifications.create(b.userId, {
         type: NotificationType.REVIEW,
-        title: 'How was the movie?',
-        message: `Share your thoughts about "${movie.title}".`,
-        link: `/movies/${movie.slug}#reviews`,
+        title: 'Phim hay không?',
+        message: `Chia sẻ cảm nhận về "${movie.title}" và nhận điểm thưởng.`,
+        link: reviewLink,
       });
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: b.userId },
+        select: { email: true, fullName: true },
+      });
+      if (user?.email) {
+        await this.email.sendReviewPromptEmail({
+          to: user.email,
+          userName: user.fullName,
+          movieTitle: movie.title,
+          reviewPath: reviewLink,
+        });
+      }
     }
+  }
+
+  async getPendingReviewPrompts(userId: string) {
+    const rows = await this.prisma.postShowPrompt.findMany({
+      where: { userId, dismissedAt: null },
+      orderBy: { sentAt: 'desc' },
+      take: 3,
+    });
+    if (rows.length === 0) return { data: [] };
+
+    const movieIds = [...new Set(rows.map((r) => r.movieId))];
+    const movies = await this.prisma.movie.findMany({
+      where: { id: { in: movieIds } },
+      select: { id: true, title: true, slug: true, posterUrl: true },
+    });
+    const movieById = new Map(movies.map((m) => [m.id, m]));
+
+    return {
+      data: rows.map((r) => ({
+        bookingId: r.bookingId,
+        movieId: r.movieId,
+        sentAt: r.sentAt,
+        movie: movieById.get(r.movieId) ?? null,
+      })),
+    };
+  }
+
+  async dismissReviewPrompt(userId: string, bookingId: string) {
+    await this.prisma.postShowPrompt.updateMany({
+      where: { userId, bookingId, dismissedAt: null },
+      data: { dismissedAt: new Date() },
+    });
+    return { message: 'Dismissed' };
+  }
+
+  async listComments(targetType: CommunityTargetType, targetId: string) {
+    const items = await this.prisma.communityComment.findMany({
+      where: { targetType, targetId, isApproved: true },
+      orderBy: { createdAt: 'asc' },
+      include: { user: { select: { id: true, fullName: true, avatar: true } } },
+    });
+    return {
+      data: items.map((c) => ({
+        id: c.id,
+        userId: c.userId,
+        userName: c.user.fullName,
+        userAvatar: c.user.avatar ?? undefined,
+        content: c.content,
+        hasSpoiler: c.hasSpoiler,
+        createdAt: c.createdAt,
+      })),
+    };
+  }
+
+  async createComment(userId: string, dto: CreateCommentDto) {
+    if (dto.targetType === CommunityTargetType.REVIEW) {
+      const review = await this.prisma.review.findFirst({
+        where: { id: dto.targetId, isApproved: true },
+      });
+      if (!review) throw new NotFoundException('Review not found');
+    } else {
+      const post = await this.prisma.communityPost.findFirst({
+        where: { id: dto.targetId, isApproved: true },
+      });
+      if (!post) throw new NotFoundException('Post not found');
+    }
+
+    const comment = await this.prisma.communityComment.create({
+      data: {
+        userId,
+        targetType: dto.targetType,
+        targetId: dto.targetId,
+        content: dto.content.trim(),
+        hasSpoiler: dto.hasSpoiler ?? false,
+        isApproved: !containsProfanity(dto.content),
+      },
+      include: { user: { select: { id: true, fullName: true, avatar: true } } },
+    });
+
+    return {
+      id: comment.id,
+      userId: comment.userId,
+      userName: comment.user.fullName,
+      userAvatar: comment.user.avatar ?? undefined,
+      content: comment.content,
+      hasSpoiler: comment.hasSpoiler,
+      createdAt: comment.createdAt,
+    };
+  }
+
+  async createReport(userId: string, dto: CreateReportDto) {
+    try {
+      await this.prisma.contentReport.create({
+        data: {
+          reporterId: userId,
+          targetType: dto.targetType,
+          targetId: dto.targetId,
+          reason: dto.reason,
+          details: dto.details?.trim() || null,
+        },
+      });
+    } catch {
+      throw new ConflictException('You already reported this content');
+    }
+    return { message: 'Report submitted' };
   }
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -638,26 +842,38 @@ export class CommunityService {
     id: string;
     userId: string;
     movieId: string;
+    cinemaId?: string | null;
+    title?: string | null;
     rating: number;
     content: string;
+    tags?: unknown;
+    imageUrls?: unknown;
+    hasSpoiler?: boolean;
     isVerified: boolean;
     helpfulCount: number;
     createdAt: Date;
     user?: { id: string; fullName: string; avatar: string | null } | null;
     movie?: { id: string; title: string; slug: string; posterUrl: string } | null;
+    cinema?: { id: string; name: string; slug: string } | null;
   }) {
     return {
       id: r.id,
       userId: r.userId,
       movieId: r.movieId,
+      cinemaId: r.cinemaId ?? undefined,
+      title: r.title ?? undefined,
       rating: r.rating,
       content: r.content,
+      tags: Array.isArray(r.tags) ? r.tags : [],
+      imageUrls: Array.isArray(r.imageUrls) ? r.imageUrls : [],
+      hasSpoiler: r.hasSpoiler ?? false,
       isVerified: r.isVerified,
       helpfulCount: r.helpfulCount,
       createdAt: r.createdAt,
       userName: r.user?.fullName ?? 'User',
       userAvatar: r.user?.avatar ?? undefined,
       movie: r.movie,
+      cinema: r.cinema ?? undefined,
     };
   }
 
@@ -667,6 +883,7 @@ export class CommunityService {
     movieId: string | null;
     content: string;
     hashtags: unknown;
+    hasSpoiler?: boolean;
     type: CommunityPostType;
     pollOptions: unknown;
     likeCount: number;
@@ -679,6 +896,7 @@ export class CommunityService {
       userId: p.userId,
       content: p.content,
       hashtags: p.hashtags,
+      hasSpoiler: p.hasSpoiler ?? false,
       type: p.type,
       pollOptions: p.pollOptions,
       likeCount: p.likeCount,

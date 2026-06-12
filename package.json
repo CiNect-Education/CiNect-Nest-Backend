@@ -31,7 +31,12 @@
     "db:sync-home-banners": "node scripts/sync-home-banners.mjs",
     "db:sync-provinces": "ts-node scripts/sync-provinces.ts",
     "db:build-province-snapshot": "ts-node scripts/build-open-api-v1-snapshot.ts",
-    "db:sync-trailers": "node scripts/sync-movie-trailers.mjs",
+    "db:sync-trailers": "node --use-system-ca scripts/sync-movie-trailers.mjs",
+    "db:sync-movies": "node --use-system-ca scripts/sync-movies-from-chains.mjs",
+    "db:sync-showtimes": "node --use-system-ca scripts/sync-showtimes-from-chains.mjs",
+    "db:sync-showtimes:cached": "node --use-system-ca scripts/sync-showtimes-from-chains.mjs --use-cache",
+    "db:sync-cinestar-cinemas": "node --use-system-ca scripts/sync-cinestar-cinemas.mjs",
+    "db:dedupe-movies": "node --use-system-ca scripts/dedupe-movies.mjs",
     "media:build-movie-images": "node prisma/scripts/build-movie-wiki-images.mjs"
   },
   "dependencies": {

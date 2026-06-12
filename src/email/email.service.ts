@@ -150,4 +150,50 @@ export class EmailService {
       return false;
     }
   }
+
+  async sendReviewPromptEmail(input: {
+    to: string;
+    userName?: string | null;
+    movieTitle: string;
+    reviewPath: string;
+  }): Promise<boolean> {
+    const base = oauthFrontendBase(this.frontendUrl, this.defaultLocale);
+    const reviewUrl = `${base}${input.reviewPath.startsWith('/') ? input.reviewPath : `/${input.reviewPath}`}`;
+    const name = input.userName?.trim() || 'bạn';
+    const html = `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto">
+        <h2>Phim hay không, ${name}?</h2>
+        <p>Bạn vừa xem <strong>${input.movieTitle}</strong>. Chia sẻ cảm nhận để nhận điểm thưởng CiNect.</p>
+        <p><a href="${reviewUrl}" style="display:inline-block;background:#f3ea28;color:#111;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Viết review ngay</a></p>
+      </div>
+    `;
+
+    const apiKey = this.apiKey;
+    if (!apiKey) {
+      if (process.env.NODE_ENV !== 'production') {
+        this.logger.log(`[dev] Review prompt for ${input.to}: ${reviewUrl}`);
+      }
+      return false;
+    }
+
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: this.fromAddress,
+          to: [input.to],
+          subject: `Viết review "${input.movieTitle}" — nhận điểm CiNect`,
+          html,
+        }),
+      });
+      return response.ok;
+    } catch (err) {
+      this.logger.error(`Review prompt email failed: ${err instanceof Error ? err.message : err}`);
+      return false;
+    }
+  }
 }

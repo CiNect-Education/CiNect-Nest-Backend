@@ -1,202 +1,72 @@
 [
   {
-    "imdbId": "tt6263850",
-    "slug": "deadpool-wolverine",
-    "title": "Deadpool & Wolverine",
-    "originalTitle": "Deadpool & Wolverine",
-    "description": "Deadpool is offered a place in the Marvel Cinematic Universe by the Time Variance Authority, but instead recruits a variant of Wolverine to save his universe from extinction.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZTk5ODY0MmQtMzA3Ni00NGY1LThiYzItZThiNjFiNDM4MTM3XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZTk5ODY0MmQtMzA3Ni00NGY1LThiYzItZThiNjFiNDM4MTM3XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "73_1biulkYk",
-    "duration": 128,
-    "releaseDate": "2024-07-25",
-    "director": "Shawn Levy",
+    "imdbId": "tt13433802",
+    "slug": "a-quiet-place-day-one",
+    "title": "A Quiet Place: Day One",
+    "originalTitle": "A Quiet Place: Day One",
+    "description": "A young woman named Sam finds herself trapped in New York City during the early stages of an invasion by alien creatures with ultra-sensitive hearing.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMDdjZTljZWMtMDIwNi00MTA5LTkxZmItNmY0NDA3ZDM0N2M2XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMDdjZTljZWMtMDIwNi00MTA5LTkxZmItNmY0NDA3ZDM0N2M2XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "YPY7J-flzE8",
+    "duration": 99,
+    "releaseDate": "2024-06-27",
+    "director": "Michael Sarnoski",
     "castMembers": [
-      "Ryan Reynolds",
-      "Hugh Jackman",
-      "Emma Corrin"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 7.5,
-    "ratingCount": 125000,
-    "ageRating": "C16",
-    "formats": [
-      "2D",
-      "IMAX",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "action",
-      "comedy",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt22022452",
-    "slug": "inside-out-2",
-    "title": "Inside Out 2",
-    "originalTitle": "Inside Out 2",
-    "description": "A sequel that features Riley entering puberty and experiencing brand new, more complex emotions as a result. As Riley tries to adapt to her teenage years, her old emotions try to adapt to the possibility of being replaced.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYWY3MDE2Y2UtOTE3Zi00MGUzLTg2MTItZjE1ZWVkMGVlODRmXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BYWY3MDE2Y2UtOTE3Zi00MGUzLTg2MTItZjE1ZWVkMGVlODRmXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "LEjhY15eCx0",
-    "duration": 96,
-    "releaseDate": "2024-06-13",
-    "director": "Kelsey Mann",
-    "castMembers": [
-      "Amy Poehler",
-      "Maya Hawke",
-      "Kensington Tallman"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 7.5,
-    "ratingCount": 98000,
-    "ageRating": "P",
-    "formats": [
-      "2D",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "animation",
-      "comedy",
-      "drama"
-    ]
-  },
-  {
-    "imdbId": "tt15239678",
-    "slug": "dune-part-two",
-    "title": "Dune: Part Two",
-    "originalTitle": "Dune: Part Two",
-    "description": "Paul Atreides unites with the Fremen while on a warpath of revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the universe, he endeavors to prevent a terrible fu...",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTc0YmQxMjEtODI5MC00NjFiLTlkMWUtOGQ5NjFmYWUyZGJhXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTc0YmQxMjEtODI5MC00NjFiLTlkMWUtOGQ5NjFmYWUyZGJhXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "Way9Dexny3w",
-    "duration": 166,
-    "releaseDate": "2024-02-29",
-    "director": "Denis Villeneuve",
-    "castMembers": [
-      "Timothée Chalamet",
-      "Zendaya",
-      "Rebecca Ferguson"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 8.4,
-    "ratingCount": 210000,
-    "ageRating": "C13",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "sci-fi",
-      "adventure",
-      "drama"
-    ]
-  },
-  {
-    "imdbId": "tt14539740",
-    "slug": "godzilla-x-kong-the-new-empire",
-    "title": "Godzilla x Kong: The New Empire",
-    "originalTitle": "Godzilla x Kong: The New Empire",
-    "description": "Two ancient titans, Godzilla and Kong, clash in an epic battle as humans unravel their intertwined origins and connection to Skull Island's mysteries.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMTY0N2MzODctY2ExYy00OWYxLTkyNDItMTVhZGIxZjliZjU5XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMTY0N2MzODctY2ExYy00OWYxLTkyNDItMTVhZGIxZjliZjU5XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "lV1OOlGwExM",
-    "duration": 115,
-    "releaseDate": "2024-03-28",
-    "director": "Adam Wingard",
-    "castMembers": [
-      "Rebecca Hall",
-      "Brian Tyree Henry",
-      "Dan Stevens"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6,
-    "ratingCount": 89000,
-    "ageRating": "C13",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "action",
-      "sci-fi",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt21692408",
-    "slug": "kung-fu-panda-4",
-    "title": "Kung Fu Panda 4",
-    "originalTitle": "Kung Fu Panda 4",
-    "description": "After Po is tapped to become the Spiritual Leader of the Valley of Peace, he needs to find and train a new Dragon Warrior, while a wicked sorceress plans to re-summon all the master villains whom Po has vanquished to the spirit re...",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMzJlNGYxYzQtOTg4MC00OTMyLTkwYzMtZDRlNTgwY2YwOWYxXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMzJlNGYxYzQtOTg4MC00OTMyLTkwYzMtZDRlNTgwY2YwOWYxXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "_inKs4eeHiI",
-    "duration": 94,
-    "releaseDate": "2024-03-07",
-    "director": "Mike Mitchell, Stephanie Stine",
-    "castMembers": [
-      "Jack Black",
-      "Awkwafina",
-      "Viola Davis"
+      "Lupita Nyong'o",
+      "Joseph Quinn",
+      "Alex Wolff"
     ],
     "language": "English",
     "subtitles": "Vietnamese",
     "rating": 6.3,
-    "ratingCount": 76000,
-    "ageRating": "P",
-    "formats": [
-      "2D",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "animation",
-      "comedy",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt12037194",
-    "slug": "furiosa-a-mad-max-saga",
-    "title": "Furiosa: A Mad Max Saga",
-    "originalTitle": "Furiosa: A Mad Max Saga",
-    "description": "After being snatched from the Green Place of Many Mothers, while the tyrants Dementus and Immortan Joe fight for power and control, the young Furiosa must survive many trials as she puts together the means to find her way home.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTcwYWE1NTYtOWNiYy00NzY3LWIwY2MtNjJmZDkxNDNmOWE1XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTcwYWE1NTYtOWNiYy00NzY3LWIwY2MtNjJmZDkxNDNmOWE1XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "XJMuhwVlca4",
-    "duration": 148,
-    "releaseDate": "2024-05-23",
-    "director": "George Miller",
-    "castMembers": [
-      "Anya Taylor-Joy",
-      "Chris Hemsworth",
-      "Tom Burke"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 7.5,
-    "ratingCount": 112000,
-    "ageRating": "C18",
+    "ratingCount": 99000,
+    "ageRating": "C16",
     "formats": [
       "2D",
       "IMAX"
     ],
     "status": "NOW_SHOWING",
     "genreSlugs": [
-      "action",
-      "adventure",
-      "sci-fi"
-    ]
+      "horror",
+      "sci-fi",
+      "drama"
+    ],
+    "imdbRating": 6.3,
+    "metacriticScore": 68
+  },
+  {
+    "slug": "ac-quy-ma-so",
+    "title": "Ác Quỷ Ma Sơ",
+    "originalTitle": "Ác Quỷ Ma Sơ",
+    "description": "Lịch chiếu Ác Quỷ Ma Sơ và review phim Ác Quỷ Ma Sơ. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/69a5071e1acd2756788424.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/69a5071e1acd2756788424.jpg",
+    "trailerUrl": "qEFqQDq2SG4",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Joey De Guzman, Ian Loreños, Shugo Praico",
+    "castMembers": [
+      "Carla Abellana",
+      "Loisa Andalio",
+      "Janice De Belen"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
   },
   {
     "imdbId": "tt18412256",
@@ -229,817 +99,49 @@
       "horror",
       "sci-fi",
       "thriller"
-    ]
+    ],
+    "imdbRating": 7.1,
+    "metacriticScore": 64
   },
   {
-    "imdbId": "tt2049403",
-    "slug": "beetlejuice-beetlejuice",
-    "title": "Beetlejuice Beetlejuice",
-    "originalTitle": "Beetlejuice Beetlejuice",
-    "description": "After a family tragedy, three generations of the Deetz family return home to Winter River. Still haunted by Beetlejuice, Lydia's life is turned upside down when her teenage daughter, Astrid, accidentally opens the portal to the Af...",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTQ4Y2MzY2MtYzQyMS00ZTQ3LWIzZGQtNjVjYzgwYzA1MDkzXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTQ4Y2MzY2MtYzQyMS00ZTQ3LWIzZGQtNjVjYzgwYzA1MDkzXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "As-vKW4ZboU",
-    "duration": 105,
-    "releaseDate": "2024-09-05",
-    "director": "Tim Burton",
+    "slug": "anh-hung",
+    "title": "ANH HÙNG",
+    "originalTitle": "ANH HÙNG",
+    "description": "ANH HÙNG — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/04-2026/anhhung.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/04-2026/anhhung.jpg",
+    "trailerUrl": "m_uI6mrC_LQ",
+    "duration": 122,
+    "releaseDate": "2026-06-10",
+    "director": "Võ Thạch Thảo",
     "castMembers": [
-      "Michael Keaton",
-      "Winona Ryder",
-      "Catherine O'Hara"
+      "Thái Hoà",
+      "Võ Tấn Phát",
+      "Đoàn Thế Vinh",
+      "Phương Thanh",
+      "Hồng Ánh",
+      "NSƯT Lê Thiện",
+      "Hoàng Minh Triết",
+      "Gia Tuệ..."
     ],
     "language": "English",
     "subtitles": "Vietnamese",
-    "rating": 6.6,
-    "ratingCount": 67000,
+    "rating": 0,
+    "ratingCount": 0,
     "ageRating": "C13",
     "formats": [
       "2D"
     ],
     "status": "NOW_SHOWING",
     "genreSlugs": [
-      "comedy",
-      "fantasy",
-      "horror"
-    ]
-  },
-  {
-    "imdbId": "tt11315808",
-    "slug": "joker-folie-a-deux",
-    "title": "Joker: Folie à Deux",
-    "originalTitle": "Joker: Folie à Deux",
-    "description": "Struggling with his dual identity, failed comedian Arthur Fleck meets the love of his life, Harley Quinn, while incarcerated at Arkham State Hospital.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTRlNmU1NzEtODNkNC00ZGM3LWFmNzQtMjBlMWRiYTcyMGRhXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTRlNmU1NzEtODNkNC00ZGM3LWFmNzQtMjBlMWRiYTcyMGRhXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "_OKAwz2MsJs",
-    "duration": 138,
-    "releaseDate": "2024-10-03",
-    "director": "Todd Phillips",
-    "castMembers": [
-      "Joaquin Phoenix",
-      "Lady Gaga",
-      "Brendan Gleeson"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 5.2,
-    "ratingCount": 198000,
-    "ageRating": "C18",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "thriller",
-      "drama",
-      "romance"
-    ]
-  },
-  {
-    "imdbId": "tt16366836",
-    "slug": "venom-the-last-dance",
-    "title": "Venom: The Last Dance",
-    "originalTitle": "Venom: The Last Dance",
-    "description": "Eddie Brock and Venom must make a devastating decision as they're pursued by a mysterious military man and alien monsters from Venom's home world.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZDMyYWU4NzItZDY0MC00ODE2LTkyYTMtMzNkNDdmYmFhZDg0XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZDMyYWU4NzItZDY0MC00ODE2LTkyYTMtMzNkNDdmYmFhZDg0XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "HyIyd9joTTc",
-    "duration": 110,
-    "releaseDate": "2024-10-24",
-    "director": "Kelly Marcel",
-    "castMembers": [
-      "Tom Hardy",
-      "Chiwetel Ejiofor",
-      "Juno Temple"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6,
-    "ratingCount": 72000,
-    "ageRating": "C13",
-    "formats": [
-      "2D",
-      "IMAX",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "action",
-      "sci-fi",
-      "thriller"
-    ]
-  },
-  {
-    "imdbId": "tt9218128",
-    "slug": "gladiator-ii",
-    "title": "Gladiator II",
-    "originalTitle": "Gladiator II",
-    "description": "After his home is conquered by the tyrannical emperors who now lead Rome, Lucius is forced to enter the Colosseum and must look to his past to find strength to return the glory of Rome to its people.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMWYzZTM5ZGQtOGE5My00NmM2LWFlMDEtMGNjYjdmOWM1MzA1XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMWYzZTM5ZGQtOGE5My00NmM2LWFlMDEtMGNjYjdmOWM1MzA1XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "4rgYUipGJNo",
-    "duration": 148,
-    "releaseDate": "2024-11-21",
-    "director": "Ridley Scott",
-    "castMembers": [
-      "Paul Mescal",
-      "Denzel Washington",
-      "Pedro Pascal"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6.5,
-    "ratingCount": 134000,
-    "ageRating": "C16",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "action",
       "adventure",
-      "drama"
-    ]
-  },
-  {
-    "imdbId": "tt13622970",
-    "slug": "moana-2",
-    "title": "Moana 2",
-    "originalTitle": "Moana 2",
-    "description": "After receiving an unexpected call from her wayfinding ancestors, Moana must journey to the far seas of Oceania and into dangerous, long-lost waters for an adventure unlike anything she's ever faced.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZDUxNThhYTUtYjgxNy00MGQ4LTgzOTEtZjg1YTU5NTcwNThlXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZDUxNThhYTUtYjgxNy00MGQ4LTgzOTEtZjg1YTU5NTcwNThlXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "hDZ7y8RP5HE",
-    "duration": 100,
-    "releaseDate": "2024-11-26",
-    "director": "David G. Derrick Jr., Jason Hand, Dana Ledoux Miller",
-    "castMembers": [
-      "Auli'i Cravalho",
-      "Dwayne Johnson",
-      "Hualalai Chung"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6.3,
-    "ratingCount": 45000,
-    "ageRating": "P",
-    "formats": [
-      "2D",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "animation",
-      "adventure",
-      "comedy"
-    ]
-  },
-  {
-    "imdbId": "tt1262426",
-    "slug": "wicked",
-    "title": "Wicked",
-    "originalTitle": "Wicked",
-    "description": "Elphaba, a young woman ridiculed for her green skin, and Galinda, a popular girl, become friends at Shiz University in the Land of Oz. After an encounter with the Wonderful Wizard of Oz, their friendship reaches a crossroads.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOWMwYjYzYmMtMWQ2Ni00NWUwLTg2MzAtYzkzMDBiZDIwOTMwXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOWMwYjYzYmMtMWQ2Ni00NWUwLTg2MzAtYzkzMDBiZDIwOTMwXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "6COmYeLsz4c",
-    "duration": 160,
-    "releaseDate": "2024-11-21",
-    "director": "Jon M. Chu",
-    "castMembers": [
-      "Cynthia Erivo",
-      "Ariana Grande",
-      "Jeff Goldblum"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 7.4,
-    "ratingCount": 156000,
-    "ageRating": "P",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "fantasy",
-      "romance",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt18259086",
-    "slug": "sonic-the-hedgehog-3",
-    "title": "Sonic the Hedgehog 3",
-    "originalTitle": "Sonic the Hedgehog 3",
-    "description": "Sonic, Knuckles, and Tails reunite against a powerful new adversary, Shadow, a mysterious villain with powers unlike anything they have faced before. With their abilities outmatched, Team Sonic must seek out an unlikely alliance.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMjZjNjE5NDEtOWJjYS00Mjk2LWI1ZDYtOWI1ZWI3MzRjM2UzXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMjZjNjE5NDEtOWJjYS00Mjk2LWI1ZDYtOWI1ZWI3MzRjM2UzXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "qSu6i2iFMO0",
-    "duration": 110,
-    "releaseDate": "2024-12-19",
-    "director": "Jeff Fowler",
-    "castMembers": [
-      "Jim Carrey",
-      "Ben Schwartz",
-      "Keanu Reeves"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6.9,
-    "ratingCount": 41000,
-    "ageRating": "P",
-    "formats": [
-      "2D",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "action",
-      "comedy",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt8864596",
-    "slug": "transformers-one",
-    "title": "Transformers One",
-    "originalTitle": "Transformers One",
-    "description": "The untold origin story of Optimus Prime and Megatron, better known as sworn enemies, but who once were friends bonded like brothers who changed the fate of Cybertron forever.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZWI1ZDY1YTQtMjRkNy00ZDZhLWE3OTItMTIwNzliY2Y1MTZhXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZWI1ZDY1YTQtMjRkNy00ZDZhLWE3OTItMTIwNzliY2Y1MTZhXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "0rmJXXKDrsM",
-    "duration": 104,
-    "releaseDate": "2024-09-19",
-    "director": "Josh Cooley",
-    "castMembers": [
-      "Chris Hemsworth",
-      "Brian Tyree Henry",
-      "Scarlett Johansson"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 7.6,
-    "ratingCount": 52000,
-    "ageRating": "P",
-    "formats": [
-      "2D",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "animation",
-      "action",
       "sci-fi"
-    ]
-  },
-  {
-    "imdbId": "tt13186482",
-    "slug": "mufasa-the-lion-king",
-    "title": "Mufasa: The Lion King",
-    "originalTitle": "Mufasa: The Lion King",
-    "description": "Mufasa, a cub lost and alone, meets a sympathetic lion named Taka, the heir to a royal bloodline. The chance meeting sets in motion an expansive journey of a group of misfits searching for their destiny.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYjBkOWUwODYtYWI3YS00N2I0LWEyYTktOTJjM2YzOTc3ZDNlXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BYjBkOWUwODYtYWI3YS00N2I0LWEyYTktOTJjM2YzOTc3ZDNlXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "o17MF9vnabg",
-    "duration": 118,
-    "releaseDate": "2024-12-19",
-    "director": "Barry Jenkins",
-    "castMembers": [
-      "Aaron Pierre",
-      "Kelvin Harrison Jr.",
-      "Tiffany Boone"
     ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6.6,
-    "ratingCount": 38000,
-    "ageRating": "P",
-    "formats": [
-      "2D",
-      "3D"
+    "sources": [
+      "cinestar"
     ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "animation",
-      "adventure",
-      "drama"
-    ]
-  },
-  {
-    "imdbId": "tt4919268",
-    "slug": "bad-boys-ride-or-die",
-    "title": "Bad Boys: Ride or Die",
-    "originalTitle": "Bad Boys: Ride or Die",
-    "description": "When their late police captain gets linked to drug cartels, wisecracking Miami cops Mike Lowrey and Marcus Burnett embark on a dangerous mission to clear his name.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZWNjZWUwNDgtYTM4ZC00Zjk0LTg3ZWItNGEyZmVkZTIxZDk0XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZWNjZWUwNDgtYTM4ZC00Zjk0LTg3ZWItNGEyZmVkZTIxZDk0XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "hRFY_Fesa9Q",
-    "duration": 115,
-    "releaseDate": "2024-06-06",
-    "director": "Adil El Arbi, Bilall Fallah",
-    "castMembers": [
-      "Will Smith",
-      "Martin Lawrence",
-      "Vanessa Hudgens"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6.5,
-    "ratingCount": 88000,
-    "ageRating": "C16",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "action",
-      "comedy",
-      "thriller"
-    ]
-  },
-  {
-    "imdbId": "tt29623480",
-    "slug": "the-wild-robot",
-    "title": "The Wild Robot",
-    "originalTitle": "The Wild Robot",
-    "description": "After a shipwreck, an intelligent robot called Roz is stranded on an uninhabited island. To survive the harsh environment, Roz bonds with the island's animals and cares for an orphaned baby goose.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZWNiZjVlZTUtNGUwYi00MjJmLTg2MDctNWEzYTJiMzY1ODc4XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZWNiZjVlZTUtNGUwYi00MjJmLTg2MDctNWEzYTJiMzY1ODc4XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "67vbA5ZJdKQ",
-    "duration": 102,
-    "releaseDate": "2024-09-26",
-    "director": "Chris Sanders",
-    "castMembers": [
-      "Lupita Nyong'o",
-      "Pedro Pascal",
-      "Kit Connor"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 8.2,
-    "ratingCount": 62000,
-    "ageRating": "P",
-    "formats": [
-      "2D",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "animation",
-      "sci-fi",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt13433802",
-    "slug": "a-quiet-place-day-one",
-    "title": "A Quiet Place: Day One",
-    "originalTitle": "A Quiet Place: Day One",
-    "description": "A young woman named Sam finds herself trapped in New York City during the early stages of an invasion by alien creatures with ultra-sensitive hearing.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMDdjZTljZWMtMDIwNi00MTA5LTkxZmItNmY0NDA3ZDM0N2M2XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMDdjZTljZWMtMDIwNi00MTA5LTkxZmItNmY0NDA3ZDM0N2M2XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "YPY7J-flzE8",
-    "duration": 99,
-    "releaseDate": "2024-06-27",
-    "director": "Michael Sarnoski",
-    "castMembers": [
-      "Lupita Nyong'o",
-      "Joseph Quinn",
-      "Alex Wolff"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6.3,
-    "ratingCount": 99000,
-    "ageRating": "C16",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "horror",
-      "sci-fi",
-      "drama"
-    ]
-  },
-  {
-    "imdbId": "tt17279496",
-    "slug": "civil-war-2024",
-    "title": "Civil War",
-    "originalTitle": "Civil War",
-    "description": "In a dystopian future, four journalists travel across the United States during a nation-wide conflict. While trying to survive, they aim to reach the White House to interview the president before he is overthrown.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYTkzMjc0YzgtY2E0Yi00NDBlLWI0MWUtODY1ZjExMDAyOWZiXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BYTkzMjc0YzgtY2E0Yi00NDBlLWI0MWUtODY1ZjExMDAyOWZiXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "aDyQxtg0V2w",
-    "duration": 109,
-    "releaseDate": "2024-04-11",
-    "director": "Alex Garland",
-    "castMembers": [
-      "Kirsten Dunst",
-      "Wagner Moura",
-      "Cailee Spaeny"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 7,
-    "ratingCount": 121000,
-    "ageRating": "C18",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "action",
-      "thriller",
-      "drama"
-    ]
-  },
-  {
-    "imdbId": "tt11389872",
-    "slug": "kingdom-of-the-planet-of-the-apes",
-    "title": "Kingdom of the Planet of the Apes",
-    "originalTitle": "Kingdom of the Planet of the Apes",
-    "description": "Many years after the reign of Caesar, a young ape goes on a journey that will lead him to question everything he's been taught about the past and make choices that will define a future for apes and humans alike.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZDRlZTc3YTItOTk3Yi00NmU4LWFiOGUtNjgwMDZjNjIzNTU1XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZDRlZTc3YTItOTk3Yi00NmU4LWFiOGUtNjgwMDZjNjIzNTU1XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "XtFI7SNtVpY",
-    "duration": 145,
-    "releaseDate": "2024-05-09",
-    "director": "Wes Ball",
-    "castMembers": [
-      "Owen Teague",
-      "Freya Allan",
-      "Kevin Durand"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6.8,
-    "ratingCount": 77000,
-    "ageRating": "C13",
-    "formats": [
-      "2D",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "action",
-      "sci-fi",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt21235248",
-    "slug": "ghostbusters-frozen-empire",
-    "title": "Ghostbusters: Frozen Empire",
-    "originalTitle": "Ghostbusters: Frozen Empire",
-    "description": "When the discovery of an ancient artifact unleashes an evil force, Ghostbusters new and old must join forces to protect their home and save the world from a second ice age.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOWI5NGUyMzUtMGFiNi00ZTc3LTk1YTQtMDU0NGRjNGIxZTZmXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOWI5NGUyMzUtMGFiNi00ZTc3LTk1YTQtMDU0NGRjNGIxZTZmXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "HpOBXh02rVc",
-    "duration": 115,
-    "releaseDate": "2024-03-21",
-    "director": "Gil Kenan",
-    "castMembers": [
-      "Paul Rudd",
-      "Carrie Coon",
-      "Finn Wolfhard"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6.1,
-    "ratingCount": 54000,
-    "ageRating": "C13",
-    "formats": [
-      "2D",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "comedy",
-      "fantasy",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt8790086",
-    "slug": "kraven-the-hunter",
-    "title": "Kraven the Hunter",
-    "originalTitle": "Kraven the Hunter",
-    "description": "Kraven's complex relationship with his ruthless father, Nikolai Kravinoff, starts him down a path of vengeance with brutal consequences, motivating him to become not only the greatest hunter in the world, but also one of its most ...",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZDU0YTI5ODAtN2NmMS00YTg3LTgyNDItN2RmOWEzOTkzZjcyXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZDU0YTI5ODAtN2NmMS00YTg3LTgyNDItN2RmOWEzOTkzZjcyXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "I8gFw4-2RBM",
-    "duration": 127,
-    "releaseDate": "2024-12-12",
-    "director": "J.C. Chandor",
-    "castMembers": [
-      "Aaron Taylor-Johnson",
-      "Ariana DeBose",
-      "Fred Hechinger"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 5.5,
-    "ratingCount": 43000,
-    "ageRating": "C16",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "action",
-      "thriller",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt7510222",
-    "slug": "despicable-me-4",
-    "title": "Despicable Me 4",
-    "originalTitle": "Despicable Me 4",
-    "description": "Gru, Lucy, Margo, Edith, and Agnes welcome a new member to the family, Gru Jr., who is intent on tormenting his dad. Gru faces a new nemesis in Maxime Le Mal and his girlfriend Valentina, and the family is forced to go on the run.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNzY0ZTlhYzgtOTgzZC00ZTg2LTk4NTEtZDllM2E2NGE5Njg2XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNzY0ZTlhYzgtOTgzZC00ZTg2LTk4NTEtZDllM2E2NGE5Njg2XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "qQlr9-rF32A",
-    "duration": 94,
-    "releaseDate": "2024-07-02",
-    "director": "Chris Renaud, Patrick Delage",
-    "castMembers": [
-      "Steve Carell",
-      "Kristen Wiig",
-      "Pierre Coffin"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 6.2,
-    "ratingCount": 51000,
-    "ageRating": "P",
-    "formats": [
-      "2D",
-      "3D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "animation",
-      "comedy",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt31174028",
-    "slug": "mai-2024",
-    "title": "Mai",
-    "originalTitle": "Mai",
-    "description": "Restlessly haunted by the past, Mai is greeted by a new dawn when she reluctantly befriends the neighborhood ladies' man. But when her yesterday catches up to her today, what will become of her tomorrow?",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTgwNDBhOGItNTIxZC00ZjMzLWFhZTYtOGNiM2MzYWViMWUwXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTgwNDBhOGItNTIxZC00ZjMzLWFhZTYtOGNiM2MzYWViMWUwXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "EX6clvId19s",
-    "duration": 131,
-    "releaseDate": "2024-02-09",
-    "director": "Tran Thanh",
-    "castMembers": [
-      "Huynh Uyen An",
-      "Hong Dao",
-      "Phuong Anh Dao"
-    ],
-    "language": "Vietnamese",
-    "subtitles": null,
-    "rating": 6.8,
-    "ratingCount": 34000,
-    "ageRating": "C16",
-    "formats": [
-      "2D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "romance",
-      "drama"
-    ]
-  },
-  {
-    "imdbId": "tt32229497",
-    "slug": "lat-mat-7-mot-dieu-uoc",
-    "title": "Face Off 7: One Wish",
-    "originalTitle": "Face Off 7: One Wish",
-    "description": "When a 73-year-old widow is forced to depend on the care of her 5 busy adult children after an injury, she begins to question the meaning of family love.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMGY2MWU4YTUtMTUxMi00NTk5LWI3ODQtZDZkNzIxNWU0MjgxXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMGY2MWU4YTUtMTUxMi00NTk5LWI3ODQtZDZkNzIxNWU0MjgxXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "rs0q0dG2dC8",
-    "duration": 138,
-    "releaseDate": "2024-04-25",
-    "director": "Ly Hai",
-    "castMembers": [
-      "Tram Anh",
-      "Truong Minh Cuong",
-      "Ceri Thu Ha"
-    ],
-    "language": "Vietnamese",
-    "subtitles": null,
-    "rating": 7.3,
-    "ratingCount": 28000,
-    "ageRating": "C13",
-    "formats": [
-      "2D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "drama",
-      "comedy"
-    ]
-  },
-  {
-    "imdbId": "tt33996602",
-    "slug": "bo-tu-bao-thu",
-    "title": "The 4 Rascals",
-    "originalTitle": "The 4 Rascals",
-    "description": "The 4 rascals decide to take matters into their own hands and plot their own plan to \"solve\" a love triangle.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTQ5YjZiNTgtZmY1Ny00NzIxLTkyNGEtZjhiNjA0ZTAyNTg0XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTQ5YjZiNTgtZmY1Ny00NzIxLTkyNGEtZjhiNjA0ZTAyNTg0XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "5XkPSahQSfk",
-    "duration": 132,
-    "releaseDate": "2025-01-28",
-    "director": "Tran Thanh",
-    "castMembers": [
-      "Tran Thanh",
-      "Le Giang",
-      "Le Duong Bao Lam"
-    ],
-    "language": "Vietnamese",
-    "subtitles": null,
-    "rating": 5.5,
-    "ratingCount": 12000,
-    "ageRating": "C16",
-    "formats": [
-      "2D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "comedy",
-      "romance",
-      "drama"
-    ]
-  },
-  {
-    "imdbId": "tt34268350",
-    "slug": "dia-dao-mat-troi-trong-bong-toi",
-    "title": "Tunnel",
-    "originalTitle": "Tunnel",
-    "description": "In 1967, as the Vietnam War raged, a Vietnamese revolutionary guerrilla team became the U.S. military's top target - charged with safeguarding a secret group of intelligence agents at all costs.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNzQzYzNkNjMtZGExNy00OTliLWFiYjgtYTc4MGFiZGY4YmJkXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNzQzYzNkNjMtZGExNy00OTliLWFiYjgtYTc4MGFiZGY4YmJkXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "5QzDfErXOps",
-    "duration": 128,
-    "releaseDate": "2025-04-03",
-    "director": "Bùi Thac Chuyên",
-    "castMembers": [
-      "Ngoc Chi Bao",
-      "John Bourdon",
-      "Damien Cole"
-    ],
-    "language": "Vietnamese",
-    "subtitles": null,
-    "rating": 7.4,
-    "ratingCount": 22000,
-    "ageRating": "C16",
-    "formats": [
-      "2D",
-      "IMAX"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "drama",
-      "thriller",
-      "action"
-    ]
-  },
-  {
-    "imdbId": "tt31647306",
-    "slug": "lam-giau-voi-ma",
-    "title": "Betting with Ghost",
-    "originalTitle": "Betting with Ghost",
-    "description": "Centers on a man who becomes a 'God of Gamblers' suddenly with the help of the Ghost.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNWU0OGNmZmEtNmU1Yi00MzdlLTkwNDItMWRlZTZiZTM2ZTUxXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNWU0OGNmZmEtNmU1Yi00MzdlLTkwNDItMWRlZTZiZTM2ZTUxXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "oI_KXqqV5Yo",
-    "duration": 120,
-    "releaseDate": "2024-09-01",
-    "director": "Nguyen Nhat Trung",
-    "castMembers": [
-      "Tuan Tran"
-    ],
-    "language": "Vietnamese",
-    "subtitles": null,
-    "rating": 0,
-    "ratingCount": 9000,
-    "ageRating": "C16",
-    "formats": [
-      "2D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "comedy",
-      "horror"
-    ]
-  },
-  {
-    "imdbId": "tt32740311",
-    "slug": "ma-da-the-drowning-spirit",
-    "title": "Ma Da: The Drowning Spirit",
-    "originalTitle": "Ma Da: The Drowning Spirit",
-    "description": "Corpse collector Le confronts MA DA - the vengeful drowning spirit, after it abducts her daughter. Determined to save her child, Mrs. Le embarks on a desperate rescue to prevent her child's ghostly fate beneath the Mekong River.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMGRkMDNkNmEtNDIxNi00Njg2LWJkYTMtNmNlNTM1NjljY2EzXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMGRkMDNkNmEtNDIxNi00Njg2LWJkYTMtNmNlNTM1NjljY2EzXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "ocWpaBmLy3I",
-    "duration": 90,
-    "releaseDate": "2024-08-15",
-    "director": "Nguyen Huu Hoang",
-    "castMembers": [
-      "Da Chuc",
-      "Trung Dan",
-      "Dieu Duc"
-    ],
-    "language": "Vietnamese",
-    "subtitles": null,
-    "rating": 5,
-    "ratingCount": 8000,
-    "ageRating": "C18",
-    "formats": [
-      "2D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "horror",
-      "thriller"
-    ]
-  },
-  {
-    "imdbId": "tt30611573",
-    "slug": "quy-cau",
-    "title": "Quy Cau",
-    "originalTitle": "Quy Cau",
-    "description": "The return of Nam and his girlfriend Xuan brings countless troubles to the family. He gradually discovers the broken relationships of the family members.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOGUxMDE5ZGQtODgyZS00NWZmLWFjZDEtOGM1YmVmOTViMzkyXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOGUxMDE5ZGQtODgyZS00NWZmLWFjZDEtOGM1YmVmOTViMzkyXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "Y00GJIeAJ0w",
-    "duration": 99,
-    "releaseDate": "2023-12-21",
-    "director": "Luu Thanh Luan",
-    "castMembers": [
-      "Vân Dung",
-      "Mie",
-      "Hanh Thuy Ngo Pham"
-    ],
-    "language": "Vietnamese",
-    "subtitles": null,
-    "rating": 5.2,
-    "ratingCount": 7000,
-    "ageRating": "C16",
-    "formats": [
-      "2D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "horror",
-      "thriller"
-    ]
-  },
-  {
-    "imdbId": "tt31438076",
-    "slug": "dao-pho-va-piano",
-    "title": "Dao, Pho Va Piano",
-    "originalTitle": "Dao, Pho Va Piano",
-    "description": "In 1946 Hanoi battle, a Hanoian fighter hides at pho vendors' homes to retrieve arms from French soldiers, offering pho as a bargain for chives.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOWIxOWUxNzktMWY5OS00M2NkLThiY2UtNGFkNTY0YzNkYzZjXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOWIxOWUxNzktMWY5OS00M2NkLThiY2UtNGFkNTY0YzNkYzZjXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "I6w05kvf3uM",
-    "duration": 100,
-    "releaseDate": "2024-11-16",
-    "director": "Phi Tien Son",
-    "castMembers": [
-      "Doan Quoc Dam",
-      "Tuan Hung",
-      "Cao Thi Thuy Linh"
-    ],
-    "language": "Vietnamese",
-    "subtitles": null,
-    "rating": 0,
-    "ratingCount": 6000,
-    "ageRating": "C13",
-    "formats": [
-      "2D"
-    ],
-    "status": "NOW_SHOWING",
-    "genreSlugs": [
-      "drama",
-      "romance"
-    ]
+    "imdbRating": null,
+    "metacriticScore": null
   },
   {
     "imdbId": "tt1757678",
@@ -1073,30 +175,66 @@
       "sci-fi",
       "adventure",
       "fantasy"
-    ]
+    ],
+    "imdbRating": 7.3,
+    "metacriticScore": 61
   },
   {
-    "imdbId": "tt10676052",
-    "slug": "fantastic-four-first-steps",
-    "title": "The Fantastic Four: First Steps",
-    "originalTitle": "The Fantastic Four: First Steps",
-    "description": "Forced to balance their roles as heroes with the strength of their family bond, the Fantastic Four must defend Earth from a ravenous space god called Galactus and his enigmatic herald, the Silver Surfer.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOGM5MzA3MDAtYmEwMi00ZDNiLTg4MDgtMTZjOTc0ZGMyNTIwXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOGM5MzA3MDAtYmEwMi00ZDNiLTg4MDgtMTZjOTc0ZGMyNTIwXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "18QQWa5MEcs",
-    "duration": 115,
-    "releaseDate": "2025-07-24",
-    "director": "Matt Shakman",
+    "slug": "ba-tron",
+    "title": "Ba Trợn",
+    "originalTitle": "Ba Trợn",
+    "description": "Lịch chiếu Ba Trợn và review phim Ba Trợn. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a007f6511848517849116.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a007f6511848517849116.jpg",
+    "trailerUrl": "3WqDcZau9KI",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Damian Mc Carthy",
     "castMembers": [
-      "Pedro Pascal",
-      "Vanessa Kirby",
-      "Ebon Moss-Bachrach"
+      "Adam Scott",
+      "Peter Coonan",
+      "David Wilmot"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt4919268",
+    "slug": "bad-boys-ride-or-die",
+    "title": "Bad Boys: Ride or Die",
+    "originalTitle": "Bad Boys: Ride or Die",
+    "description": "When their late police captain gets linked to drug cartels, wisecracking Miami cops Mike Lowrey and Marcus Burnett embark on a dangerous mission to clear his name.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZWNjZWUwNDgtYTM4ZC00Zjk0LTg3ZWItNGEyZmVkZTIxZDk0XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZWNjZWUwNDgtYTM4ZC00Zjk0LTg3ZWItNGEyZmVkZTIxZDk0XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "hRFY_Fesa9Q",
+    "duration": 115,
+    "releaseDate": "2024-06-06",
+    "director": "Adil El Arbi, Bilall Fallah",
+    "castMembers": [
+      "Will Smith",
+      "Martin Lawrence",
+      "Vanessa Hudgens"
     ],
     "language": "English",
     "subtitles": "Vietnamese",
-    "rating": 6.8,
-    "ratingCount": 0,
-    "ageRating": "C13",
+    "rating": 6.5,
+    "ratingCount": 88000,
+    "ageRating": "C16",
     "formats": [
       "2D",
       "IMAX"
@@ -1104,32 +242,200 @@
     "status": "NOW_SHOWING",
     "genreSlugs": [
       "action",
-      "sci-fi",
-      "adventure"
-    ]
+      "comedy",
+      "thriller"
+    ],
+    "imdbRating": 6.5,
+    "metacriticScore": 54
   },
   {
-    "imdbId": "tt9603208",
-    "slug": "mission-impossible-the-final-reckoning",
-    "title": "Mission: Impossible - The Final Reckoning",
-    "originalTitle": "Mission: Impossible - The Final Reckoning",
-    "description": "Hunt and the IMF pursue a dangerous AI called the Entity that's infiltrated global intelligence. With governments and a figure from his past in pursuit, Hunt races to stop it from forever changing the world.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZGQ5NGEyYTItMjNiMi00Y2EwLTkzOWItMjc5YjJiMjMyNTI0XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZGQ5NGEyYTItMjNiMi00Y2EwLTkzOWItMjc5YjJiMjMyNTI0XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "fsQgc9pCyDU",
-    "duration": 169,
-    "releaseDate": "2025-05-22",
-    "director": "Christopher McQuarrie",
+    "slug": "bai-trung-pha-an",
+    "title": "Bài Trùng Phá Án",
+    "originalTitle": "Bài Trùng Phá Án",
+    "description": "Lịch chiếu Bài Trùng Phá Án và review phim Bài Trùng Phá Án. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a02da0a9cbee303795842.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a02da0a9cbee303795842.jpg",
+    "trailerUrl": "gaXNhfmV6F0",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "PARK Chul-hwan",
     "castMembers": [
-      "Tom Cruise",
-      "Hayley Atwell",
-      "Ving Rhames"
+      "BAE Seong-woo",
+      "JUNG Ga-ram",
+      "E Som",
+      "CHO Han-cheul",
+      "YOON Kyung-ho"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "comedy",
+      "action"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "bay-xac-song",
+    "title": "Bầy Xác Sống",
+    "originalTitle": "Bầy Xác Sống",
+    "description": "Lịch chiếu Bầy Xác Sống và review phim Bầy Xác Sống. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0e894203601842920498.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0e894203601842920498.jpg",
+    "trailerUrl": "mY0J7ttDUH4",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Yeon Sang-ho",
+    "castMembers": [
+      "Jun Ji-hyun",
+      "Ji Chang-wook và Koo Kyo-hwan"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror",
+      "action"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt2049403",
+    "slug": "beetlejuice-beetlejuice",
+    "title": "Beetlejuice Beetlejuice",
+    "originalTitle": "Beetlejuice Beetlejuice",
+    "description": "After a family tragedy, three generations of the Deetz family return home to Winter River. Still haunted by Beetlejuice, Lydia's life is turned upside down when her teenage daughter, Astrid, accidentally opens the portal to the Af...",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTQ4Y2MzY2MtYzQyMS00ZTQ3LWIzZGQtNjVjYzgwYzA1MDkzXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTQ4Y2MzY2MtYzQyMS00ZTQ3LWIzZGQtNjVjYzgwYzA1MDkzXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "As-vKW4ZboU",
+    "duration": 105,
+    "releaseDate": "2024-09-05",
+    "director": "Tim Burton",
+    "castMembers": [
+      "Michael Keaton",
+      "Winona Ryder",
+      "Catherine O'Hara"
     ],
     "language": "English",
     "subtitles": "Vietnamese",
-    "rating": 7.2,
-    "ratingCount": 0,
+    "rating": 6.6,
+    "ratingCount": 67000,
     "ageRating": "C13",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "comedy",
+      "fantasy",
+      "horror"
+    ],
+    "imdbRating": 6.6,
+    "metacriticScore": 62
+  },
+  {
+    "imdbId": "tt31647306",
+    "slug": "lam-giau-voi-ma",
+    "title": "Betting with Ghost",
+    "originalTitle": "Betting with Ghost",
+    "description": "Centers on a man who becomes a 'God of Gamblers' suddenly with the help of the Ghost.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNWU0OGNmZmEtNmU1Yi00MzdlLTkwNDItMWRlZTZiZTM2ZTUxXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNWU0OGNmZmEtNmU1Yi00MzdlLTkwNDItMWRlZTZiZTM2ZTUxXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "oI_KXqqV5Yo",
+    "duration": 120,
+    "releaseDate": "2024-09-01",
+    "director": "Nguyen Nhat Trung",
+    "castMembers": [
+      "Tuan Tran"
+    ],
+    "language": "Vietnamese",
+    "subtitles": null,
+    "rating": 0,
+    "ratingCount": 9000,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "comedy",
+      "horror"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "bong-ma-nha-hat",
+    "title": "Bóng Ma Nhà Hát",
+    "originalTitle": "Bóng Ma Nhà Hát",
+    "description": "Lịch chiếu Bóng Ma Nhà Hát và review phim Bóng Ma Nhà Hát. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/bundles/ornweb/img/facebook-share.png",
+    "bannerUrl": "https://cdn.moveek.com/bundles/ornweb/img/facebook-share.png",
+    "trailerUrl": "APBB-zfYFGw",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt17279496",
+    "slug": "civil-war-2024",
+    "title": "Civil War",
+    "originalTitle": "Civil War",
+    "description": "In a dystopian future, four journalists travel across the United States during a nation-wide conflict. While trying to survive, they aim to reach the White House to interview the president before he is overthrown.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYTkzMjc0YzgtY2E0Yi00NDBlLWI0MWUtODY1ZjExMDAyOWZiXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BYTkzMjc0YzgtY2E0Yi00NDBlLWI0MWUtODY1ZjExMDAyOWZiXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "aDyQxtg0V2w",
+    "duration": 109,
+    "releaseDate": "2024-04-11",
+    "director": "Alex Garland",
+    "castMembers": [
+      "Kirsten Dunst",
+      "Wagner Moura",
+      "Cailee Spaeny"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 7,
+    "ratingCount": 121000,
+    "ageRating": "C18",
     "formats": [
       "2D",
       "IMAX"
@@ -1138,30 +444,196 @@
     "genreSlugs": [
       "action",
       "thriller",
-      "adventure"
-    ]
+      "drama"
+    ],
+    "imdbRating": 7,
+    "metacriticScore": 75
   },
   {
-    "imdbId": "tt5950044",
-    "slug": "superman-2025",
-    "title": "Superman",
-    "originalTitle": "Superman",
-    "description": "Superman must reconcile his alien Kryptonian heritage with his human upbringing as reporter Clark Kent. As the embodiment of truth, justice and the American way he soon finds himself in a world that views these as old-fashioned.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOGMwZGJiM2EtMzEwZC00YTYzLWIxNzYtMmJmZWNlZjgxZTMwXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOGMwZGJiM2EtMzEwZC00YTYzLWIxNzYtMmJmZWNlZjgxZTMwXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "Ox8ZLF6cGM0",
-    "duration": 129,
-    "releaseDate": "2025-07-10",
-    "director": "James Gunn",
+    "imdbId": "tt31438076",
+    "slug": "dao-pho-va-piano",
+    "title": "Dao, Pho Va Piano",
+    "originalTitle": "Dao, Pho Va Piano",
+    "description": "In 1946 Hanoi battle, a Hanoian fighter hides at pho vendors' homes to retrieve arms from French soldiers, offering pho as a bargain for chives.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOWIxOWUxNzktMWY5OS00M2NkLThiY2UtNGFkNTY0YzNkYzZjXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOWIxOWUxNzktMWY5OS00M2NkLThiY2UtNGFkNTY0YzNkYzZjXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "I6w05kvf3uM",
+    "duration": 100,
+    "releaseDate": "2024-11-16",
+    "director": "Phi Tien Son",
     "castMembers": [
-      "David Corenswet",
-      "Rachel Brosnahan",
-      "Nicholas Hoult"
+      "Doan Quoc Dam",
+      "Tuan Hung",
+      "Cao Thi Thuy Linh"
+    ],
+    "language": "Vietnamese",
+    "subtitles": null,
+    "rating": 0,
+    "ratingCount": 6000,
+    "ageRating": "C13",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama",
+      "romance"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt6263850",
+    "slug": "deadpool-wolverine",
+    "title": "Deadpool & Wolverine",
+    "originalTitle": "Deadpool & Wolverine",
+    "description": "Deadpool is offered a place in the Marvel Cinematic Universe by the Time Variance Authority, but instead recruits a variant of Wolverine to save his universe from extinction.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZTk5ODY0MmQtMzA3Ni00NGY1LThiYzItZThiNjFiNDM4MTM3XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZTk5ODY0MmQtMzA3Ni00NGY1LThiYzItZThiNjFiNDM4MTM3XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "73_1biulkYk",
+    "duration": 128,
+    "releaseDate": "2024-07-25",
+    "director": "Shawn Levy",
+    "castMembers": [
+      "Ryan Reynolds",
+      "Hugh Jackman",
+      "Emma Corrin"
     ],
     "language": "English",
     "subtitles": "Vietnamese",
-    "rating": 7,
+    "rating": 7.5,
+    "ratingCount": 125000,
+    "ageRating": "C16",
+    "formats": [
+      "2D",
+      "IMAX",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "comedy",
+      "adventure"
+    ],
+    "imdbRating": 7.5,
+    "metacriticScore": 56
+  },
+  {
+    "imdbId": "tt7510222",
+    "slug": "despicable-me-4",
+    "title": "Despicable Me 4",
+    "originalTitle": "Despicable Me 4",
+    "description": "Gru, Lucy, Margo, Edith, and Agnes welcome a new member to the family, Gru Jr., who is intent on tormenting his dad. Gru faces a new nemesis in Maxime Le Mal and his girlfriend Valentina, and the family is forced to go on the run.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNzY0ZTlhYzgtOTgzZC00ZTg2LTk4NTEtZDllM2E2NGE5Njg2XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNzY0ZTlhYzgtOTgzZC00ZTg2LTk4NTEtZDllM2E2NGE5Njg2XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "qQlr9-rF32A",
+    "duration": 94,
+    "releaseDate": "2024-07-02",
+    "director": "Chris Renaud, Patrick Delage",
+    "castMembers": [
+      "Steve Carell",
+      "Kristen Wiig",
+      "Pierre Coffin"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 6.2,
+    "ratingCount": 51000,
+    "ageRating": "P",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "animation",
+      "comedy",
+      "adventure"
+    ],
+    "imdbRating": 6.2,
+    "metacriticScore": 52
+  },
+  {
+    "slug": "doi-tham-tu-cuu-an-mang-luc-nua-dem",
+    "title": "Đội Thám Tử Cừu: Án Mạng Lúc Nửa Đêm",
+    "originalTitle": "Đội Thám Tử Cừu: Án Mạng Lúc Nửa Đêm",
+    "description": "Lịch chiếu Đội Thám Tử Cừu: Án Mạng Lúc Nửa Đêm và review phim Đội Thám Tử Cừu: Án Mạng Lúc Nửa Đêm. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/69d8633a221b7008257757.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/69d8633a221b7008257757.jpg",
+    "trailerUrl": "D-PLV0zK_Vg",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
     "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "doraemon-movie-45-2026-nobita-va-lau-dai-duoi-day-bien",
+    "title": "Doraemon Movie 45 (2026): Nobita Và Lâu Đài Dưới Đáy Biển",
+    "originalTitle": "Doraemon Movie 45 (2026): Nobita Và Lâu Đài Dưới Đáy Biển",
+    "description": "Lịch chiếu Doraemon Movie 45 (2026): Nobita Và Lâu Đài Dưới Đáy Biển và review phim Doraemon Movie 45 (2026): Nobita Và Lâu Đài Dưới Đáy Biển. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/694394ad7e98f155578211.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/694394ad7e98f155578211.jpg",
+    "trailerUrl": "2Ox6aYmhxvw",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt15239678",
+    "slug": "dune-part-two",
+    "title": "Dune: Part Two",
+    "originalTitle": "Dune: Part Two",
+    "description": "Paul Atreides unites with the Fremen while on a warpath of revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the universe, he endeavors to prevent a terrible fu...",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTc0YmQxMjEtODI5MC00NjFiLTlkMWUtOGQ5NjFmYWUyZGJhXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTc0YmQxMjEtODI5MC00NjFiLTlkMWUtOGQ5NjFmYWUyZGJhXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "Way9Dexny3w",
+    "duration": 166,
+    "releaseDate": "2024-02-29",
+    "director": "Denis Villeneuve",
+    "castMembers": [
+      "Timothée Chalamet",
+      "Zendaya",
+      "Rebecca Ferguson"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 8.4,
+    "ratingCount": 210000,
     "ageRating": "C13",
     "formats": [
       "2D",
@@ -1169,33 +641,98 @@
     ],
     "status": "NOW_SHOWING",
     "genreSlugs": [
-      "action",
       "sci-fi",
-      "adventure"
-    ]
+      "adventure",
+      "drama"
+    ],
+    "imdbRating": 8.4,
+    "metacriticScore": 79
   },
   {
-    "imdbId": "tt20969586",
-    "slug": "thunderbolts",
-    "title": "Thunderbolts*",
-    "originalTitle": "Thunderbolts*",
-    "description": "After finding themselves ensnared in a death trap, an unconventional team of antiheroes must go on a dangerous mission that will force them to confront the darkest corners of their pasts.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYWE2NmNmYTItZGY0ZC00MmY2LTk1NDAtMGUyMGEzMjcxNWM0XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BYWE2NmNmYTItZGY0ZC00MmY2LTk1NDAtMGUyMGEzMjcxNWM0XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "hUUszE29jS0",
-    "duration": 127,
-    "releaseDate": "2025-05-01",
-    "director": "Jake Schreier",
+    "slug": "duoi-bong-dien-ha",
+    "title": "Dưới Bóng Điện Hạ",
+    "originalTitle": "Dưới Bóng Điện Hạ",
+    "description": "Lịch chiếu Dưới Bóng Điện Hạ và review phim Dưới Bóng Điện Hạ. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/69c2059a65dea320689939.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/69c2059a65dea320689939.jpg",
+    "trailerUrl": "M4wgGvuH23I",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt32229497",
+    "slug": "lat-mat-7-mot-dieu-uoc",
+    "title": "Face Off 7: One Wish",
+    "originalTitle": "Face Off 7: One Wish",
+    "description": "When a 73-year-old widow is forced to depend on the care of her 5 busy adult children after an injury, she begins to question the meaning of family love.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMGY2MWU4YTUtMTUxMi00NTk5LWI3ODQtZDZkNzIxNWU0MjgxXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMGY2MWU4YTUtMTUxMi00NTk5LWI3ODQtZDZkNzIxNWU0MjgxXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "rs0q0dG2dC8",
+    "duration": 138,
+    "releaseDate": "2024-04-25",
+    "director": "Ly Hai",
     "castMembers": [
-      "Florence Pugh",
-      "Sebastian Stan",
-      "Julia Louis-Dreyfus"
+      "Tram Anh",
+      "Truong Minh Cuong",
+      "Ceri Thu Ha"
+    ],
+    "language": "Vietnamese",
+    "subtitles": null,
+    "rating": 7.3,
+    "ratingCount": 28000,
+    "ageRating": "C13",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama",
+      "comedy"
+    ],
+    "imdbRating": 7.3,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt12037194",
+    "slug": "furiosa-a-mad-max-saga",
+    "title": "Furiosa: A Mad Max Saga",
+    "originalTitle": "Furiosa: A Mad Max Saga",
+    "description": "After being snatched from the Green Place of Many Mothers, while the tyrants Dementus and Immortan Joe fight for power and control, the young Furiosa must survive many trials as she puts together the means to find her way home.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTcwYWE1NTYtOWNiYy00NzY3LWIwY2MtNjJmZDkxNDNmOWE1XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTcwYWE1NTYtOWNiYy00NzY3LWIwY2MtNjJmZDkxNDNmOWE1XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "XJMuhwVlca4",
+    "duration": 148,
+    "releaseDate": "2024-05-23",
+    "director": "George Miller",
+    "castMembers": [
+      "Anya Taylor-Joy",
+      "Chris Hemsworth",
+      "Tom Burke"
     ],
     "language": "English",
     "subtitles": "Vietnamese",
-    "rating": 7.1,
-    "ratingCount": 0,
-    "ageRating": "C13",
+    "rating": 7.5,
+    "ratingCount": 112000,
+    "ageRating": "C18",
     "formats": [
       "2D",
       "IMAX"
@@ -1204,97 +741,132 @@
     "genreSlugs": [
       "action",
       "adventure",
-      "thriller"
-    ]
+      "sci-fi"
+    ],
+    "imdbRating": 7.5,
+    "metacriticScore": 79
   },
   {
-    "imdbId": "tt19850008",
-    "slug": "the-batman-part-ii",
-    "title": "The Batman: Part II",
-    "originalTitle": "The Batman: Part II",
-    "description": "Except for the bat signal in the final shot of \"The Penguin,\" we never got our Robert Pattinson Batman cameo in 8 episodes charting Oz Cobb's brutal rise from mafia chauffeur to Gotham City crime boss. In this short explainer, IMDb tries to answer: Where the heck was Batman? And what can we expect from director Matt Reeves's 'The Batman: Part II' (2026).",
-    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/f/ff/The_Batman_%28film%29_poster.jpg",
-    "bannerUrl": "https://upload.wikimedia.org/wikipedia/en/b/b0/Robert_Pattinson_Test_Footage_for_The_Batman_%28film%29.jpeg",
-    "trailerUrl": "T7_zMl_ZhdQ",
-    "duration": 120,
-    "releaseDate": "2027-09-30",
-    "director": "Matt Reeves",
+    "imdbId": "tt21235248",
+    "slug": "ghostbusters-frozen-empire",
+    "title": "Ghostbusters: Frozen Empire",
+    "originalTitle": "Ghostbusters: Frozen Empire",
+    "description": "When the discovery of an ancient artifact unleashes an evil force, Ghostbusters new and old must join forces to protect their home and save the world from a second ice age.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOWI5NGUyMzUtMGFiNi00ZTc3LTk1YTQtMDU0NGRjNGIxZTZmXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOWI5NGUyMzUtMGFiNi00ZTc3LTk1YTQtMDU0NGRjNGIxZTZmXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "HpOBXh02rVc",
+    "duration": 115,
+    "releaseDate": "2024-03-21",
+    "director": "Gil Kenan",
     "castMembers": [
-      "Robert Pattinson",
-      "Colin Farrell",
-      "Andy Serkis"
+      "Paul Rudd",
+      "Carrie Coon",
+      "Finn Wolfhard"
     ],
     "language": "English",
     "subtitles": "Vietnamese",
+    "rating": 6.1,
+    "ratingCount": 54000,
+    "ageRating": "C13",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "comedy",
+      "fantasy",
+      "adventure"
+    ],
+    "imdbRating": 6.1,
+    "metacriticScore": 46
+  },
+  {
+    "slug": "gintama-the-movie-2026-yoshiwara-trong-bien-lua",
+    "title": "Gintama The Movie 2026: Yoshiwara Trong Biển Lửa",
+    "originalTitle": "Gintama The Movie 2026: Yoshiwara Trong Biển Lửa",
+    "description": "Lịch chiếu Gintama The Movie 2026: Yoshiwara Trong Biển Lửa và review phim Gintama The Movie 2026: Yoshiwara Trong Biển Lửa. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a1cf13d49220455913882.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a1cf13d49220455913882.jpg",
+    "trailerUrl": "5J5XI01XjeI",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
     "rating": 0,
     "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt9218128",
+    "slug": "gladiator-ii",
+    "title": "Gladiator II",
+    "originalTitle": "Gladiator II",
+    "description": "After his home is conquered by the tyrannical emperors who now lead Rome, Lucius is forced to enter the Colosseum and must look to his past to find strength to return the glory of Rome to its people.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMWYzZTM5ZGQtOGE5My00NmM2LWFlMDEtMGNjYjdmOWM1MzA1XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMWYzZTM5ZGQtOGE5My00NmM2LWFlMDEtMGNjYjdmOWM1MzA1XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "4rgYUipGJNo",
+    "duration": 148,
+    "releaseDate": "2024-11-21",
+    "director": "Ridley Scott",
+    "castMembers": [
+      "Paul Mescal",
+      "Denzel Washington",
+      "Pedro Pascal"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 6.5,
+    "ratingCount": 134000,
     "ageRating": "C16",
     "formats": [
       "2D",
       "IMAX"
     ],
-    "status": "COMING_SOON",
+    "status": "NOW_SHOWING",
     "genreSlugs": [
       "action",
-      "thriller",
+      "adventure",
       "drama"
-    ]
+    ],
+    "imdbRating": 6.4,
+    "metacriticScore": 64
   },
   {
-    "imdbId": "tt22084616",
-    "slug": "spider-man-brand-new-day",
-    "title": "Spider-Man: Brand New Day",
-    "originalTitle": "Spider-Man: Brand New Day",
-    "description": "Peter Parker tries to focus on college and leave Spider-Man behind. But when a new threat endangers his friends, he must break his promise and suit up again, teaming with an unexpected ally to protect those he loves.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMTJhZGE3NmYtYTg0Ny00MWUzLWE0MmUtYTZjYTg1ZjVlMWRkXkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMTJhZGE3NmYtYTg0Ny00MWUzLWE0MmUtYTZjYTg1ZjVlMWRkXkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "aBlsrtxuwss",
-    "duration": 120,
-    "releaseDate": "2026-07-30",
-    "director": "Destin Daniel Cretton",
+    "imdbId": "tt14539740",
+    "slug": "godzilla-x-kong-the-new-empire",
+    "title": "Godzilla x Kong: The New Empire",
+    "originalTitle": "Godzilla x Kong: The New Empire",
+    "description": "Two ancient titans, Godzilla and Kong, clash in an epic battle as humans unravel their intertwined origins and connection to Skull Island's mysteries.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMTY0N2MzODctY2ExYy00OWYxLTkyNDItMTVhZGIxZjliZjU5XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMTY0N2MzODctY2ExYy00OWYxLTkyNDItMTVhZGIxZjliZjU5XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "lV1OOlGwExM",
+    "duration": 115,
+    "releaseDate": "2024-03-28",
+    "director": "Adam Wingard",
     "castMembers": [
-      "Sadie Sink",
-      "Jon Bernthal",
-      "Zendaya"
+      "Rebecca Hall",
+      "Brian Tyree Henry",
+      "Dan Stevens"
     ],
     "language": "English",
     "subtitles": "Vietnamese",
-    "rating": 0,
-    "ratingCount": 0,
-    "ageRating": "C13",
-    "formats": [
-      "2D",
-      "3D",
-      "IMAX"
-    ],
-    "status": "COMING_SOON",
-    "genreSlugs": [
-      "action",
-      "sci-fi",
-      "adventure"
-    ]
-  },
-  {
-    "imdbId": "tt31036941",
-    "slug": "jurassic-world-rebirth",
-    "title": "Jurassic World: Rebirth",
-    "originalTitle": "Jurassic World: Rebirth",
-    "description": "Five years post-Jurassic World: Dominion (2022), an expedition braves isolated equatorial regions to extract DNA from three massive prehistoric creatures for a groundbreaking medical breakthrough.",
-    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNjg2NTcwYWQtYzk4NS00MTJhLWEzZjItMzIxNjk3YzlkYzU0XkEyXkFqcGc@._V1_SX300.jpg",
-    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNjg2NTcwYWQtYzk4NS00MTJhLWEzZjItMzIxNjk3YzlkYzU0XkEyXkFqcGc@._V1_SX1280.jpg",
-    "trailerUrl": "jan5CFWs9ic",
-    "duration": 133,
-    "releaseDate": "2025-07-01",
-    "director": "Gareth Edwards",
-    "castMembers": [
-      "Scarlett Johansson",
-      "Mahershala Ali",
-      "Jonathan Bailey"
-    ],
-    "language": "English",
-    "subtitles": "Vietnamese",
-    "rating": 5.8,
-    "ratingCount": 0,
+    "rating": 6,
+    "ratingCount": 89000,
     "ageRating": "C13",
     "formats": [
       "2D",
@@ -1305,7 +877,144 @@
       "action",
       "sci-fi",
       "adventure"
-    ]
+    ],
+    "imdbRating": 6,
+    "metacriticScore": 47
+  },
+  {
+    "slug": "hao-quang-on-oc",
+    "title": "HÀO QUANG ĐƠN ĐỘC",
+    "originalTitle": "HÀO QUANG ĐƠN ĐỘC",
+    "description": "HÀO QUANG ĐƠN ĐỘC — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/mother-mary-poster.png",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/mother-mary-poster.png",
+    "trailerUrl": "pa_u_X2EG7k",
+    "duration": 112,
+    "releaseDate": "2026-06-10",
+    "director": "David Lowery",
+    "castMembers": [
+      "Anne Hathaway",
+      "Michaela Coel",
+      "Hunter Schafer",
+      "Atheena Frizzell",
+      "Kaia Gerber",
+      "Jessica Brown Findlay",
+      "Isaura Barbé-Brown",
+      "Alba Baptista"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "hen-em-ngay-nhat-thuc",
+    "title": "Hẹn Em Ngày Nhật Thực",
+    "originalTitle": "Hẹn Em Ngày Nhật Thực",
+    "description": "Lịch chiếu Hẹn Em Ngày Nhật Thực và review phim Hẹn Em Ngày Nhật Thực. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/69aea2522da4d047697277.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/69aea2522da4d047697277.jpg",
+    "trailerUrl": "8fRszUyt_YQ",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "và hai bạn diễn viên chính thì nó cũng là một bước đệm khá tốt, có tiềm năng và tương lai có thể phát triển hơn nữa. Hiện nay phim chiếu rạp Việt Nam đang thiếu các dòng phim nghệ thuật và nhẹ nhàng như vậy nên mong phim này và các phim tương tự sẽ có cơ hội phát triển thêm. Chúc phim thành công.",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "heo-nam-mong",
+    "title": "HEO NĂM MÓNG",
+    "originalTitle": "HEO NĂM MÓNG",
+    "description": "HEO NĂM MÓNG — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/04-2026/h5m.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/04-2026/h5m.jpg",
+    "trailerUrl": "PJWdCT9fQ30",
+    "duration": 103,
+    "releaseDate": "2026-06-10",
+    "director": "Lưu Thành Luân",
+    "castMembers": [
+      "Võ Tấn Phát",
+      "Trần Ngọc Vàng",
+      "NSƯT Ốc Thanh Vân",
+      "Nghệ Sĩ Thanh Thủy",
+      "..."
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "ho-linh-trang-si-bi-an-mo-vua-dinh",
+    "title": "Hộ Linh Tráng Sĩ: Bí Ẩn Mộ Vua Đinh",
+    "originalTitle": "Hộ Linh Tráng Sĩ: Bí Ẩn Mộ Vua Đinh",
+    "description": "Lịch chiếu Hộ Linh Tráng Sĩ: Bí Ẩn Mộ Vua Đinh và review phim Hộ Linh Tráng Sĩ: Bí Ẩn Mộ Vua Đinh. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/tall/68d60b7c5de8f974282049.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/tall/68d60b7c5de8f974282049.jpg",
+    "trailerUrl": "nLXxbMH-Jk8",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
   },
   {
     "imdbId": "tt26743210",
@@ -1339,6 +1048,1937 @@
       "fantasy",
       "adventure",
       "drama"
-    ]
+    ],
+    "imdbRating": 7.7,
+    "metacriticScore": 61
+  },
+  {
+    "imdbId": "tt22022452",
+    "slug": "inside-out-2",
+    "title": "Inside Out 2",
+    "originalTitle": "Inside Out 2",
+    "description": "A sequel that features Riley entering puberty and experiencing brand new, more complex emotions as a result. As Riley tries to adapt to her teenage years, her old emotions try to adapt to the possibility of being replaced.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYWY3MDE2Y2UtOTE3Zi00MGUzLTg2MTItZjE1ZWVkMGVlODRmXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BYWY3MDE2Y2UtOTE3Zi00MGUzLTg2MTItZjE1ZWVkMGVlODRmXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "LEjhY15eCx0",
+    "duration": 96,
+    "releaseDate": "2024-06-13",
+    "director": "Kelsey Mann",
+    "castMembers": [
+      "Amy Poehler",
+      "Maya Hawke",
+      "Kensington Tallman"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 7.5,
+    "ratingCount": 98000,
+    "ageRating": "P",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "animation",
+      "comedy",
+      "drama"
+    ],
+    "imdbRating": 7.5,
+    "metacriticScore": 73
+  },
+  {
+    "imdbId": "tt11315808",
+    "slug": "joker-folie-a-deux",
+    "title": "Joker: Folie à Deux",
+    "originalTitle": "Joker: Folie à Deux",
+    "description": "Struggling with his dual identity, failed comedian Arthur Fleck meets the love of his life, Harley Quinn, while incarcerated at Arkham State Hospital.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTRlNmU1NzEtODNkNC00ZGM3LWFmNzQtMjBlMWRiYTcyMGRhXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTRlNmU1NzEtODNkNC00ZGM3LWFmNzQtMjBlMWRiYTcyMGRhXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "_OKAwz2MsJs",
+    "duration": 138,
+    "releaseDate": "2024-10-03",
+    "director": "Todd Phillips",
+    "castMembers": [
+      "Joaquin Phoenix",
+      "Lady Gaga",
+      "Brendan Gleeson"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 5.2,
+    "ratingCount": 198000,
+    "ageRating": "C18",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "thriller",
+      "drama",
+      "romance"
+    ],
+    "imdbRating": 5.2,
+    "metacriticScore": 45
+  },
+  {
+    "imdbId": "tt31036941",
+    "slug": "jurassic-world-rebirth",
+    "title": "Jurassic World: Rebirth",
+    "originalTitle": "Jurassic World: Rebirth",
+    "description": "Five years post-Jurassic World: Dominion (2022), an expedition braves isolated equatorial regions to extract DNA from three massive prehistoric creatures for a groundbreaking medical breakthrough.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNjg2NTcwYWQtYzk4NS00MTJhLWEzZjItMzIxNjk3YzlkYzU0XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNjg2NTcwYWQtYzk4NS00MTJhLWEzZjItMzIxNjk3YzlkYzU0XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "jan5CFWs9ic",
+    "duration": 133,
+    "releaseDate": "2025-07-01",
+    "director": "Gareth Edwards",
+    "castMembers": [
+      "Scarlett Johansson",
+      "Mahershala Ali",
+      "Jonathan Bailey"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 5.8,
+    "ratingCount": 0,
+    "ageRating": "C13",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "sci-fi",
+      "adventure"
+    ],
+    "imdbRating": 5.8,
+    "metacriticScore": 50
+  },
+  {
+    "slug": "passenger",
+    "title": "KHÁCH",
+    "originalTitle": "KHÁCH",
+    "description": "KHÁCH — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/06-2026/khach.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/06-2026/khach.jpg",
+    "trailerUrl": "dTIzywp_ZzI",
+    "duration": 94,
+    "releaseDate": "2026-06-10",
+    "director": "André Øvredal",
+    "castMembers": [
+      "Jacob Scipio",
+      "Lou Llobell and Melissa Leo"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "moveek",
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt11389872",
+    "slug": "kingdom-of-the-planet-of-the-apes",
+    "title": "Kingdom of the Planet of the Apes",
+    "originalTitle": "Kingdom of the Planet of the Apes",
+    "description": "Many years after the reign of Caesar, a young ape goes on a journey that will lead him to question everything he's been taught about the past and make choices that will define a future for apes and humans alike.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZDRlZTc3YTItOTk3Yi00NmU4LWFiOGUtNjgwMDZjNjIzNTU1XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZDRlZTc3YTItOTk3Yi00NmU4LWFiOGUtNjgwMDZjNjIzNTU1XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "XtFI7SNtVpY",
+    "duration": 145,
+    "releaseDate": "2024-05-09",
+    "director": "Wes Ball",
+    "castMembers": [
+      "Owen Teague",
+      "Freya Allan",
+      "Kevin Durand"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 6.8,
+    "ratingCount": 77000,
+    "ageRating": "C13",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "sci-fi",
+      "adventure"
+    ],
+    "imdbRating": 6.8,
+    "metacriticScore": 66
+  },
+  {
+    "imdbId": "tt8790086",
+    "slug": "kraven-the-hunter",
+    "title": "Kraven the Hunter",
+    "originalTitle": "Kraven the Hunter",
+    "description": "Kraven's complex relationship with his ruthless father, Nikolai Kravinoff, starts him down a path of vengeance with brutal consequences, motivating him to become not only the greatest hunter in the world, but also one of its most ...",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZDU0YTI5ODAtN2NmMS00YTg3LTgyNDItN2RmOWEzOTkzZjcyXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZDU0YTI5ODAtN2NmMS00YTg3LTgyNDItN2RmOWEzOTkzZjcyXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "I8gFw4-2RBM",
+    "duration": 127,
+    "releaseDate": "2024-12-12",
+    "director": "J.C. Chandor",
+    "castMembers": [
+      "Aaron Taylor-Johnson",
+      "Ariana DeBose",
+      "Fred Hechinger"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 5.5,
+    "ratingCount": 43000,
+    "ageRating": "C16",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "thriller",
+      "adventure"
+    ],
+    "imdbRating": 5.5,
+    "metacriticScore": 35
+  },
+  {
+    "slug": "kumanthong-ac-quy-dan-duong",
+    "title": "Kumanthong Ác Quỷ Dẫn Đường",
+    "originalTitle": "Kumanthong Ác Quỷ Dẫn Đường",
+    "description": "Lịch chiếu Kumanthong Ác Quỷ Dẫn Đường và review phim Kumanthong Ác Quỷ Dẫn Đường. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0a8274861d8592964206.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0a8274861d8592964206.jpg",
+    "trailerUrl": "Y6-yf3efe-Y",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt21692408",
+    "slug": "kung-fu-panda-4",
+    "title": "Kung Fu Panda 4",
+    "originalTitle": "Kung Fu Panda 4",
+    "description": "After Po is tapped to become the Spiritual Leader of the Valley of Peace, he needs to find and train a new Dragon Warrior, while a wicked sorceress plans to re-summon all the master villains whom Po has vanquished to the spirit re...",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMzJlNGYxYzQtOTg4MC00OTMyLTkwYzMtZDRlNTgwY2YwOWYxXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMzJlNGYxYzQtOTg4MC00OTMyLTkwYzMtZDRlNTgwY2YwOWYxXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "_inKs4eeHiI",
+    "duration": 94,
+    "releaseDate": "2024-03-07",
+    "director": "Mike Mitchell, Stephanie Stine",
+    "castMembers": [
+      "Jack Black",
+      "Awkwafina",
+      "Viola Davis"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 6.3,
+    "ratingCount": 76000,
+    "ageRating": "P",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "animation",
+      "comedy",
+      "adventure"
+    ],
+    "imdbRating": 6.3,
+    "metacriticScore": 54
+  },
+  {
+    "slug": "lang-khat-mau",
+    "title": "LÀNG KHÁT MÁU",
+    "originalTitle": "LÀNG KHÁT MÁU",
+    "description": "LÀNG KHÁT MÁU — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/lang-khat-mau.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/lang-khat-mau.jpg",
+    "trailerUrl": "9904UgTLuqw",
+    "duration": 103,
+    "releaseDate": "2026-06-10",
+    "director": "Koji Shiraishi",
+    "castMembers": [
+      "Eiji Akaso",
+      "Miho Kanno"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "lang-quy-quai",
+    "title": "LÀNG QUỶ QUÁI",
+    "originalTitle": "LÀNG QUỶ QUÁI",
+    "description": "LÀNG QUỶ QUÁI — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/lang-quy-quai.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/lang-quy-quai.jpg",
+    "trailerUrl": "ZrNDciFnca4",
+    "duration": 91,
+    "releaseDate": "2026-06-10",
+    "director": "Poj Arnon, Nicky Na Chat Juntapun, Kapol Thongplub",
+    "castMembers": [
+      "Padung Songsang",
+      "Kapol Thongplub",
+      "Nicky Na Chat Juntapun"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror",
+      "comedy"
+    ],
+    "sources": [
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "lang-trung-tang",
+    "title": "Làng Trùng Tang",
+    "originalTitle": "Làng Trùng Tang",
+    "description": "Lịch chiếu Làng Trùng Tang và review phim Làng Trùng Tang. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0188513fa0c420888118.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0188513fa0c420888118.jpg",
+    "trailerUrl": "VCGIzJWom9k",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Ginanti Rona",
+    "castMembers": [
+      "Fedi Nuril",
+      "Ali Fikry",
+      "Wavi Zihan"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "lau-chu-hoa",
+    "title": "Lầu Chú Hoả",
+    "originalTitle": "Lầu Chú Hoả",
+    "description": "Lịch chiếu Lầu Chú Hoả và review phim Lầu Chú Hoả. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0e74941fe4f316907713.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0e74941fe4f316907713.jpg",
+    "trailerUrl": "JODJFX2ByV0",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "HÙNG TRẦN",
+    "castMembers": [
+      "TRẦN KỲ ANH",
+      "NGUYỄN MINH THỜI",
+      "NGỌC CHI BẢO",
+      "PHỤNG HOÀNG",
+      "NGUYỄN CÔNG NƯƠNG",
+      "DŨNG HÀ"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "lop-hoc-am-sat-gio-cua-chung-ta",
+    "title": "Lớp Học Ám Sát: Giờ Của Chúng Ta",
+    "originalTitle": "Lớp Học Ám Sát: Giờ Của Chúng Ta",
+    "description": "Phim điện ảnh phiên bản hoàn toàn mới của “Lớp Học Ám Sát” nhân dịp kỷ niệm 10 năm ra mắt! Một sinh vật mang vận tốc Mach 20 đe dọa hủy diệt Trái Đất nhưng lại trở thành một thầy giáo? Một lớp học bị coi là &quot;phế thải&quot; bỗng chốc trở thành hy vọng cuối cùng của nhân loại? Những câu chuyện mới toanh chưa từng được kể trên màn ảnh sẽ mang đến cho fan hâm mộ những thước phim bùng nổ cùng ký ức rực rỡ nhất về thầy Koro và tập thể lớp 3-E. Bạn đã sẵn sàng cho buổi tốt nghiệp đặc biệt này chưa?",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0e8c7fb410b067266274.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a0e8c7fb410b067266274.jpg",
+    "trailerUrl": "w4DjZW5DUvc",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Masaki Kitamura",
+    "castMembers": [
+      "Shintarô Asanuma; Mai Fuchigami; Saki Fujita"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "comedy",
+      "animation"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "ma-da-han-quoc-ho-nuot-nguoi",
+    "title": "Ma Da Hàn Quốc: Hồ Nuốt Người",
+    "originalTitle": "Ma Da Hàn Quốc: Hồ Nuốt Người",
+    "description": "Lịch chiếu Ma Da Hàn Quốc: Hồ Nuốt Người và review phim Ma Da Hàn Quốc: Hồ Nuốt Người. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/69f0b755c73f5336260080.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/69f0b755c73f5336260080.jpg",
+    "trailerUrl": "S8ThHXyvY-I",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Lee Sang-min",
+    "castMembers": [
+      "Kim Hye-yoon",
+      "Lee Jong-won",
+      "Kim Jun-han",
+      "Kim Young-sung",
+      "Oh Dong-min",
+      "Yoon Jae-chan",
+      "and Jang Da-ah"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt32740311",
+    "slug": "ma-da-the-drowning-spirit",
+    "title": "Ma Da: The Drowning Spirit",
+    "originalTitle": "Ma Da: The Drowning Spirit",
+    "description": "Corpse collector Le confronts MA DA - the vengeful drowning spirit, after it abducts her daughter. Determined to save her child, Mrs. Le embarks on a desperate rescue to prevent her child's ghostly fate beneath the Mekong River.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMGRkMDNkNmEtNDIxNi00Njg2LWJkYTMtNmNlNTM1NjljY2EzXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMGRkMDNkNmEtNDIxNi00Njg2LWJkYTMtNmNlNTM1NjljY2EzXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "ocWpaBmLy3I",
+    "duration": 90,
+    "releaseDate": "2024-08-15",
+    "director": "Nguyen Huu Hoang",
+    "castMembers": [
+      "Da Chuc",
+      "Trung Dan",
+      "Dieu Duc"
+    ],
+    "language": "Vietnamese",
+    "subtitles": null,
+    "rating": 5,
+    "ratingCount": 8000,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror",
+      "thriller"
+    ],
+    "imdbRating": 5,
+    "metacriticScore": null
+  },
+  {
+    "slug": "ma-xo",
+    "title": "Ma Xó",
+    "originalTitle": "Ma Xó",
+    "description": "Lịch chiếu Ma Xó và review phim Ma Xó. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/69d87846a49ea067059740.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/69d87846a49ea067059740.jpg",
+    "trailerUrl": "GwRkgvW8Dac",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Phan Bá Hỷ",
+    "castMembers": [
+      "Lê Khánh",
+      "Tín Nguyễn",
+      "Avin Lu",
+      "Nguyễn Sỹ Hậu",
+      "Gi A Nguyễn",
+      "Leona Khánh Tiên",
+      "Chú 3 Duy"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C18",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbId": "tt41566465",
+    "imdbRating": 7.1,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt31174028",
+    "slug": "mai-2024",
+    "title": "Mai",
+    "originalTitle": "Mai",
+    "description": "Restlessly haunted by the past, Mai is greeted by a new dawn when she reluctantly befriends the neighborhood ladies' man. But when her yesterday catches up to her today, what will become of her tomorrow?",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTgwNDBhOGItNTIxZC00ZjMzLWFhZTYtOGNiM2MzYWViMWUwXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTgwNDBhOGItNTIxZC00ZjMzLWFhZTYtOGNiM2MzYWViMWUwXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "EX6clvId19s",
+    "duration": 131,
+    "releaseDate": "2024-02-09",
+    "director": "Tran Thanh",
+    "castMembers": [
+      "Huynh Uyen An",
+      "Hong Dao",
+      "Phuong Anh Dao"
+    ],
+    "language": "Vietnamese",
+    "subtitles": null,
+    "rating": 6.8,
+    "ratingCount": 34000,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "romance",
+      "drama"
+    ],
+    "imdbRating": 6.8,
+    "metacriticScore": null
+  },
+  {
+    "slug": "mesdames-thanh-sac",
+    "title": "Mesdames Thanh Sắc",
+    "originalTitle": "Mesdames Thanh Sắc",
+    "description": "Lịch chiếu Mesdames Thanh Sắc và review phim Mesdames Thanh Sắc. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/695dcebfed8e1900145950.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/695dcebfed8e1900145950.jpg",
+    "trailerUrl": "w3oYiJqOxnw",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt11378946",
+    "slug": "michael",
+    "title": "MICHAEL (K)",
+    "originalTitle": "MICHAEL (K)",
+    "description": "MICHAEL (K) — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/04-2026/michael.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/04-2026/michael.jpg",
+    "trailerUrl": "wZPHM0WrO_o",
+    "duration": 127,
+    "releaseDate": "2026-06-10",
+    "director": "Antoine Fuqua",
+    "castMembers": [
+      "Jaafar Jackson",
+      "Nia Long",
+      "Laura Harrier",
+      "Juliano Krue Valdi",
+      "cùng Miles Teller và Colman Domingo."
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek",
+      "cinestar"
+    ],
+    "imdbRating": 7.7,
+    "metacriticScore": 39
+  },
+  {
+    "imdbId": "tt9603208",
+    "slug": "mission-impossible-the-final-reckoning",
+    "title": "Mission: Impossible - The Final Reckoning",
+    "originalTitle": "Mission: Impossible - The Final Reckoning",
+    "description": "Hunt and the IMF pursue a dangerous AI called the Entity that's infiltrated global intelligence. With governments and a figure from his past in pursuit, Hunt races to stop it from forever changing the world.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZGQ5NGEyYTItMjNiMi00Y2EwLTkzOWItMjc5YjJiMjMyNTI0XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZGQ5NGEyYTItMjNiMi00Y2EwLTkzOWItMjc5YjJiMjMyNTI0XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "fsQgc9pCyDU",
+    "duration": 169,
+    "releaseDate": "2025-05-22",
+    "director": "Christopher McQuarrie",
+    "castMembers": [
+      "Tom Cruise",
+      "Hayley Atwell",
+      "Ving Rhames"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 7.2,
+    "ratingCount": 0,
+    "ageRating": "C13",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "thriller",
+      "adventure"
+    ],
+    "imdbRating": 7.1,
+    "metacriticScore": 67
+  },
+  {
+    "imdbId": "tt13622970",
+    "slug": "moana-2",
+    "title": "Moana 2",
+    "originalTitle": "Moana 2",
+    "description": "After receiving an unexpected call from her wayfinding ancestors, Moana must journey to the far seas of Oceania and into dangerous, long-lost waters for an adventure unlike anything she's ever faced.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZDUxNThhYTUtYjgxNy00MGQ4LTgzOTEtZjg1YTU5NTcwNThlXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZDUxNThhYTUtYjgxNy00MGQ4LTgzOTEtZjg1YTU5NTcwNThlXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "hDZ7y8RP5HE",
+    "duration": 100,
+    "releaseDate": "2024-11-26",
+    "director": "David G. Derrick Jr., Jason Hand, Dana Ledoux Miller",
+    "castMembers": [
+      "Auli'i Cravalho",
+      "Dwayne Johnson",
+      "Hualalai Chung"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 6.3,
+    "ratingCount": 45000,
+    "ageRating": "P",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "animation",
+      "adventure",
+      "comedy"
+    ],
+    "imdbRating": 6.3,
+    "metacriticScore": 58
+  },
+  {
+    "slug": "mobile-suit-gundam-tia-chop-hathaway-ma-thuat-nu-than-circe",
+    "title": "Mobile Suit Gundam Tia Chớp Hathaway: Ma Thuật Nữ Thần Circe",
+    "originalTitle": "Mobile Suit Gundam Tia Chớp Hathaway: Ma Thuật Nữ Thần Circe",
+    "description": "Lịch chiếu Mobile Suit Gundam Tia Chớp Hathaway: Ma Thuật Nữ Thần Circe  và review phim Mobile Suit Gundam Tia Chớp Hathaway: Ma Thuật Nữ Thần Circe . Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a156b083efb5169810667.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a156b083efb5169810667.jpg",
+    "trailerUrl": "Nnnlrl1iABM",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "mobile-suit-gundam-tia-chop-hathaway",
+    "title": "MOBILE SUIT GUNDAM: TIA CHỚP HATHAWAY",
+    "originalTitle": "MOBILE SUIT GUNDAM: TIA CHỚP HATHAWAY",
+    "description": "MOBILE SUIT GUNDAM: TIA CHỚP HATHAWAY — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/hathaway.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/hathaway.jpg",
+    "trailerUrl": "Tamk3S1mn2E",
+    "duration": 95,
+    "releaseDate": "2026-06-10",
+    "director": "Shukou Murase",
+    "castMembers": [
+      "Kensho Ono",
+      "Reina Ueda",
+      "Junichi Suwabe",
+      "Soma Saito",
+      "Kenjiro Tsuda",
+      "Yui Ishikawa",
+      "Fukushi Ochiai",
+      "Shunsuke Takeuchi"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "animation",
+      "action"
+    ],
+    "sources": [
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "mortal-kombat-2-cuoc-chien-sinh-tu",
+    "title": "Mortal Kombat 2: Cuộc Chiến Sinh Tử",
+    "originalTitle": "Mortal Kombat 2: Cuộc Chiến Sinh Tử",
+    "description": "Lịch chiếu Mortal Kombat 2: Cuộc Chiến Sinh Tử và review phim Mortal Kombat 2: Cuộc Chiến Sinh Tử. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6976eb64a4051621540313.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6976eb64a4051621540313.jpg",
+    "trailerUrl": "4EVX9NW5QQE",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "mot-thoi-ta-a-yeu",
+    "title": "MỘT THỜI TA ĐÃ YÊU",
+    "originalTitle": "MỘT THỜI TA ĐÃ YÊU",
+    "description": "MỘT THỜI TA ĐÃ YÊU — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/mttdy.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/mttdy.jpg",
+    "trailerUrl": "jdxnrHwVsHw",
+    "duration": 119,
+    "releaseDate": "2026-06-10",
+    "director": "Nguyễn Xuân Nghĩa",
+    "castMembers": [
+      "Quốc Trường",
+      "Quốc Huy",
+      "Quỳnh Thy",
+      "NSND Lê Khanh",
+      "NSƯT Thành Lộc"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "romance",
+      "drama"
+    ],
+    "sources": [
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt13186482",
+    "slug": "mufasa-the-lion-king",
+    "title": "Mufasa: The Lion King",
+    "originalTitle": "Mufasa: The Lion King",
+    "description": "Mufasa, a cub lost and alone, meets a sympathetic lion named Taka, the heir to a royal bloodline. The chance meeting sets in motion an expansive journey of a group of misfits searching for their destiny.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYjBkOWUwODYtYWI3YS00N2I0LWEyYTktOTJjM2YzOTc3ZDNlXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BYjBkOWUwODYtYWI3YS00N2I0LWEyYTktOTJjM2YzOTc3ZDNlXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "o17MF9vnabg",
+    "duration": 118,
+    "releaseDate": "2024-12-19",
+    "director": "Barry Jenkins",
+    "castMembers": [
+      "Aaron Pierre",
+      "Kelvin Harrison Jr.",
+      "Tiffany Boone"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 6.6,
+    "ratingCount": 38000,
+    "ageRating": "P",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "animation",
+      "adventure",
+      "drama"
+    ],
+    "imdbRating": 6.6,
+    "metacriticScore": 56
+  },
+  {
+    "slug": "nghi-he-so-nghi-huu",
+    "title": "Nghỉ Hè Sợ Nghỉ Hưu",
+    "originalTitle": "Nghỉ Hè Sợ Nghỉ Hưu",
+    "description": "Lịch chiếu Nghỉ Hè Sợ Nghỉ Hưu và review phim Nghỉ Hè Sợ Nghỉ Hưu. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/tall/6a263923bb356802914492.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/tall/6a263923bb356802914492.jpg",
+    "trailerUrl": "4_FO8NqwrtE",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "ngoi-den-ky-quai-5",
+    "title": "NGÔI ĐỀN KỲ QUÁI 5",
+    "originalTitle": "NGÔI ĐỀN KỲ QUÁI 5",
+    "description": "NGÔI ĐỀN KỲ QUÁI 5 — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/peenak.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/peenak.jpg",
+    "trailerUrl": "zjvvmNM7sEA",
+    "duration": 118,
+    "releaseDate": "2026-06-10",
+    "director": "Phontharis Chotkijsadarsopon",
+    "castMembers": [
+      "Aim Witthawat Rattanaboonbaramee",
+      "James Bhuripat Vejvongsatechawat",
+      "Meen Phiravich Attachitsataporn",
+      "Tar Atiwat Saengtien",
+      "Kuan Denkhun Ngam-net",
+      "and Pond Khunnapat Pichetworawut"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror",
+      "comedy"
+    ],
+    "sources": [
+      "moveek",
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "oc-muon-hon",
+    "title": "Ốc Mượn Hồn",
+    "originalTitle": "Ốc Mượn Hồn",
+    "description": "Lịch chiếu Ốc Mượn Hồn và review phim Ốc Mượn Hồn. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a05811b1e575501184790.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a05811b1e575501184790.jpg",
+    "trailerUrl": "KDvGlP-Vr5o",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Đinh Tuấn Vũ",
+    "castMembers": [
+      "Quốc Trường",
+      "Tiểu Vy",
+      "Anh Phạm",
+      "Yên Đan",
+      "Anh Đức",
+      "Lương Gia Huy",
+      "Nguyễn Văn Chung",
+      "..."
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "phi-phong-quy-mau-rung-thieng",
+    "title": "Phí Phông: Quỷ Máu Rừng Thiêng",
+    "originalTitle": "Phí Phông: Quỷ Máu Rừng Thiêng",
+    "description": "Lịch chiếu Phí Phông: Quỷ Máu Rừng Thiêng và review phim Phí Phông: Quỷ Máu Rừng Thiêng. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/69d4908c3d1bf626564233.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/69d4908c3d1bf626564233.jpg",
+    "trailerUrl": "AfTJQIdjAHc",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Đỗ Quốc Trung",
+    "castMembers": [
+      "Kiều Minh Tuấn",
+      "Nina Nutthacha Padovan",
+      "Diệp Bảo Ngọc",
+      "Đoàn Minh Anh",
+      "NSƯT Hạnh Thuý",
+      "..."
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "quy-bat-hon",
+    "title": "Quỷ Bắt Hồn",
+    "originalTitle": "Quỷ Bắt Hồn",
+    "description": "Lịch chiếu Quỷ Bắt Hồn và review phim Quỷ Bắt Hồn. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/tall/6a20fe1a681c8705865434.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/tall/6a20fe1a681c8705865434.jpg",
+    "trailerUrl": "bOPJW8orWjc",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt30611573",
+    "slug": "quy-cau",
+    "title": "Quy Cau",
+    "originalTitle": "Quy Cau",
+    "description": "The return of Nam and his girlfriend Xuan brings countless troubles to the family. He gradually discovers the broken relationships of the family members.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOGUxMDE5ZGQtODgyZS00NWZmLWFjZDEtOGM1YmVmOTViMzkyXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOGUxMDE5ZGQtODgyZS00NWZmLWFjZDEtOGM1YmVmOTViMzkyXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "Y00GJIeAJ0w",
+    "duration": 99,
+    "releaseDate": "2023-12-21",
+    "director": "Luu Thanh Luan",
+    "castMembers": [
+      "Vân Dung",
+      "Mie",
+      "Hanh Thuy Ngo Pham"
+    ],
+    "language": "Vietnamese",
+    "subtitles": null,
+    "rating": 5.2,
+    "ratingCount": 7000,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "horror",
+      "thriller"
+    ],
+    "imdbRating": 5.2,
+    "metacriticScore": null
+  },
+  {
+    "slug": "marsupilami",
+    "title": "SIÊU QUẬY MARSUPILAMI LT",
+    "originalTitle": "SIÊU QUẬY MARSUPILAMI LT",
+    "description": "SIÊU QUẬY MARSUPILAMI LT — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/06-2026/marsupilami-poster.png",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/06-2026/marsupilami-poster.png",
+    "trailerUrl": "pZxzYA2YHSM",
+    "duration": 99,
+    "releaseDate": "2026-06-10",
+    "director": "Philippe Lacheau",
+    "castMembers": [
+      "Philippe Lacheau",
+      "Jamel Debbouze",
+      "Tarek Boudali"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "comedy",
+      "animation"
+    ],
+    "sources": [
+      "moveek",
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "soi-chi-do",
+    "title": "Sợi Chỉ Đỏ",
+    "originalTitle": "Sợi Chỉ Đỏ",
+    "description": "Lịch chiếu Sợi Chỉ Đỏa và review phim Sợi Chỉ Đỏ. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/69eee228a0c93303815038.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/69eee228a0c93303815038.jpg",
+    "trailerUrl": "S52Ua64qtH8",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt18259086",
+    "slug": "sonic-the-hedgehog-3",
+    "title": "Sonic the Hedgehog 3",
+    "originalTitle": "Sonic the Hedgehog 3",
+    "description": "Sonic, Knuckles, and Tails reunite against a powerful new adversary, Shadow, a mysterious villain with powers unlike anything they have faced before. With their abilities outmatched, Team Sonic must seek out an unlikely alliance.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMjZjNjE5NDEtOWJjYS00Mjk2LWI1ZDYtOWI1ZWI3MzRjM2UzXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMjZjNjE5NDEtOWJjYS00Mjk2LWI1ZDYtOWI1ZWI3MzRjM2UzXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "qSu6i2iFMO0",
+    "duration": 110,
+    "releaseDate": "2024-12-19",
+    "director": "Jeff Fowler",
+    "castMembers": [
+      "Jim Carrey",
+      "Ben Schwartz",
+      "Keanu Reeves"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 6.9,
+    "ratingCount": 41000,
+    "ageRating": "P",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "comedy",
+      "adventure"
+    ],
+    "imdbRating": 6.9,
+    "metacriticScore": 56
+  },
+  {
+    "imdbId": "tt22084616",
+    "slug": "spider-man-brand-new-day",
+    "title": "Spider-Man: Brand New Day",
+    "originalTitle": "Spider-Man: Brand New Day",
+    "description": "Peter Parker tries to focus on college and leave Spider-Man behind. But when a new threat endangers his friends, he must break his promise and suit up again, teaming with an unexpected ally to protect those he loves.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BMTJhZGE3NmYtYTg0Ny00MWUzLWE0MmUtYTZjYTg1ZjVlMWRkXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BMTJhZGE3NmYtYTg0Ny00MWUzLWE0MmUtYTZjYTg1ZjVlMWRkXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "aBlsrtxuwss",
+    "duration": 120,
+    "releaseDate": "2026-07-30",
+    "director": "Destin Daniel Cretton",
+    "castMembers": [
+      "Sadie Sink",
+      "Jon Bernthal",
+      "Zendaya"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C13",
+    "formats": [
+      "2D",
+      "3D",
+      "IMAX"
+    ],
+    "status": "COMING_SOON",
+    "genreSlugs": [
+      "action",
+      "sci-fi",
+      "adventure"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "star-wars-the-mandalorian-and-grogu",
+    "title": "STAR WARS: MANDALORIAN VÀ GROGU",
+    "originalTitle": "STAR WARS: MANDALORIAN VÀ GROGU",
+    "description": "STAR WARS: MANDALORIAN VÀ GROGU — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/star-wars-poster.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/star-wars-poster.jpg",
+    "trailerUrl": "F-okC0XQJ10",
+    "duration": 132,
+    "releaseDate": "2026-06-10",
+    "director": "Jon Favreau",
+    "castMembers": [
+      "Martin Scorsese",
+      "Pedro Pascal",
+      "Sigourney Weaver"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C13",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "adventure",
+      "action",
+      "sci-fi"
+    ],
+    "sources": [
+      "moveek",
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt5950044",
+    "slug": "superman-2025",
+    "title": "Superman",
+    "originalTitle": "Superman",
+    "description": "Superman must reconcile his alien Kryptonian heritage with his human upbringing as reporter Clark Kent. As the embodiment of truth, justice and the American way he soon finds himself in a world that views these as old-fashioned.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOGMwZGJiM2EtMzEwZC00YTYzLWIxNzYtMmJmZWNlZjgxZTMwXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOGMwZGJiM2EtMzEwZC00YTYzLWIxNzYtMmJmZWNlZjgxZTMwXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "Ox8ZLF6cGM0",
+    "duration": 129,
+    "releaseDate": "2025-07-10",
+    "director": "James Gunn",
+    "castMembers": [
+      "David Corenswet",
+      "Rachel Brosnahan",
+      "Nicholas Hoult"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 7,
+    "ratingCount": 0,
+    "ageRating": "C13",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "sci-fi",
+      "adventure"
+    ],
+    "imdbRating": 7,
+    "metacriticScore": 68
+  },
+  {
+    "slug": "tam-biet-gohan",
+    "title": "TẠM BIỆT GOHAN (K)",
+    "originalTitle": "TẠM BIỆT GOHAN (K)",
+    "description": "TẠM BIỆT GOHAN (K) — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/tam-biet-gohan.jpg",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/tam-biet-gohan.jpg",
+    "trailerUrl": "3ZP_yGwfzO0",
+    "duration": 140,
+    "releaseDate": "2026-06-10",
+    "director": "Chayanop Boonprakob - Baz Poonpiriya - Atta Hemwadee",
+    "castMembers": [
+      "Yasushi Kitajima",
+      "Poe Mamhe Thar",
+      "Jinjett Wattanasin",
+      "Tontawan Tantivejakul"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama",
+      "animation"
+    ],
+    "sources": [
+      "moveek",
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "tay-du-ky-dai-nao",
+    "title": "TÂY DU KÝ ĐẠI NÁO PĐ",
+    "originalTitle": "TÂY DU KÝ ĐẠI NÁO PĐ",
+    "description": "TÂY DU KÝ ĐẠI NÁO PĐ — phim chiếu rạp.",
+    "posterUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/tay-du-ky-dai-nao.png",
+    "bannerUrl": "https://api-website.cinestar.com.vn/media/wysiwyg/Posters/05-2026/tay-du-ky-dai-nao.png",
+    "trailerUrl": "7BTN7ZKviTw",
+    "duration": 117,
+    "releaseDate": "2026-06-10",
+    "director": "SUN WU KONG",
+    "castMembers": [
+      "Jazz Padung",
+      "Nong Chachacha",
+      "Junior Kajbhundit",
+      "Gap Jakarin",
+      "Chae Ongart",
+      "Zani Nipaporn",
+      "Nammon Krittanai",
+      "PJ Kritsana"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "comedy"
+    ],
+    "sources": [
+      "moveek",
+      "cinestar"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "slug": "your-name",
+    "title": "Tên Cậu Là Gì?",
+    "originalTitle": "Tên Cậu Là Gì?",
+    "description": "Lịch chiếu Tên Cậu Là Gì và review phim Tên Cậu Là Gì. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/f5949c665c6f76f8d811e88573d81abecbb75632.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/f5949c665c6f76f8d811e88573d81abecbb75632.jpg",
+    "trailerUrl": "wjXvr4o22pw",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "cho your name. live action của Hollywood\" class=\"avatar-img rounded\">",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt33996602",
+    "slug": "bo-tu-bao-thu",
+    "title": "The 4 Rascals",
+    "originalTitle": "The 4 Rascals",
+    "description": "The 4 rascals decide to take matters into their own hands and plot their own plan to \"solve\" a love triangle.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNTQ5YjZiNTgtZmY1Ny00NzIxLTkyNGEtZjhiNjA0ZTAyNTg0XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNTQ5YjZiNTgtZmY1Ny00NzIxLTkyNGEtZjhiNjA0ZTAyNTg0XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "5XkPSahQSfk",
+    "duration": 132,
+    "releaseDate": "2025-01-28",
+    "director": "Tran Thanh",
+    "castMembers": [
+      "Tran Thanh",
+      "Le Giang",
+      "Le Duong Bao Lam"
+    ],
+    "language": "Vietnamese",
+    "subtitles": null,
+    "rating": 5.5,
+    "ratingCount": 12000,
+    "ageRating": "C16",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "comedy",
+      "romance",
+      "drama"
+    ],
+    "imdbRating": 5.5,
+    "metacriticScore": null
+  },
+  {
+    "slug": "the-amazing-digital-circus-hoi-ket",
+    "title": "The Amazing Digital Circus: Hồi Kết",
+    "originalTitle": "The Amazing Digital Circus: Hồi Kết",
+    "description": "Lịch chiếu The Amazing Digital Circus: Hồi Kết và review phim The Amazing Digital Circus: Hồi Kết. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a1659671af4d205002455.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a1659671af4d205002455.jpg",
+    "trailerUrl": "xSh3tUmCTdw",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Gooseworx",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt19850008",
+    "slug": "the-batman-part-ii",
+    "title": "The Batman: Part II",
+    "originalTitle": "The Batman: Part II",
+    "description": "Except for the bat signal in the final shot of \"The Penguin,\" we never got our Robert Pattinson Batman cameo in 8 episodes charting Oz Cobb's brutal rise from mafia chauffeur to Gotham City crime boss. In this short explainer, IMDb tries to answer: Where the heck was Batman? And what can we expect from director Matt Reeves's 'The Batman: Part II' (2026).",
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/f/ff/The_Batman_%28film%29_poster.jpg",
+    "bannerUrl": "https://upload.wikimedia.org/wikipedia/en/b/b0/Robert_Pattinson_Test_Footage_for_The_Batman_%28film%29.jpeg",
+    "trailerUrl": "T7_zMl_ZhdQ",
+    "duration": 120,
+    "releaseDate": "2027-09-30",
+    "director": "Matt Reeves",
+    "castMembers": [
+      "Robert Pattinson",
+      "Colin Farrell",
+      "Andy Serkis"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "C16",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "COMING_SOON",
+    "genreSlugs": [
+      "action",
+      "thriller",
+      "drama"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt10676052",
+    "slug": "fantastic-four-first-steps",
+    "title": "The Fantastic Four: First Steps",
+    "originalTitle": "The Fantastic Four: First Steps",
+    "description": "Forced to balance their roles as heroes with the strength of their family bond, the Fantastic Four must defend Earth from a ravenous space god called Galactus and his enigmatic herald, the Silver Surfer.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOGM5MzA3MDAtYmEwMi00ZDNiLTg4MDgtMTZjOTc0ZGMyNTIwXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOGM5MzA3MDAtYmEwMi00ZDNiLTg4MDgtMTZjOTc0ZGMyNTIwXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "18QQWa5MEcs",
+    "duration": 115,
+    "releaseDate": "2025-07-24",
+    "director": "Matt Shakman",
+    "castMembers": [
+      "Pedro Pascal",
+      "Vanessa Kirby",
+      "Ebon Moss-Bachrach"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 6.8,
+    "ratingCount": 0,
+    "ageRating": "C13",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "sci-fi",
+      "adventure"
+    ],
+    "imdbRating": 6.8,
+    "metacriticScore": 65
+  },
+  {
+    "imdbId": "tt29623480",
+    "slug": "the-wild-robot",
+    "title": "The Wild Robot",
+    "originalTitle": "The Wild Robot",
+    "description": "After a shipwreck, an intelligent robot called Roz is stranded on an uninhabited island. To survive the harsh environment, Roz bonds with the island's animals and cares for an orphaned baby goose.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZWNiZjVlZTUtNGUwYi00MjJmLTg2MDctNWEzYTJiMzY1ODc4XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZWNiZjVlZTUtNGUwYi00MjJmLTg2MDctNWEzYTJiMzY1ODc4XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "67vbA5ZJdKQ",
+    "duration": 102,
+    "releaseDate": "2024-09-26",
+    "director": "Chris Sanders",
+    "castMembers": [
+      "Lupita Nyong'o",
+      "Pedro Pascal",
+      "Kit Connor"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 8.2,
+    "ratingCount": 62000,
+    "ageRating": "P",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "animation",
+      "sci-fi",
+      "adventure"
+    ],
+    "imdbRating": 8.2,
+    "metacriticScore": 85
+  },
+  {
+    "slug": "thoat-khoi-tan-the",
+    "title": "Thoát Khỏi Tận Thế",
+    "originalTitle": "Thoát Khỏi Tận Thế",
+    "description": "Lịch chiếu Thoát Khỏi Tận Thế và review phim Thoát Khỏi Tận Thế. Đặt vé ngay tại Moveek.",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/68628eef16062677616184.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/68628eef16062677616184.jpg",
+    "trailerUrl": "RMnv3zqNWTQ",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt20969586",
+    "slug": "thunderbolts",
+    "title": "Thunderbolts*",
+    "originalTitle": "Thunderbolts*",
+    "description": "After finding themselves ensnared in a death trap, an unconventional team of antiheroes must go on a dangerous mission that will force them to confront the darkest corners of their pasts.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BYWE2NmNmYTItZGY0ZC00MmY2LTk1NDAtMGUyMGEzMjcxNWM0XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BYWE2NmNmYTItZGY0ZC00MmY2LTk1NDAtMGUyMGEzMjcxNWM0XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "hUUszE29jS0",
+    "duration": 127,
+    "releaseDate": "2025-05-01",
+    "director": "Jake Schreier",
+    "castMembers": [
+      "Florence Pugh",
+      "Sebastian Stan",
+      "Julia Louis-Dreyfus"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 7.1,
+    "ratingCount": 0,
+    "ageRating": "C13",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "adventure",
+      "thriller"
+    ],
+    "imdbRating": 7.1,
+    "metacriticScore": 68
+  },
+  {
+    "slug": "trai-buon-nguoi",
+    "title": "Trại Buôn Người",
+    "originalTitle": "Trại Buôn Người",
+    "description": "Lịch chiếu Trại Buôn Người và review phim Trại Buôn Người. Đặt vé ngay tại Moveek.",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/68513641b9ee3769366933.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/68513641b9ee3769366933.jpg",
+    "trailerUrl": "nlFar2vq4Yo",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt8864596",
+    "slug": "transformers-one",
+    "title": "Transformers One",
+    "originalTitle": "Transformers One",
+    "description": "The untold origin story of Optimus Prime and Megatron, better known as sworn enemies, but who once were friends bonded like brothers who changed the fate of Cybertron forever.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZWI1ZDY1YTQtMjRkNy00ZDZhLWE3OTItMTIwNzliY2Y1MTZhXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZWI1ZDY1YTQtMjRkNy00ZDZhLWE3OTItMTIwNzliY2Y1MTZhXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "0rmJXXKDrsM",
+    "duration": 104,
+    "releaseDate": "2024-09-19",
+    "director": "Josh Cooley",
+    "castMembers": [
+      "Chris Hemsworth",
+      "Brian Tyree Henry",
+      "Scarlett Johansson"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 7.6,
+    "ratingCount": 52000,
+    "ageRating": "P",
+    "formats": [
+      "2D",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "animation",
+      "action",
+      "sci-fi"
+    ],
+    "imdbRating": 7.6,
+    "metacriticScore": 65
+  },
+  {
+    "slug": "truong-he-2001",
+    "title": "Trường Hè, 2001",
+    "originalTitle": "Trường Hè, 2001",
+    "description": "Lịch chiếu Trường Hè, 2001 và review phim Trường Hè, 2001. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/6a22432b4b712173233810.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/6a22432b4b712173233810.jpg",
+    "trailerUrl": "2AzjKy6jT-w",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt34268350",
+    "slug": "dia-dao-mat-troi-trong-bong-toi",
+    "title": "Tunnel",
+    "originalTitle": "Tunnel",
+    "description": "In 1967, as the Vietnam War raged, a Vietnamese revolutionary guerrilla team became the U.S. military's top target - charged with safeguarding a secret group of intelligence agents at all costs.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BNzQzYzNkNjMtZGExNy00OTliLWFiYjgtYTc4MGFiZGY4YmJkXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BNzQzYzNkNjMtZGExNy00OTliLWFiYjgtYTc4MGFiZGY4YmJkXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "5QzDfErXOps",
+    "duration": 128,
+    "releaseDate": "2025-04-03",
+    "director": "Bùi Thac Chuyên",
+    "castMembers": [
+      "Ngoc Chi Bao",
+      "John Bourdon",
+      "Damien Cole"
+    ],
+    "language": "Vietnamese",
+    "subtitles": null,
+    "rating": 7.4,
+    "ratingCount": 22000,
+    "ageRating": "C16",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama",
+      "thriller",
+      "action"
+    ],
+    "imdbRating": 7.4,
+    "metacriticScore": null
+  },
+  {
+    "imdbId": "tt16366836",
+    "slug": "venom-the-last-dance",
+    "title": "Venom: The Last Dance",
+    "originalTitle": "Venom: The Last Dance",
+    "description": "Eddie Brock and Venom must make a devastating decision as they're pursued by a mysterious military man and alien monsters from Venom's home world.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BZDMyYWU4NzItZDY0MC00ODE2LTkyYTMtMzNkNDdmYmFhZDg0XkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BZDMyYWU4NzItZDY0MC00ODE2LTkyYTMtMzNkNDdmYmFhZDg0XkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "HyIyd9joTTc",
+    "duration": 110,
+    "releaseDate": "2024-10-24",
+    "director": "Kelly Marcel",
+    "castMembers": [
+      "Tom Hardy",
+      "Chiwetel Ejiofor",
+      "Juno Temple"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 6,
+    "ratingCount": 72000,
+    "ageRating": "C13",
+    "formats": [
+      "2D",
+      "IMAX",
+      "3D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "action",
+      "sci-fi",
+      "thriller"
+    ],
+    "imdbRating": 6,
+    "metacriticScore": 41
+  },
+  {
+    "imdbId": "tt1262426",
+    "slug": "wicked",
+    "title": "Wicked",
+    "originalTitle": "Wicked",
+    "description": "Elphaba, a young woman ridiculed for her green skin, and Galinda, a popular girl, become friends at Shiz University in the Land of Oz. After an encounter with the Wonderful Wizard of Oz, their friendship reaches a crossroads.",
+    "posterUrl": "https://m.media-amazon.com/images/M/MV5BOWMwYjYzYmMtMWQ2Ni00NWUwLTg2MzAtYzkzMDBiZDIwOTMwXkEyXkFqcGc@._V1_SX300.jpg",
+    "bannerUrl": "https://m.media-amazon.com/images/M/MV5BOWMwYjYzYmMtMWQ2Ni00NWUwLTg2MzAtYzkzMDBiZDIwOTMwXkEyXkFqcGc@._V1_SX1280.jpg",
+    "trailerUrl": "6COmYeLsz4c",
+    "duration": 160,
+    "releaseDate": "2024-11-21",
+    "director": "Jon M. Chu",
+    "castMembers": [
+      "Cynthia Erivo",
+      "Ariana Grande",
+      "Jeff Goldblum"
+    ],
+    "language": "English",
+    "subtitles": "Vietnamese",
+    "rating": 7.4,
+    "ratingCount": 156000,
+    "ageRating": "P",
+    "formats": [
+      "2D",
+      "IMAX"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "fantasy",
+      "romance",
+      "adventure"
+    ],
+    "imdbRating": 7.4,
+    "metacriticScore": 73
+  },
+  {
+    "imdbId": "tt42004373",
+    "slug": "he-man-va-nhung-chien-binh-vu-tru",
+    "title": "XOXO, He Dumped the Queen Bee for Me",
+    "originalTitle": "He",
+    "description": "Lịch chiếu He-Man Và Những Chiến Binh Vũ Trụ và review phim He-Man Và Những Chiến Binh Vũ Trụ. Đặt vé ngay tại Moveek",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/tall/6a0e8d02b312b237957543.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/tall/6a0e8d02b312b237957543.jpg",
+    "trailerUrl": "bjxBTl3intg",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "Travis Knight",
+    "castMembers": [
+      "Nicholas Galitzine",
+      "Camila Mendes",
+      "Alison Brie",
+      "James Purefoy",
+      "Morena Baccarin",
+      "Jóhannes Haukur Jóhannesson",
+      "Charlotte Riley",
+      "Sasheer Zamata"
+    ],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 7.6,
+    "ratingCount": 0,
+    "ageRating": "C13",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "adventure",
+      "action"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": 7.6,
+    "metacriticScore": null
+  },
+  {
+    "slug": "the-devil-wears-prada-2",
+    "title": "Yêu Nữ Thích Hàng Hiệu 2",
+    "originalTitle": "Yêu Nữ Thích Hàng Hiệu 2",
+    "description": "Lịch chiếu Yêu Nữ Thích Hàng Hiệu 2 và review phim Yêu Nữ Thích Hàng Hiệu 2. Đặt vé ngay tại Moveek.",
+    "posterUrl": "https://cdn.moveek.com/storage/media/cache/large/691d97099d7a1163822819.jpg",
+    "bannerUrl": "https://cdn.moveek.com/storage/media/cache/large/691d97099d7a1163822819.jpg",
+    "trailerUrl": "ZS77vl5hLpg",
+    "duration": 100,
+    "releaseDate": "2026-06-10",
+    "director": "—",
+    "castMembers": [],
+    "language": "Vietnamese",
+    "subtitles": "Vietnamese",
+    "rating": 0,
+    "ratingCount": 0,
+    "ageRating": "P",
+    "formats": [
+      "2D"
+    ],
+    "status": "NOW_SHOWING",
+    "genreSlugs": [
+      "drama"
+    ],
+    "sources": [
+      "moveek"
+    ],
+    "imdbRating": null,
+    "metacriticScore": null
   }
 ]

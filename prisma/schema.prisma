@@ -154,6 +154,22 @@ enum CommunityPostType {
   @@map("community_post_type")
 }
 
+enum CommunityTargetType {
+  REVIEW
+  POST
+
+  @@map("community_target_type")
+}
+
+enum ContentReportReason {
+  SPAM
+  SPOILER
+  HARASSMENT
+  OTHER
+
+  @@map("content_report_reason")
+}
+
 enum GiftCardStatus {
   AVAILABLE
   SOLD_OUT
@@ -268,6 +284,8 @@ model User {
   communityPollVotes CommunityPollVote[]
   cinemaPhotos      CinemaPhoto[]
   groupInvitesHosted BookingGroupInvite[] @relation("GroupInviteHost")
+  communityComments CommunityComment[]
+  contentReports    ContentReport[]
 
   @@unique([provider, providerId])
   @@index([email])
@@ -313,6 +331,9 @@ model Movie {
   castMembers   Json        @default("[]") @map("cast_members")
   language      String      @default("Vietnamese") @map("language")
   subtitles     String?     @map("subtitles")
+  imdbId           String?     @map("imdb_id")
+  imdbRating       Decimal?    @map("imdb_rating") @db.Decimal(3, 1)
+  metacriticScore  Int?        @map("metacritic_score")
   rating        Decimal     @default(0) @map("rating") @db.Decimal(3, 1)
   ratingCount   Int         @default(0) @map("rating_count")
   ageRating     AgeRating   @default(P) @map("age_rating")
@@ -402,6 +423,7 @@ model Cinema {
   snacks            Snack[]
   pricingRules      PricingRule[]
   ticketPriceTiers  TicketPriceTier[]
+  reviews           Review[]
 
   @@index([city])
   @@index([provinceNewId])
@@ -861,8 +883,13 @@ model Review {
   id           String   @id @default(uuid()) @map("id")
   userId       String   @map("user_id")
   movieId      String   @map("movie_id")
+  cinemaId     String?  @map("cinema_id")
+  title        String?  @map("title")
   rating       Int      @map("rating")
   content      String   @map("content")
+  tags         Json     @default("[]") @map("tags")
+  imageUrls    Json     @default("[]") @map("image_urls")
+  hasSpoiler   Boolean  @default(false) @map("has_spoiler")
   isVerified   Boolean  @default(false) @map("is_verified")
   isApproved   Boolean  @default(true) @map("is_approved")
   helpfulCount Int      @default(0) @map("helpful_count")
@@ -871,11 +898,14 @@ model Review {
 
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie     Movie            @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  cinema    Cinema?          @relation(fields: [cinemaId], references: [id], onDelete: SetNull)
   reactions ReviewReaction[]
 
   @@unique([userId, movieId])
   @@index([movieId])
+  @@index([cinemaId])
   @@index([isApproved, createdAt])
+  @@index([isApproved, helpfulCount])
   @@map("reviews")
 }
 
@@ -931,6 +961,7 @@ model CommunityPost {
   hashtags    Json               @default("[]") @map("hashtags")
   type        CommunityPostType  @default(DISCUSSION) @map("type")
   pollOptions Json?              @map("poll_options")
+  hasSpoiler  Boolean            @default(false) @map("has_spoiler")
   isApproved  Boolean            @default(true) @map("is_approved")
   likeCount   Int                @default(0) @map("like_count")
   createdAt   DateTime           @default(now()) @map("created_at")
@@ -978,14 +1009,48 @@ model CinemaPhoto {
 }
 
 model PostShowPrompt {
-  id        String   @id @default(uuid()) @map("id")
-  bookingId String   @unique @map("booking_id")
-  userId    String   @map("user_id")
-  movieId   String   @map("movie_id")
-  sentAt    DateTime @default(now()) @map("sent_at")
+  id          String    @id @default(uuid()) @map("id")
+  bookingId   String    @unique @map("booking_id")
+  userId      String    @map("user_id")
+  movieId     String    @map("movie_id")
+  sentAt      DateTime  @default(now()) @map("sent_at")
+  dismissedAt DateTime? @map("dismissed_at")
 
   @@index([userId])
+  @@index([userId, dismissedAt])
   @@map("post_show_prompts")
+}
+
+model CommunityComment {
+  id         String              @id @default(uuid()) @map("id")
+  userId     String              @map("user_id")
+  targetType CommunityTargetType @map("target_type")
+  targetId   String              @map("target_id")
+  content    String              @map("content")
+  hasSpoiler Boolean             @default(false) @map("has_spoiler")
+  isApproved Boolean             @default(true) @map("is_approved")
+  createdAt  DateTime            @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([targetType, targetId, createdAt])
+  @@map("community_comments")
+}
+
+model ContentReport {
+  id         String              @id @default(uuid()) @map("id")
+  reporterId String              @map("reporter_id")
+  targetType CommunityTargetType @map("target_type")
+  targetId   String              @map("target_id")
+  reason     ContentReportReason @map("reason")
+  details    String?             @map("details")
+  createdAt  DateTime            @default(now()) @map("created_at")
+
+  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([targetType, targetId])
+  @@map("content_reports")
 }
 
 model NewsArticle {

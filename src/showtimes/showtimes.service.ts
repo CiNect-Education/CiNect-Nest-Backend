@@ -3,12 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { HoldStatus } from '@prisma/client';
 import { mapRoomFormat } from '../common/helpers/format.helper';
 import { ProvinceResolverService } from '../provinces/province-resolver.service';
+import { PricingService } from '../common/services/pricing.service';
 
 @Injectable()
 export class ShowtimesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly provinceResolver: ProvinceResolverService,
+    private readonly pricing: PricingService,
   ) {}
 
   async findAll(filters: {
@@ -169,26 +171,36 @@ export class ShowtimesService {
     const heldSet = new Set(heldSeatIds);
     const bookedSet = new Set(bookedSeatIds);
 
-    const seatMap = showtime.room.seats.map((seat) => {
-      const status = bookedSet.has(seat.id)
-        ? 'BOOKED'
-        : heldSet.has(seat.id)
-          ? 'HELD'
-          : seat.status;
-      return {
-        id: seat.id,
-        roomId: seat.roomId,
-        row: seat.rowLabel,
-        rowLabel: seat.rowLabel,
-        number: seat.number,
-        gridCol: seat.gridCol,
-        type: seat.type,
-        status,
-        pairId: seat.pairId,
-        isAisle: seat.isAisle,
-        price: seat.price != null ? Number(seat.price) : null,
-      };
-    });
+    const seatMap = await Promise.all(
+      showtime.room.seats.map(async (seat) => {
+        const status = bookedSet.has(seat.id)
+          ? 'BOOKED'
+          : heldSet.has(seat.id)
+            ? 'HELD'
+            : seat.status;
+        const catalogPrice = await this.pricing.getSeatPrice({
+          showtimeId: showtime.id,
+          seatId: seat.id,
+          cinemaId: showtime.cinemaId,
+          format: showtime.format,
+          seatType: seat.type,
+          startTime: showtime.startTime,
+        });
+        return {
+          id: seat.id,
+          roomId: seat.roomId,
+          row: seat.rowLabel,
+          rowLabel: seat.rowLabel,
+          number: seat.number,
+          gridCol: seat.gridCol,
+          type: seat.type,
+          status,
+          pairId: seat.pairId,
+          isAisle: seat.isAisle,
+          price: catalogPrice,
+        };
+      }),
+    );
 
     const layoutTemplate = showtime.room.layoutTemplate ?? 'GRID';
     const aisleAfterCol =
@@ -199,13 +211,13 @@ export class ShowtimesService {
         id: showtime.id,
         startTime: showtime.startTime,
         endTime: showtime.endTime,
-        basePrice: showtime.basePrice,
-        format: showtime.format,
+        basePrice: Number(showtime.basePrice),
+        format: mapRoomFormat(showtime.format),
       },
       room: {
         id: showtime.room.id,
         name: showtime.room.name,
-        format: showtime.room.format,
+        format: mapRoomFormat(showtime.room.format),
         layoutTemplate,
         aisleAfterCol,
       },

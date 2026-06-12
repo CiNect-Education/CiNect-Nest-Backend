@@ -104,8 +104,10 @@ export class MoviesController {
     @Param('id', ParseUuidPipe) id: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('sort') sort?: 'newest' | 'helpful' | 'rating',
   ) {
-    return this.moviesService.findReviews(id, page, limit);
+    const resolvedSort = sort === 'helpful' || sort === 'rating' ? sort : 'newest';
+    return this.moviesService.findReviews(id, page, limit, resolvedSort);
   }
 
   @ApiBearerAuth()

@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsEnum, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { CommunityPostType } from '@prisma/client';
 
 export class CreateCommunityPostDto {
@@ -30,4 +39,9 @@ export class CreateCommunityPostDto {
   @IsArray()
   @IsString({ each: true })
   pollOptions?: string[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  hasSpoiler?: boolean;
 }

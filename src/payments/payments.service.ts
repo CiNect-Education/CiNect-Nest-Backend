@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentMethod, PaymentStatus, BookingStatus } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,6 +21,9 @@ export class PaymentsService {
     }
     if (booking.status !== BookingStatus.PENDING) {
       throw new ForbiddenException('Booking is not pending payment');
+    }
+    if (booking.expiresAt && booking.expiresAt < new Date()) {
+      throw new BadRequestException('Booking session has expired');
     }
 
     const existing = await this.prisma.payment.findFirst({
