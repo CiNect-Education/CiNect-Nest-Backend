@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -9,13 +8,14 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { ensureAvatarUploadDir } from './uploads/avatar-upload.config';
 import { ensureReviewUploadDir } from './uploads/review-upload.config';
+import { resolveUploadsRoot } from './uploads/uploads-root';
 
 async function bootstrap() {
   ensureAvatarUploadDir();
   ensureReviewUploadDir();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+  app.useStaticAssets(resolveUploadsRoot(), {
     prefix: '/uploads/',
   });
 

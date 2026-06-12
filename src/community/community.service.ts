@@ -19,6 +19,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PageMeta } from '../common/dto/page-meta.dto';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import {
+  normalizeReviewImageUrls,
+  reviewImagePublicPath,
+} from '../common/helpers/review-images.helper';
 import { containsProfanity, generateInviteToken } from './community.utils';
 import { CreateCommunityPostDto } from './dto/create-community-post.dto';
 import { CreateCinemaPhotoDto } from './dto/create-cinema-photo.dto';
@@ -44,7 +48,7 @@ export class CommunityService {
   }
 
   reviewImagePublicUrl(filename: string): string {
-    return `${this.publicApiUrl}/uploads/reviews/${filename}`;
+    return reviewImagePublicPath(filename);
   }
 
   async getPublicProfile(userId: string, viewerId?: string) {
@@ -865,7 +869,7 @@ export class CommunityService {
       rating: r.rating,
       content: r.content,
       tags: Array.isArray(r.tags) ? r.tags : [],
-      imageUrls: Array.isArray(r.imageUrls) ? r.imageUrls : [],
+      imageUrls: normalizeReviewImageUrls(r.imageUrls),
       hasSpoiler: r.hasSpoiler ?? false,
       isVerified: r.isVerified,
       helpfulCount: r.helpfulCount,

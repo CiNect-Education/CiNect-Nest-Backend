@@ -3,6 +3,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { CreateReviewDto, sanitizeReviewTags } from './dto/create-review.dto';
+import {
+  normalizeReviewImageUrls,
+  sanitizeReviewImageUrls,
+} from '../common/helpers/review-images.helper';
 import { MAX_REVIEW_IMAGES } from '../community/community.constants';
 import { PageMeta } from '../common/dto/page-meta.dto';
 import { MovieStatus, Prisma, AgeRating } from '@prisma/client';
@@ -253,7 +257,7 @@ export class MoviesService {
       rating: review.rating,
       content: review.content,
       tags: Array.isArray(review.tags) ? review.tags : [],
-      imageUrls: Array.isArray(review.imageUrls) ? review.imageUrls : [],
+      imageUrls: normalizeReviewImageUrls(review.imageUrls),
       hasSpoiler: review.hasSpoiler ?? false,
       isVerified: review.isVerified ?? false,
       helpfulCount: review.helpfulCount ?? 0,
@@ -285,7 +289,7 @@ export class MoviesService {
     const isVerified = await this.community.userHasVerifiedTicket(userId, movieId);
     const cinemaId = await this.community.resolveReviewCinemaId(userId, movieId);
     const tags = sanitizeReviewTags(dto.tags);
-    const imageUrls = (dto.imageUrls ?? []).slice(0, MAX_REVIEW_IMAGES);
+    const imageUrls = sanitizeReviewImageUrls(dto.imageUrls, MAX_REVIEW_IMAGES);
     const textToCheck = `${dto.title ?? ''} ${dto.content}`;
     const isApproved = !containsProfanity(textToCheck);
 

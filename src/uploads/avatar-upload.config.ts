@@ -3,10 +3,11 @@ import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 import { diskStorage } from 'multer';
 import type { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
+import { resolveUploadsRoot } from './uploads-root';
 
 export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 
-export const AVATAR_UPLOAD_DIR = join(process.cwd(), 'uploads', 'avatars');
+export const AVATAR_UPLOAD_DIR = join(resolveUploadsRoot(), 'avatars');
 
 const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
 

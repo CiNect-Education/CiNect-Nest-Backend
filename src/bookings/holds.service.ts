@@ -86,6 +86,18 @@ export class HoldsService {
           throw new BadRequestException(`Unknown ticket product: ${code}`);
         }
       }
+
+      const hasCoupleSeats = this.ticketProducts.roomHasCoupleSeats(
+        showtime.room.seats,
+      );
+      const requestsDoubleTicket = ticketLines.some(
+        (line) => line.productCode === TicketProductCode.ADULT_DOUBLE,
+      );
+      if (requestsDoubleTicket && !hasCoupleSeats) {
+        throw new BadRequestException(
+          'Double tickets are not available in this auditorium',
+        );
+      }
     }
 
     const selectedSeats = seatIds.map((id) => seatById.get(id)!);

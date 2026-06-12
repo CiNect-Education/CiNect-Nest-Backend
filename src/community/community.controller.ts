@@ -1,3 +1,5 @@
+import { existsSync } from 'fs';
+import { join } from 'path';
 import {
   BadRequestException,
   Body,
@@ -24,6 +26,7 @@ import { CreateCinemaPhotoDto } from './dto/create-cinema-photo.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreateReportDto } from './dto/create-report.dto';
 import { VotePollDto } from './dto/vote-poll.dto';
+import { REVIEW_UPLOAD_DIR } from '../uploads/review-upload.config';
 import { reviewMulterOptions } from '../uploads/review-upload.config';
 
 @ApiTags('community')
@@ -210,7 +213,11 @@ export class CommunityController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file', reviewMulterOptions))
   uploadReviewImage(@UploadedFile() file: Express.Multer.File) {
-    if (!file) throw new BadRequestException('No image uploaded');
-    return { url: this.communityService.reviewImagePublicUrl(file.filename!) };
+    if (!file?.filename) throw new BadRequestException('No image uploaded');
+    const savedPath = join(REVIEW_UPLOAD_DIR, file.filename);
+    if (!existsSync(savedPath)) {
+      throw new BadRequestException('Upload failed to save image file');
+    }
+    return { url: this.communityService.reviewImagePublicUrl(file.filename) };
   }
 }

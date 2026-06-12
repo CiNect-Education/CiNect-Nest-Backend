@@ -1,27 +1,98 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RoomFormat, SeatType, DayType, TimeSlot } from '@prisma/client';
+import { PricingRule, RoomFormat, SeatType, DayType, TimeSlot } from '@prisma/client';
+
+type SeatPriceParams = {
+  showtimeId: string;
+  seatId: string;
+  cinemaId: string;
+  format: RoomFormat;
+  seatType: SeatType;
+  startTime: Date;
+  fallbackBasePrice?: number;
+};
+
+type ShowtimePricingContext = {
+  id: string;
+  cinemaId: string;
+  format: RoomFormat;
+  startTime: Date;
+  basePrice: number;
+};
+
+type SeatPricingInput = {
+  id: string;
+  type: SeatType;
+};
 
 @Injectable()
 export class PricingService {
+  private rulesCache: { rules: PricingRule[]; fetchedAt: number } | null = null;
+  private readonly rulesCacheTtlMs = 60_000;
+
   constructor(private readonly prisma: PrismaService) {}
 
-  async getSeatPrice(params: {
-    showtimeId: string;
-    seatId: string;
-    cinemaId: string;
-    format: RoomFormat;
-    seatType: SeatType;
-    startTime: Date;
-  }): Promise<number> {
-    const dayType = this.getDayType(params.startTime);
-    const timeSlot = this.getTimeSlot(params.startTime);
+  async getActivePricingRules(): Promise<PricingRule[]> {
+    const now = Date.now();
+    if (
+      this.rulesCache &&
+      now - this.rulesCache.fetchedAt < this.rulesCacheTtlMs
+    ) {
+      return this.rulesCache.rules;
+    }
 
     const rules = await this.prisma.pricingRule.findMany({
       where: { isActive: true },
     });
+    this.rulesCache = { rules, fetchedAt: now };
+    return rules;
+  }
 
-    let bestMatch: { rule: { price: { toNumber: () => number } }; score: number } | null = null;
+  async getSeatPricesForShowtime(
+    showtime: ShowtimePricingContext,
+    seats: SeatPricingInput[],
+  ): Promise<Map<string, number>> {
+    const rules = await this.getActivePricingRules();
+    const prices = new Map<string, number>();
+
+    for (const seat of seats) {
+      const price =
+        this.resolveSeatPrice(rules, {
+          showtimeId: showtime.id,
+          seatId: seat.id,
+          cinemaId: showtime.cinemaId,
+          format: showtime.format,
+          seatType: seat.type,
+          startTime: showtime.startTime,
+          fallbackBasePrice: showtime.basePrice,
+        }) ?? showtime.basePrice;
+      prices.set(seat.id, price);
+    }
+
+    return prices;
+  }
+
+  async getSeatPrice(params: SeatPriceParams): Promise<number> {
+    const rules = await this.getActivePricingRules();
+    const priced = this.resolveSeatPrice(rules, params);
+    if (priced !== null) {
+      return priced;
+    }
+
+    const showtime = await this.prisma.showtime.findUnique({
+      where: { id: params.showtimeId },
+    });
+    return showtime ? Number(showtime.basePrice) : 0;
+  }
+
+  private resolveSeatPrice(
+    rules: PricingRule[],
+    params: SeatPriceParams,
+  ): number | null {
+    const dayType = this.getDayType(params.startTime);
+    const timeSlot = this.getTimeSlot(params.startTime);
+
+    let bestMatch: { rule: PricingRule; score: number } | null = null;
 
     for (const rule of rules) {
       const score = this.matchScore({
@@ -41,10 +112,7 @@ export class PricingService {
       return Number(bestMatch.rule.price);
     }
 
-    const showtime = await this.prisma.showtime.findUnique({
-      where: { id: params.showtimeId },
-    });
-    return showtime ? Number(showtime.basePrice) : 0;
+    return params.fallbackBasePrice ?? null;
   }
 
   private matchScore(params: {
@@ -73,7 +141,6 @@ export class PricingService {
   private getDayType(date: Date): DayType {
     const day = date.getDay();
     if (day === 0 || day === 6) return 'WEEKEND';
-    // Could add holiday check
     return 'WEEKDAY';
   }
 

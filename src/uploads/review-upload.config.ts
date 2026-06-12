@@ -4,8 +4,9 @@ import { BadRequestException } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import type { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { randomUUID } from 'crypto';
+import { resolveUploadsRoot } from './uploads-root';
 
-export const REVIEW_UPLOAD_DIR = join(process.cwd(), 'uploads', 'reviews');
+export const REVIEW_UPLOAD_DIR = join(resolveUploadsRoot(), 'reviews');
 
 export function ensureReviewUploadDir() {
   if (!existsSync(REVIEW_UPLOAD_DIR)) {

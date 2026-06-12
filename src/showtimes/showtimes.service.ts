@@ -171,36 +171,37 @@ export class ShowtimesService {
     const heldSet = new Set(heldSeatIds);
     const bookedSet = new Set(bookedSeatIds);
 
-    const seatMap = await Promise.all(
-      showtime.room.seats.map(async (seat) => {
-        const status = bookedSet.has(seat.id)
-          ? 'BOOKED'
-          : heldSet.has(seat.id)
-            ? 'HELD'
-            : seat.status;
-        const catalogPrice = await this.pricing.getSeatPrice({
-          showtimeId: showtime.id,
-          seatId: seat.id,
-          cinemaId: showtime.cinemaId,
-          format: showtime.format,
-          seatType: seat.type,
-          startTime: showtime.startTime,
-        });
-        return {
-          id: seat.id,
-          roomId: seat.roomId,
-          row: seat.rowLabel,
-          rowLabel: seat.rowLabel,
-          number: seat.number,
-          gridCol: seat.gridCol,
-          type: seat.type,
-          status,
-          pairId: seat.pairId,
-          isAisle: seat.isAisle,
-          price: catalogPrice,
-        };
-      }),
+    const seatPrices = await this.pricing.getSeatPricesForShowtime(
+      {
+        id: showtime.id,
+        cinemaId: showtime.cinemaId,
+        format: showtime.format,
+        startTime: showtime.startTime,
+        basePrice: Number(showtime.basePrice),
+      },
+      showtime.room.seats,
     );
+
+    const seatMap = showtime.room.seats.map((seat) => {
+      const status = bookedSet.has(seat.id)
+        ? 'BOOKED'
+        : heldSet.has(seat.id)
+          ? 'HELD'
+          : seat.status;
+      return {
+        id: seat.id,
+        roomId: seat.roomId,
+        row: seat.rowLabel,
+        rowLabel: seat.rowLabel,
+        number: seat.number,
+        gridCol: seat.gridCol,
+        type: seat.type,
+        status,
+        pairId: seat.pairId,
+        isAisle: seat.isAisle,
+        price: seatPrices.get(seat.id) ?? Number(showtime.basePrice),
+      };
+    });
 
     const layoutTemplate = showtime.room.layoutTemplate ?? 'GRID';
     const aisleAfterCol =

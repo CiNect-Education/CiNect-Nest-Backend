@@ -27,7 +27,7 @@ import {
 import { RequestRefundDto } from './dto/request-refund.dto';
 import { formatRefundReason } from './dto/refund-reason.enum';
 import { NotificationsService } from '../notifications/notifications.service';
-import type { Booking } from '@prisma/client';
+import type { Booking, Promotion } from '@prisma/client';
 
 @Injectable()
 export class BookingsService {
@@ -452,6 +452,11 @@ export class BookingsService {
   }
 
   async applyPromo(bookingId: string, userId: string, code: string) {
+    const normalizedCode = code.trim();
+    if (!normalizedCode) {
+      throw new BadRequestException('Promotion code is required');
+    }
+
     const booking = await this.prisma.booking.findFirst({
       where: { id: bookingId, userId, status: 'PENDING' },
     });
@@ -460,9 +465,16 @@ export class BookingsService {
     }
     this.assertPayableBooking(booking);
 
+    if (
+      booking.promotionCode &&
+      booking.promotionCode.toUpperCase() === normalizedCode.toUpperCase()
+    ) {
+      throw new BadRequestException('Promotion already applied to this booking');
+    }
+
     const promotion = await this.prisma.promotion.findFirst({
       where: {
-        code,
+        code: normalizedCode,
         status: 'ACTIVE',
         startDate: { lte: new Date() },
         endDate: { gte: new Date() },
@@ -472,35 +484,65 @@ export class BookingsService {
       throw new NotFoundException('Promotion not found or expired');
     }
 
-    if (promotion.minPurchase && booking.totalAmount.toNumber() < promotion.minPurchase.toNumber()) {
-      throw new BadRequestException('Booking total does not meet minimum purchase requirement');
+    if (promotion.usageLimit && promotion.usageCount >= promotion.usageLimit) {
+      throw new BadRequestException('Promotion usage limit reached');
     }
 
-    let discount = 0;
-    if (promotion.discountType === 'PERCENTAGE') {
-      discount = booking.totalAmount.toNumber() * (promotion.discountValue.toNumber() / 100);
-    } else {
-      discount = promotion.discountValue.toNumber();
+    if (
+      promotion.minPurchase &&
+      booking.totalAmount.toNumber() < promotion.minPurchase.toNumber()
+    ) {
+      throw new BadRequestException(
+        'Booking total does not meet minimum purchase requirement',
+      );
     }
-    if (promotion.maxDiscount && discount > promotion.maxDiscount.toNumber()) {
-      discount = promotion.maxDiscount.toNumber();
+
+    const totalAmount = booking.totalAmount.toNumber();
+    const newPromoDiscount = this.calculatePromotionDiscount(
+      totalAmount,
+      promotion,
+    );
+
+    let existingPromoDiscount = 0;
+    let previousPromotionId: string | null = null;
+    if (booking.promotionCode) {
+      const existingPromo = await this.prisma.promotion.findFirst({
+        where: { code: booking.promotionCode },
+      });
+      if (existingPromo) {
+        existingPromoDiscount = this.calculatePromotionDiscount(
+          totalAmount,
+          existingPromo,
+        );
+        previousPromotionId = existingPromo.id;
+      }
     }
 
-    const newDiscount = booking.discountAmount.toNumber() + discount;
-    const newFinal = booking.totalAmount.toNumber() - newDiscount;
+    const newDiscount =
+      booking.discountAmount.toNumber() - existingPromoDiscount + newPromoDiscount;
+    const newFinal = totalAmount - newDiscount;
 
-    await this.prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        promotionCode: code,
-        discountAmount: newDiscount,
-        finalAmount: Math.max(0, newFinal),
-      },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      if (previousPromotionId) {
+        await tx.promotion.updateMany({
+          where: { id: previousPromotionId, usageCount: { gt: 0 } },
+          data: { usageCount: { decrement: 1 } },
+        });
+      }
 
-    await this.prisma.promotion.update({
-      where: { id: promotion.id },
-      data: { usageCount: { increment: 1 } },
+      await tx.promotion.update({
+        where: { id: promotion.id },
+        data: { usageCount: { increment: 1 } },
+      });
+
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          promotionCode: promotion.code,
+          discountAmount: newDiscount,
+          finalAmount: Math.max(0, newFinal),
+        },
+      });
     });
 
     return this.findOne(bookingId, userId);
@@ -600,6 +642,22 @@ export class BookingsService {
     });
 
     return this.findOne(bookingId, userId);
+  }
+
+  private calculatePromotionDiscount(
+    totalAmount: number,
+    promotion: Pick<Promotion, 'discountType' | 'discountValue' | 'maxDiscount'>,
+  ): number {
+    let discount = 0;
+    if (promotion.discountType === 'PERCENTAGE') {
+      discount = totalAmount * (promotion.discountValue.toNumber() / 100);
+      if (promotion.maxDiscount && discount > promotion.maxDiscount.toNumber()) {
+        discount = promotion.maxDiscount.toNumber();
+      }
+    } else {
+      discount = promotion.discountValue.toNumber();
+    }
+    return discount;
   }
 
   private getRefundConfig() {
