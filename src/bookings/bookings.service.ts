@@ -60,6 +60,13 @@ export class BookingsService {
     if (!hold || hold.userId !== userId) {
       throw new NotFoundException('Hold not found');
     }
+    const existingBooking = await this.prisma.booking.findFirst({
+      where: { holdId: hold.id, userId },
+      include: bookingApiInclude,
+    });
+    if (existingBooking) {
+      return mapBookingToApi(existingBooking);
+    }
     if (hold.status !== HoldStatus.ACTIVE) {
       throw new BadRequestException('Hold is no longer active');
     }

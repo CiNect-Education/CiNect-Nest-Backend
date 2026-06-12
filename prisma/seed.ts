@@ -726,7 +726,7 @@ async function main() {
   const promotionsData = [
     {
       title: 'Student Discount - 20% Off',
-      description: 'Show your student ID and get 20% off on all weekday screenings. Valid for all formats and movies.',
+      description: 'Show your student ID and get 20% off on all weekday screenings, capped at 50,000đ per order. Valid for all formats and movies.',
       code: 'STUDENT20',
       discountType: DiscountType.PERCENTAGE,
       discountValue: 20,
